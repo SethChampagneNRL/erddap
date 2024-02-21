@@ -16,5 +16,6 @@ Thumbs.db
 .project
 /build/
 /out/
+/WEB-INF/build/
 /.idea/
 /.gradle/

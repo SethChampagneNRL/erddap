@@ -23,11 +23,13 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
@@ -198,6 +200,10 @@ public class File2 {
         }
 
         return classPath;
+    }
+
+    public static void setClassPath(String classPath) {
+        File2.classPath = classPath.replace("\\", "/");
     }
 
     /**

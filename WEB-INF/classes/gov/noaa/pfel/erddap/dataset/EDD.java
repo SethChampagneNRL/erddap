@@ -2774,9 +2774,9 @@ public abstract class EDD {
         //"datasetID" is not tokenized and is stored so later I can figure out which dataset a given document is for.
         doc.add(new StringField("datasetID",               datasetID,      Field.Store.YES)); //YES= StringField is not tokenized, so can be retrieved whole (also, it's just one word)
         doc.add(new TextField(EDStatic.luceneDefaultField, searchString(), Field.Store.NO));  //NO=  TextField is tokenized
-        
-        //Do duplicate searches of title to boost the score, 
-        //  so score from lucene and original are closer. 
+
+        //Do duplicate searches of title to boost the score,
+        //  so score from lucene and original are closer.
         //!!! FUTURE: support separate searches within the datasets' titles
         //   If so, add support in searchEngine=original, too.
         Field field = new TextField("title",               title(),        Field.Store.NO);   //NO=  TextField is tokenized

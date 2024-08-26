@@ -15849,7 +15849,7 @@ writer.write(
      * This is static (with gridDatasetHashMap as a param) to facilitate testing.
      *
      * @param language the index of the selected language
-     * @param gridDatasetHashMap 
+     * @param tGridDatasetHashMap hashmap
      * @param TLLTable ASCII text with table with latitude,longitude,time columns
      * @param requestCSV the CSV list of desired datasetID/variable/algorithm/nearby settings
      * @return a table with latitude,longitude,time and requested datasetID/variable columns
@@ -19964,7 +19964,7 @@ expected =
      * This requires a running local ERDDAP with erdMHchla8day and rMHchla8day (among others which will be not matched).
      * This can be used with searchEngine=original or lucene.
      *
-     * @throws exception if trouble.
+     * @throws Throwable if trouble.
      */
     public static void testSearch() throws Throwable {
         Erddap.verbose = true;
@@ -20023,7 +20023,7 @@ expected =
 
     /**
      * This is used by Bob to do simple tests of Advanced Search.
-     * @throws exception if trouble.
+     * @throws Throwable if trouble.
      */
     public static void testAdvancedSearch() throws Throwable {
         Erddap.verbose = true;
@@ -20122,7 +20122,7 @@ expected =
 
     /**
      * This is used by Bob to do simple tests of Categorize.
-     * @throws exception if trouble.
+     * @throws Throwable if trouble.
      */
     public static void testCategorize() throws Throwable {
 /* THIS IS NOT YET IMPLEMENTED

@@ -210,7 +210,7 @@ public class EDStatic {
      * During development, Bob sets this to true. No one else needs to. 
      * If true, ERDDAP uses setup2.xml and datasets2.xml (and messages2.xml if it exists). 
      */
-public static boolean developmentMode = false;
+    public static boolean developmentMode = false;
 
     /** This identifies the dods server/version that this mimics. */
     public static String dapVersion = "DAP/2.0";   
@@ -6275,8 +6275,7 @@ accessibleViaNC4 = ".nc4 is not yet supported.";
      * @param maxTasks This let's you just see what would happen (0), 
      *    or just make a limited or unlimited (Integer.MAX_VALUE) number
      *    of download tasks.
-     * @param tDatasetID 
-     * @param the number of files that will be downloaded
+     * @param tDatasetID
      */
     public static int makeCopyFileTasks(String tClassName, int maxTasks, 
         String tDatasetID, 

@@ -57,7 +57,7 @@ public class EDDTableFromMultidimNcFiles extends EDDTableFromFiles {
      *    that should be used for this dataset, or "" (to cause ERDDAP not
      *    to try to generate FGDC metadata for this dataset), or null (to allow
      *    ERDDAP to try to generate FGDC metadata for this dataset).
-     * @param tIso19115 This is like tFgdcFile, but for the ISO 19119-2/19139 metadata.
+     * @param tIso19115File This is like tFgdcFile, but for the ISO 19119-2/19139 metadata.
      */
     public EDDTableFromMultidimNcFiles(String tDatasetID, 
         String tAccessibleTo, String tGraphsAccessibleTo,
@@ -104,7 +104,7 @@ public class EDDTableFromMultidimNcFiles extends EDDTableFromFiles {
      * This gets source data from one file.
      * See documentation in EDDTableFromFiles.
      *
-     * @throws an exception if too much data.
+     * @throws Throwable an exception if too much data.
      *  This won't throw an exception if no data.
      */
     public Table lowGetSourceDataFromFile(String tFileDir, String tFileName, 

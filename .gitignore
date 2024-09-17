@@ -1,6 +1,8 @@
 WEB-INF/docs
 WEB-INF/lib/
 WEB-INF/ref/
+/WEB-INF/build/
+/WEB-INF/temp/
 images/erddapTalk
 images/gadgets
 images/post
@@ -15,7 +17,6 @@ Thumbs.db
 .classpath
 .project
 /build/
-/WEB-INF/build/
 /out/
 /.gradle/
 src/test/resources/*

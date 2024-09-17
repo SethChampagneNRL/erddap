@@ -2376,16 +2376,11 @@ public class EDStatic {
         // use default messages.xml
         String2.log("Custom messages.xml not found at " + messagesFileName);
         // use String2.getClass(), not ClassLoader.getSystemResource (which fails in Tomcat)
-        messagesFileName =
-            File2.getClassPath()
-                + // with / separator and / at the end
-                    "gov/noaa/pfel/erddap/util/messages.xml";
+        URL messagesResourceFile = Resources.getResource("gov/noaa/pfel/erddap/util/messages.xml");
+        // messagesAr[0] is either the custom messages.xml or the one provided by Erddap
+        messagesAr[0] = ResourceBundle2.fromXml(XML.parseXml(messagesResourceFile, false));
         String2.log("Using default messages.xml from  " + messagesFileName);
       }
-      errorInMethod = "ERROR while reading messages.xml: ";
-      ResourceBundle2[] messagesAr = new ResourceBundle2[nLanguages];
-      // messagesAr[0] is either the custom messages.xml or the one provided by Erddap
-      messagesAr[0] = ResourceBundle2.fromXml(XML.parseXml(messagesFileName, false));
 
       for (int tl = 1; tl < nLanguages; tl++) {
         String tName = "messages-" + TranslateMessages.languageCodeList[tl] + ".xml";

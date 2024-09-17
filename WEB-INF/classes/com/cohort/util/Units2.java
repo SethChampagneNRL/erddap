@@ -56,17 +56,17 @@ public class Units2 {
   // these don't need to be thread-safe because they are read-only after creation
   private static Map<String, String> udHashMap =
       getHashMapStringString(
-          Resources.getResource("com/cohort/util/UdunitsToUcum.properties"),
-          File2.UTF_8);
+              Resources.getResource("com/cohort/util/UdunitsToUcum.properties"),
+              File2.UTF_8);
   protected static Map<String, String> ucHashMap =
       getHashMapStringString(
               Resources.getResource("com/cohort/util/UcumToUdunits.properties"),
-          File2.UTF_8);
+              File2.UTF_8);
 
   // these special cases are usually populated by EDStatic static constructor, but don't have to be
-  public static HashMap<String, String> standardizeUdunitsHM = new HashMap();
-  public static HashMap<String, String> ucumToUdunitsHM = new HashMap();
-  public static HashMap<String, String> udunitsToUcumHM = new HashMap();
+  public static Map<String, String> standardizeUdunitsHM = new HashMap();
+  public static Map<String, String> ucumToUdunitsHM = new HashMap();
+  public static Map<String, String> udunitsToUcumHM = new HashMap();
 
   /**
    * Set this to true (by calling reallyReallyVerbose=true in your program, not by changing the code
@@ -961,7 +961,7 @@ public class Units2 {
    * @throws RuntimeException if trouble
    */
   public static Map<String, String> getHashMapStringString(URL resourceFile, String charset)
-      throws RuntimeException {
+          throws RuntimeException {
     try {
       Map ht = new HashMap();
       List<String> sar = Resources.readLines(resourceFile, Charset.forName(charset));

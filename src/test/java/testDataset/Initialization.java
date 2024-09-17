@@ -1,6 +1,5 @@
 package testDataset;
 
-import com.cohort.util.File2;
 import gov.noaa.pfel.coastwatch.sgt.SgtMap;
 import gov.noaa.pfel.erddap.dataset.EDD;
 import gov.noaa.pfel.erddap.util.EDStatic;

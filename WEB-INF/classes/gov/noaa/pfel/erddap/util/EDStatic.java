@@ -22,6 +22,7 @@ import com.cohort.util.String2LogOutputStream;
 import com.cohort.util.Test;
 import com.cohort.util.Units2;
 import com.cohort.util.XML;
+import com.google.common.io.Resources;
 import com.sun.management.UnixOperatingSystemMXBean;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.coastwatch.griddata.OpendapHelper;
@@ -56,6 +57,7 @@ import java.io.PrintStream;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.net.URL;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -213,8 +215,7 @@ public class EDStatic {
   public static final int TITLE_DOT_LENGTH = 95; // max nChar before inserting newlines
 
   /* contextDirectory is the local directory on this computer, e.g., [tomcat]/webapps/erddap/ */
-  public static String webInfParentDirectory =
-      File2.webInfParentDirectory(); // with / separator and / at the end
+  public static String webInfParentDirectory = File2.lookupWebInfParentDirectory();
   // fgdc and iso19115XmlDirectory are used for virtual URLs.
   public static final String fgdcXmlDirectory = "metadata/fgdc/xml/"; // virtual
   public static final String iso19115XmlDirectory = "metadata/iso19115/xml/"; // virtual
@@ -1825,33 +1826,28 @@ public class EDStatic {
       // **** find contentDirectory
       String ecd = "erddapContentDirectory"; // the name of the environment variable
       errorInMethod =
-          "Couldn't find 'content' directory ([tomcat]/content/erddap/ ?) "
-              + "because '"
-              + ecd
-              + "' environment variable not found "
-              + "and couldn't find '/webapps/' in classPath="
-              + File2.getClassPath()
-              + // with / separator and / at the end
-              " (and 'content/erddap' should be a sibling of <tomcat>/webapps): ";
+              "Couldn't find 'content' directory ([tomcat]/content/erddap/ ?) "
+                      + "because '"
+                      + ecd
+                      + "' environment variable not found "
+                      + "and couldn't find '/webapps/' "
+                      + // with / separator and / at the end
+                      " (and 'content/erddap' should be a sibling of <tomcat>/webapps): ";
       contentDirectory = System.getProperty(ecd);
       if (contentDirectory == null) {
         // Or, it must be sibling of webapps
         // e.g., c:/programs/_tomcat/webapps/erddap/WEB-INF/classes/[these classes]
         // On windows, contentDirectory may have spaces as %20(!)
-        contentDirectory =
-            String2.replaceAll(
-                File2.getClassPath(), // with / separator and / at the end
-                "%20",
-                " ");
+        contentDirectory = File2.accessResourceFile("gov"); // access a resource folder
         int po = contentDirectory.indexOf("/webapps/");
         contentDirectory =
-            contentDirectory.substring(0, po) + "/content/erddap/"; // exception if po=-1
+                contentDirectory.substring(0, po) + "/content/erddap/"; // exception if po=-1
       } else {
         contentDirectory = File2.addSlash(contentDirectory);
       }
       Test.ensureTrue(
-          File2.isDirectory(contentDirectory),
-          "contentDirectory (" + contentDirectory + ") doesn't exist.");
+              File2.isDirectory(contentDirectory),
+              "contentDirectory (" + contentDirectory + ") doesn't exist.");
 
       // **** setup.xml  *************************************************************
       // This is read BEFORE messages.xml. If that is a problem for something,
@@ -1869,7 +1865,7 @@ public class EDStatic {
       Path bpd = Path.of(bigParentDirectory);
       if (!bpd.isAbsolute()) {
         if (!File2.isDirectory(bigParentDirectory)) {
-          bigParentDirectory = File2.webInfParentDirectory() + bigParentDirectory;
+          bigParentDirectory = webInfParentDirectory + bigParentDirectory;
         }
       }
       Test.ensureTrue(
@@ -2369,6 +2365,8 @@ public class EDStatic {
       // This is read AFTER setup.xml. If that is a problem for something, defer reading it in setup
       // and add it below.
       // Read static messages from messages(2).xml in contentDirectory.
+      errorInMethod = "ERROR while reading messages.xml: ";
+      ResourceBundle2[] messagesAr = new ResourceBundle2[nLanguages];
       String messagesFileName = contentDirectory + "messages.xml";
       if (File2.isFile(messagesFileName)) {
         String2.log("Using custom messages.xml from " + messagesFileName);
@@ -4279,6 +4277,14 @@ public class EDStatic {
       //        String2.returnLoggingToSystemOut();
       throw new RuntimeException(errorInMethod);
     }
+  }
+
+  public static String getWebInfParentDirectory() {
+    return EDStatic.webInfParentDirectory;
+  }
+
+  public static void setWebInfParentDirectory(String webInfParentDir) {
+    EDStatic.webInfParentDirectory = webInfParentDir;
   }
 
   /** This does getNotNothingString for each messages[]. */
@@ -7008,7 +7014,6 @@ public class EDStatic {
    * @param maxTasks This let's you just see what would happen (0), or just make a limited or
    *     unlimited (Integer.MAX_VALUE) number of download tasks.
    * @param tDatasetID
-   * @param the number of files that will be downloaded
    */
   public static int makeCopyFileTasks(
       String tClassName,

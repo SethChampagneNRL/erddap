@@ -328,10 +328,13 @@ public class File2 {
     }
 
     po = classPath.indexOf("/WEB-INF/");
-    if (po < 0)
-      throw new RuntimeException(
-              String2.ERROR + ": '/WEB-INF/' not found in classPath=" + classPath);
-    String path = Paths.get(URI.create(classPath.substring(0, po + 1))).toAbsolutePath().toString();
+    String path;
+    if (po < 0) {
+      path = Paths.get(classPath).getParent().getParent().toAbsolutePath().toString();
+//      throw new RuntimeException(String2.ERROR + ": '/WEB-INF/' not found in classPath=" + classPath);
+    } else {
+      path = Paths.get(URI.create(classPath.substring(0, po + 1))).toAbsolutePath().toString();
+    }
     return path.replace("\\", "/") + "/";
   }
 
@@ -2408,4 +2411,5 @@ public class File2 {
       bufferedReader.close();
     }
   }
+
 }

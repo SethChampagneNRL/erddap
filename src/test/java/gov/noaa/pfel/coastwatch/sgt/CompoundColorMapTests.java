@@ -26,10 +26,7 @@ class CompoundColorMapTests {
   @org.junit.jupiter.api.Test
   void basicTest() throws Exception {
     // verbose = true;
-    String basePaletteDir =
-        EDStatic.getWebInfParentDirectory()
-            + // with / separator and / at the end
-            "WEB-INF/cptfiles/";
+    String basePaletteDir = EDStatic.config.fullPaletteDirectory;
     String tempDir = SSR.getTempDirectory();
     File2.deleteAllFiles(tempDir);
     CompoundColorMap ccm;

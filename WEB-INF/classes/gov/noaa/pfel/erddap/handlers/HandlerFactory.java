@@ -13,7 +13,7 @@ import gov.noaa.pfel.erddap.util.EDStatic;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
-import java.util.HashSet;
+import java.util.Set;
 
 public class HandlerFactory {
   private static int nTry = 0;
@@ -35,7 +35,7 @@ public class HandlerFactory {
     EDStatic.cldStartMillis = timeToLoadThisDataset;
     EDStatic.cldDatasetID = datasetID;
 
-    if (EDStatic.useEddReflection) {
+    if (EDStatic.config.useEddReflection) {
       // use reflection to discover handlers
       EDD.EDDClassInfo eddClassInfo = EDD.EDD_CLASS_INFO_MAP.get(datasetType);
       if (eddClassInfo == null || !eddClassInfo.hasSaxHandlerClass()) {
@@ -47,7 +47,7 @@ public class HandlerFactory {
 
       // TODO using the first constructor here, should we scan through all to find the most
       // appropriate one?
-      Constructor<?> constructor = eddClassInfo.getSaxHandlerClass().get().getConstructors()[0];
+      Constructor<?> constructor = eddClassInfo.saxHandlerClass().get().getConstructors()[0];
 
       // Constructors for handlers don't have uniform signatures so we have to do some investigation
       // TODO: standardize the constructor signatures or change to accept a config object?
@@ -108,6 +108,7 @@ public class HandlerFactory {
             "EDDTableFromAwsXmlFiles",
             "EDDTableFromColumnarAsciiFiles",
             "EDDTableFromHttpGet",
+            "EDDTableFromMqtt",
             "EDDTableFromInvalidCRAFiles",
             "EDDTableFromJsonlCSVFiles",
             "EDDTableFromMultidimNcFiles",
@@ -150,7 +151,7 @@ public class HandlerFactory {
         case "EDDTableFromDatabase" -> {
           return new EDDTableFromDatabaseHandler(saxHandler, datasetID, completeState);
         }
-        case "EDDTableFromAsciiService" -> {
+        case "EDDTableFromAsciiService", "EDDTableFromAsciiServiceNOS" -> {
           return new EDDTableFromAsciiServiceHandler(
               saxHandler, datasetID, completeState, datasetType);
         }
@@ -184,8 +185,8 @@ public class HandlerFactory {
   public static boolean skipDataset(
       String datasetID, String active, SaxParsingContext context, boolean isTopLevelDataset) {
     boolean majorLoad = context.getMajorLoad();
-    HashSet<String> orphanIDSet = context.getOrphanIDSet();
-    HashSet<String> datasetIDSet = context.getDatasetIDSet();
+    Set<String> orphanIDSet = context.getOrphanIDSet();
+    Set<String> datasetIDSet = context.getDatasetIDSet();
     boolean reallyVerbose = context.getReallyVerbose();
     StringArray duplicateDatasetIDs = context.getDuplicateDatasetIDs();
     String datasetsRegex = context.getDatasetsRegex();
@@ -224,9 +225,10 @@ public class HandlerFactory {
     // Test third: look at flag/age  or active=false
     if (!skip) {
       // always check both flag locations
-      boolean isFlagged = File2.delete(EDStatic.fullResetFlagDirectory + datasetID);
-      boolean isBadFilesFlagged = File2.delete(EDStatic.fullBadFilesFlagDirectory + datasetID);
-      boolean isHardFlagged = File2.delete(EDStatic.fullHardFlagDirectory + datasetID);
+      boolean isFlagged = File2.delete(EDStatic.config.fullResetFlagDirectory + datasetID);
+      boolean isBadFilesFlagged =
+          File2.delete(EDStatic.config.fullBadFilesFlagDirectory + datasetID);
+      boolean isHardFlagged = File2.delete(EDStatic.config.fullHardFlagDirectory + datasetID);
       if (isFlagged) {
         String2.log(
             "*** reloading datasetID=" + datasetID + " because it was in the flag directory.");

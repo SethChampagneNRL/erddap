@@ -29,7 +29,11 @@
 
 package dods.dap;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Holds a DODS <code>Int16</code> value.
@@ -64,15 +68,6 @@ public class DInt16 extends BaseType implements ClientIO {
    */
   public final short getValue() {
     return val;
-  }
-
-  /**
-   * Set the current value.
-   *
-   * @param newVal the new value.
-   */
-  public final void setValue(short newVal) {
-    val = newVal;
   }
 
   /**
@@ -149,6 +144,6 @@ public class DInt16 extends BaseType implements ClientIO {
     // Write this value out as a 32bit int, since the smallest thing
     // we write to the network is 32bits. The cast automagically
     // pads it out with zero's
-    sink.writeInt((int) val);
+    sink.writeInt(val);
   }
 }

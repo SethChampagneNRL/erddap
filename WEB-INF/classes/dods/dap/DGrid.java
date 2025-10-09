@@ -11,9 +11,14 @@
 
 package dods.dap;
 
-import java.io.*;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class holds a <code>DArray</code> and a set of "Map" vectors. The Map vectors are
@@ -58,7 +63,7 @@ public class DGrid extends DConstructor implements ClientIO {
   protected DArray arrayVar;
 
   /** The Map component of this <code>DGrid</code>. */
-  protected Vector mapVars;
+  protected List<BaseType> mapVars;
 
   /** Constructs a new <code>DGrid</code>. */
   public DGrid() {
@@ -72,7 +77,7 @@ public class DGrid extends DConstructor implements ClientIO {
    */
   public DGrid(String n) {
     super(n);
-    mapVars = new Vector();
+    mapVars = new ArrayList<>();
   }
 
   /**
@@ -82,13 +87,13 @@ public class DGrid extends DConstructor implements ClientIO {
    * @return a clone of this <code>DGrid</code>.
    */
   @Override
-  public Object clone() {
+  public DGrid clone() {
     DGrid g = (DGrid) super.clone();
-    g.arrayVar = (DArray) arrayVar.clone();
-    g.mapVars = new Vector();
+    g.arrayVar = arrayVar.clone();
+    g.mapVars = new ArrayList<>();
     for (int i = 0; i < mapVars.size(); i++) {
-      BaseType bt = (BaseType) mapVars.elementAt(i);
-      g.mapVars.addElement(bt.clone());
+      BaseType bt = mapVars.get(i);
+      g.mapVars.add(bt.clone());
     }
     return g;
   }
@@ -117,8 +122,7 @@ public class DGrid extends DConstructor implements ClientIO {
     if (!leaves) return mapVars.size() + 1; // Number of Maps plus 1 Array component
     else {
       int count = 0;
-      for (Enumeration e = mapVars.elements(); e.hasMoreElements(); ) {
-        BaseType bt = (BaseType) e.nextElement();
+      for (BaseType bt : mapVars) {
         count += bt.elementCount(leaves);
       }
       count += arrayVar.elementCount(leaves);
@@ -137,7 +141,7 @@ public class DGrid extends DConstructor implements ClientIO {
   @Override
   public void addVariable(BaseType v, int part) {
 
-    if (!(v instanceof DArray))
+    if (!(v instanceof DArray darray))
       throw new IllegalArgumentException(
           "Grid `" + getName() + "'s' member `" + arrayVar.getName() + "' must be an array");
 
@@ -145,11 +149,11 @@ public class DGrid extends DConstructor implements ClientIO {
 
     switch (part) {
       case ARRAY:
-        arrayVar = (DArray) v;
+        arrayVar = darray;
         return;
 
       case MAPS:
-        mapVars.addElement(v);
+        mapVars.add(v);
         return;
 
       default:
@@ -175,15 +179,13 @@ public class DGrid extends DConstructor implements ClientIO {
       String field = name.substring(dotIndex + 1);
 
       BaseType aggRef = getVariable(aggregate);
-      if (aggRef instanceof DConstructor)
-        return ((DConstructor) aggRef).getVariable(field); // recurse
+      if (aggRef instanceof DConstructor dcon) return dcon.getVariable(field); // recurse
       else
         ; // fall through to throw statement
     } else {
       if (arrayVar.getName().equals(name)) return arrayVar;
 
-      for (Enumeration e = mapVars.elements(); e.hasMoreElements(); ) {
-        BaseType v = (BaseType) e.nextElement();
+      for (BaseType v : mapVars) {
         if (v.getName().equals(name)) return v;
       }
     }
@@ -204,7 +206,7 @@ public class DGrid extends DConstructor implements ClientIO {
       return arrayVar;
     } else {
       int i = index - 1;
-      if (i < mapVars.size()) return ((BaseType) mapVars.elementAt(i));
+      if (i < mapVars.size()) return mapVars.get(i);
       else
         throw new NoSuchVariableException(
             "DGrid.getVariable() No Such variable: " + index + " - 1)");
@@ -215,28 +217,28 @@ public class DGrid extends DConstructor implements ClientIO {
    * Private class for implemantation of the Enumeration. Because DStructure and DSequence are
    * simpler classes and use a single Vector, their implementations of getVariables aren't as fancy.
    */
-  class EnumerateDGrid implements Enumeration {
+  class EnumerateDGrid implements Iterator<BaseType> {
     boolean array;
-    Enumeration e;
+    final Iterator<BaseType> e;
 
     EnumerateDGrid() {
       array = false; // true when the array is/has being/been
       // visited
-      e = mapVars.elements();
+      e = mapVars.iterator();
     }
 
     @Override
-    public boolean hasMoreElements() {
-      return (array == false) || e.hasMoreElements();
+    public boolean hasNext() {
+      return !array || e.hasNext();
     }
 
     @Override
-    public Object nextElement() {
+    public BaseType next() {
       if (!array) {
         array = true;
         return arrayVar;
       } else {
-        return e.nextElement();
+        return e.next();
       }
     }
   }
@@ -249,7 +251,7 @@ public class DGrid extends DConstructor implements ClientIO {
    * @return An Enumeration
    */
   @Override
-  public Enumeration getVariables() {
+  public Iterator<BaseType> getVariables() {
     return new EnumerateDGrid();
   }
 
@@ -289,17 +291,17 @@ public class DGrid extends DConstructor implements ClientIO {
     // ----- so now that I have written it...  ndp 12/3/99
 
     // Is the size of the maps equal to the size of the cooresponding dimensions?
-    Enumeration emap = mapVars.elements();
+    Iterator<BaseType> emap = mapVars.iterator();
 
-    Enumeration edims = arrayVar.getDimensions();
+    Iterator<DArrayDimension> edims = arrayVar.getDimensions();
     int dim = 0;
-    while (emap.hasMoreElements() && edims.hasMoreElements()) {
+    while (emap.hasNext() && edims.hasNext()) {
 
-      DArray thisMapArray = (DArray) emap.nextElement();
-      Enumeration ema = thisMapArray.getDimensions();
-      DArrayDimension thisMapDim = (DArrayDimension) ema.nextElement();
+      DArray thisMapArray = (DArray) emap.next();
+      Iterator<DArrayDimension> ema = thisMapArray.getDimensions();
+      DArrayDimension thisMapDim = ema.next();
 
-      DArrayDimension thisArrayDim = (DArrayDimension) edims.nextElement();
+      DArrayDimension thisArrayDim = edims.next();
 
       if (thisMapDim.getSize() != thisArrayDim.getSize()) {
 
@@ -338,8 +340,7 @@ public class DGrid extends DConstructor implements ClientIO {
     os.println(space + " ARRAY:");
     arrayVar.printDecl(os, space + "    ", true);
     os.println(space + " MAPS:");
-    for (Enumeration e = mapVars.elements(); e.hasMoreElements(); ) {
-      BaseType bt = (BaseType) e.nextElement();
+    for (BaseType bt : mapVars) {
       bt.printDecl(os, space + "    ", true);
     }
     os.print(space + "} " + getName());
@@ -369,10 +370,10 @@ public class DGrid extends DConstructor implements ClientIO {
     arrayVar.printVal(os, "", false);
 
     os.print(" MAPS: ");
-    for (Enumeration e = mapVars.elements(); e.hasMoreElements(); ) {
-      BaseType bt = (BaseType) e.nextElement();
+    for (Iterator<BaseType> e = mapVars.iterator(); e.hasNext(); ) {
+      BaseType bt = e.next();
       bt.printVal(os, "", false);
-      if (e.hasMoreElements()) os.print(", ");
+      if (e.hasNext()) os.print(", ");
     }
     os.print(" }");
 
@@ -396,10 +397,10 @@ public class DGrid extends DConstructor implements ClientIO {
   public synchronized void deserialize(DataInputStream source, ServerVersion sv, StatusUI statusUI)
       throws IOException, DataReadException {
     arrayVar.deserialize(source, sv, statusUI);
-    for (Enumeration e = mapVars.elements(); e.hasMoreElements(); ) {
+    for (BaseType element : mapVars) {
       if (statusUI != null && statusUI.userCancelled())
         throw new DataReadException("DGrid.deserialize(): User cancelled");
-      ClientIO bt = (ClientIO) e.nextElement();
+      ClientIO bt = (ClientIO) element;
       bt.deserialize(source, sv, statusUI);
     }
   }
@@ -414,8 +415,8 @@ public class DGrid extends DConstructor implements ClientIO {
   @Override
   public void externalize(DataOutputStream sink) throws IOException {
     arrayVar.externalize(sink);
-    for (Enumeration e = mapVars.elements(); e.hasMoreElements(); ) {
-      ClientIO bt = (ClientIO) e.nextElement();
+    for (BaseType element : mapVars) {
+      ClientIO bt = (ClientIO) element;
       bt.externalize(sink);
     }
   }

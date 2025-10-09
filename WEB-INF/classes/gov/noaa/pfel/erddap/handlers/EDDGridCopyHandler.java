@@ -12,7 +12,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDGridCopyHandler extends BaseGridHandler {
-  private SaxParsingContext context;
+  private final SaxParsingContext context;
 
   public EDDGridCopyHandler(
       SaxHandler saxHandler, String datasetID, State completeState, SaxParsingContext context) {
@@ -24,7 +24,7 @@ public class EDDGridCopyHandler extends BaseGridHandler {
   private int tMatchAxisNDigits = DEFAULT_MATCH_AXIS_N_DIGITS;
   private boolean checkSourceData = EDDGridCopy.defaultCheckSourceData;
   private boolean tFileTableInMemory = false;
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
   private String tOnlySince = null;
 
   @Override

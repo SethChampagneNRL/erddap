@@ -27,11 +27,11 @@ class GridFlag {
   public static final int MISSING = 10;
   public static final int GREATER_THAN_ZC = 1;
 
-  private double[] array_;
+  private final double[] array_;
   private double[] mask_ = null;
-  private byte[] value_;
-  private int nx_;
-  private int ny_;
+  private final byte[] value_;
+  private final int nx_;
+  private final int ny_;
 
   public GridFlag(SGTGrid grid, double zc) {
     this(grid, null, zc);
@@ -96,16 +96,6 @@ class GridFlag {
       }
     }
     return (value_[ind] == MISSING);
-  }
-
-  public boolean isGreater(int i, int j) {
-    int ind = index(i, j);
-    if (Debug.CONTOUR) {
-      if (ind < 0 || ind >= nx_ * ny_) {
-        System.out.println("GridFlag.isGreater(): (i,j) = (" + i + ", " + j + ")");
-      }
-    }
-    return (value_[ind] == GREATER_THAN_ZC);
   }
 
   public int getValue(int i, int j) {

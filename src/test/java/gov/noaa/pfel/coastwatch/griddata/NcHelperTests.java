@@ -428,7 +428,7 @@ class NcHelperTests {
     // if (!msg.equals(
     // "java.lang.IllegalArgumentException: Variable starting pos=2400000172 " +
     // "may not exceed 2147483647"))
-    // Test.knownProblem("netcdf-java 5.4.1+ allows creation of nc3 files >2GB!\n" +
+    // TestUtil.knownProblem("netcdf-java 5.4.1+ allows creation of nc3 files >2GB!\n" +
     // "I reported this to Sean Arms 2021-01-06.", t);
     // } finally {
     // File2.delete(fullName);
@@ -479,7 +479,6 @@ class NcHelperTests {
         // boolean buildStringsFromChars = false;
         // boolean isUnsigned = false;
         StructureDataIterator it = s.getStructureIterator();
-        int recNo = 0;
         try {
           while (it.hasNext()) {
             StructureData sd = it.next();
@@ -491,7 +490,6 @@ class NcHelperTests {
             // " a_name=" + sd.getScalarInt(smma) +
             // " b_name=" + sd.getScalarFloat(smmb) +
             // " c_name=" + sd.getScalarDouble(smmc));
-            recNo++;
           }
         } finally {
           it.close();
@@ -567,19 +565,19 @@ class NcHelperTests {
       dims.add(timeDim);
 
       // define Variables
-      Variable.Builder timeVar = NcHelper.addVariable(rootGroup, "time", DataType.DOUBLE, dims);
+      Variable.Builder<?> timeVar = NcHelper.addVariable(rootGroup, "time", DataType.DOUBLE, dims);
       timeVar.addAttribute(new Attribute("units", "seconds since 1970-01-01"));
 
-      Variable.Builder latVar = NcHelper.addVariable(rootGroup, "lat", DataType.DOUBLE, dims);
+      Variable.Builder<?> latVar = NcHelper.addVariable(rootGroup, "lat", DataType.DOUBLE, dims);
       latVar.addAttribute(new Attribute("units", "degrees_north"));
 
-      Variable.Builder lonVar = NcHelper.addVariable(rootGroup, "lon", DataType.DOUBLE, dims);
+      Variable.Builder<?> lonVar = NcHelper.addVariable(rootGroup, "lon", DataType.DOUBLE, dims);
       lonVar.addAttribute(new Attribute("units", "degrees_east"));
 
-      Variable.Builder sstVar = NcHelper.addVariable(rootGroup, "sst", DataType.DOUBLE, dims);
+      Variable.Builder<?> sstVar = NcHelper.addVariable(rootGroup, "sst", DataType.DOUBLE, dims);
       sstVar.addAttribute(new Attribute("units", "degree_C"));
 
-      Variable.Builder commentVar =
+      Variable.Builder<?> commentVar =
           NcHelper.addNc3StringVariable(rootGroup, "comment", dims, strlen);
 
       // create the file
@@ -604,7 +602,6 @@ class NcHelperTests {
         Array array;
         ArrayChar.D2 ac = new ArrayChar.D2(1, strlen);
 
-        double cTime = System.currentTimeMillis() / 1000.0;
         array = NcHelper.get1DArray(new double[] {row}, false);
         ncWriter.write(ncWriter.findVariable("time"), origin1, array);
         // String2.log(">> array=" + array.toString());
@@ -665,17 +662,6 @@ class NcHelperTests {
          * }
          * }
          */
-      }
-
-      // NOTE: instead of closing the ncWriter to write changes to disk, you can use
-      // ncWriter.flush().
-      if (ncWriter != null) {
-        try {
-          ncWriter.abort();
-        } catch (Exception e9) {
-        }
-        File2.delete(testUnlimitedFileName);
-        ncWriter = null;
       }
     } catch (Exception e9) {
       String2.log(
@@ -738,8 +724,6 @@ class NcHelperTests {
   @TagMissingFile
   void testJplG1SST() throws Exception {
     String dir = "c:/data/jplG1SST/";
-    String request[] = new String[] {"SST"};
-    StringArray varNames = new StringArray();
     NetcdfFile fi;
     Variable var; // read start:stop:stride
 

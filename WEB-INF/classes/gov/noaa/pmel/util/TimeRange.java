@@ -33,20 +33,8 @@ public class TimeRange implements java.io.Serializable {
   public GeoDate delta;
 
   /** the Default constructor */
-  public TimeRange() {}
-
-  /**
-   * Constructor
-   *
-   * @param tstart first time
-   * @param tend last time
-   */
-  public TimeRange(GeoDate tstart, GeoDate tend) {
-    this(tstart, tend, null);
-  }
-
-  public TimeRange(long start, long end) {
-    this(new GeoDate(start), new GeoDate(end));
+  public TimeRange() {
+    // Intentional empty constructor
   }
 
   /**
@@ -62,27 +50,12 @@ public class TimeRange implements java.io.Serializable {
     this.delta = tdelta;
   }
 
-  public TimeRange(long start, long end, long delta) {
-    this(new GeoDate(start), new GeoDate(end), new GeoDate(delta));
-  }
-
-  /**
-   * Adds the <code>TimeRange</code> object to this <code>TimeRange</code>. The resulting <code>
-   * TimeRange</code> is the smallest <code>TimeRange</code> that contains both the origial <code>
-   * TimeRange</code> and the specified <code>TimeRange</code>.
-   */
-  public void add(TimeRange trange) {
-    if (trange.start.before(start)) start = trange.start;
-    if (trange.end.after(end)) end = trange.end;
-  }
-
   /** Test for equality. The start, end, and delta must all be equal for equality. */
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof TimeRange)) {
+    if (!(o instanceof TimeRange tr)) {
       return false;
     }
-    TimeRange tr = (TimeRange) o;
     if (start != null && tr.start != null) {
       if (!start.equals(tr.start)) return false;
     } else {
@@ -94,11 +67,10 @@ public class TimeRange implements java.io.Serializable {
       return false;
     }
     if (delta != null && tr.delta != null) {
-      if (!delta.equals(tr.delta)) return false;
+      return delta.equals(tr.delta);
     } else {
       return false;
     }
-    return true;
   }
 
   @Override
@@ -108,7 +80,7 @@ public class TimeRange implements java.io.Serializable {
 
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer(50);
+    StringBuilder buf = new StringBuilder(50);
     buf.append("[").append(start).append(";").append(end);
     if (delta == null) {
       buf.append("]");

@@ -5,12 +5,14 @@
 package gov.noaa.pfel.erddap.dataset;
 
 import com.cohort.util.String2;
+import gov.noaa.pfel.erddap.dataset.EDD.EDDFileTypeInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -27,17 +29,17 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
    */
   public static boolean verbose = false;
 
-  public static String HTML_MIME_TYPE = "text/html";
-  public static String KML_MIME_TYPE = "application/vnd.google-earth.kml+xml";
+  public static final String HTML_MIME_TYPE = "text/html";
+  public static final String KML_MIME_TYPE = "application/vnd.google-earth.kml+xml";
 
-  private HttpServletRequest request;
-  private HttpServletResponse response;
+  private final HttpServletRequest request;
+  private final HttpServletResponse response;
   private String fileName;
-  private String fileType;
-  private String extension;
+  private final String fileType;
+  private final String extension;
   private String usingCompression = ""; // not yet set
   private OutputStream outputStream;
-  private boolean hasRangeRequest;
+  private final boolean hasRangeRequest;
 
   /**
    * The constructor.
@@ -78,10 +80,15 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
   }
 
   /** This is like getFiletypeInfo, but just returns the contentType. */
-  public static String getFileContentType(
-      HttpServletRequest request, String fileType, String extension) {
-    return (String) getFileTypeInfo(request, fileType, extension)[0];
+  public static String getFileContentType(String fileType, String extension) {
+    return getFileTypeInfo(fileType, extension).contentType();
   }
+
+  public record FileTypeInfo(
+      String contentType,
+      Map<String, String> headerMap,
+      boolean genericCompressed,
+      boolean otherCompressed) {}
 
   /**
    * This returns info related to a fileType.
@@ -92,20 +99,26 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
    * @return an Object[] with {String contentType, HashMap headerMap, Boolean genericCompressed,
    *     Boolean otherCompressed). contentType will always be something. headerMap may be empty.
    */
-  public static Object[] getFileTypeInfo(
-      HttpServletRequest request, String fileType, String extension) {
+  private static FileTypeInfo getFileTypeInfo(String fileType, String extension) {
 
     // see mime type list at http://www.webmaster-toolkit.com/mime-types.shtml
     // or http://html.megalink.com/programmer/pltut/plMimeTypes.html
     // or http://www.freeformatter.com/mime-types-list.html#mime-types-list
     String extensionLC = extension.toLowerCase();
     String contentType = null;
-    HashMap headerMap = new HashMap();
+    HashMap<String, String> headerMap = new HashMap<>();
     boolean genericCompressed = false; // true for generic compressed files, e.g., .zip
     boolean otherCompressed =
         false; // true for app specific compressed (but not audio/ image/ video)
 
-    if (extension.equals(".3gp")) {
+    EDDFileTypeInfo fileInfo = EDD.EDD_FILE_TYPE_INFO.get(fileType);
+    if (fileInfo != null) {
+      contentType = fileInfo.getContentType();
+      String description = fileInfo.getContentDescription();
+      if (description != null && description.length() > 0) {
+        headerMap.put("Content-Description", fileInfo.getContentDescription());
+      }
+    } else if (extension.equals(".3gp")) {
       contentType = "video/3gpp";
 
     } else if (extension.equals(".7z")) {
@@ -117,19 +130,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
 
     } else if (extension.equals(".aif") || extension.equals(".aiff") || extension.equals(".aifc")) {
       contentType = "audio/x-aiff";
-
-    } else if (extension.equals(".asc")) {
-      // There are a couple of fileNameTypes that lead to .asc.
-      // If DODS, ...
-      if (fileType.equals(".asc"))
-        headerMap.put(
-            "Content-Description",
-            "dods-data"); // DAP 2.0, 7.1.1  //pre 2019-03-29 was "content-description" "dods_data"
-      else if (fileType.equals(".timeGaps"))
-        headerMap.put(
-            "Content-Description",
-            "time_gap_information"); // pre 2019-03-29 was "content-description"
-      contentType = "text/plain";
 
     } else if (extension.equals(".au")) {
       contentType = "audio/basic";
@@ -154,22 +154,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
     } else if (extension.equals(".css")) {
       contentType = "text/css";
 
-    } else if (extension.equals(".csv")) {
-      contentType = "text/csv";
-
-    } else if (extension.equals(".das")) {
-      contentType = "text/plain";
-      headerMap.put(
-          "Content-Description",
-          "dods-das"); // DAP 2.0, 7.1.1  ???!!!DConnect (that's JPL -- ignore it) has 'c' 'd', BUT
-      // spec (follow the spec) and THREDDS have 'C' 'D'-- but HTTP header names
-      // are case-insensitive
-      // until ERDDAP v1.84, was "content-description", "dods_das": c d _ !
-
-    } else if (extension.equals(".dds")) {
-      contentType = "text/plain";
-      headerMap.put("Content-Description", "dods-dds"); // DAP 2.0, 7.1.1
-
     } else if (extension.equals(".der")) {
       contentType = "application/x-x509-ca-cert";
 
@@ -179,11 +163,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
     } else if (extension.equals(".docx")) {
       contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       otherCompressed = true;
-
-    } else if (extension.equals(".dods")) {
-      // see dods.servlet.DODSServlet.doGetDODS for example
-      contentType = "application/octet-stream";
-      headerMap.put("Content-Description", "dods-data"); // DAP 2.0, 7.1.1
 
     } else if (extension.equals(".dotx")) {
       contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.template";
@@ -265,15 +244,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
               "application/x-jsonlines"; // no definitive answer.
       // https://github.com/wardi/jsonlines/issues/9  I like
       // x-jsonlines because it is descriptive.
-
-    } else if (extension.equals(".kml")) {
-      // see https://developers.google.com/kml/documentation/kml_tut
-      // which lists both of these content types (in different places)
-      // application/keyhole is used by the pydap example that works
-      // http://161.55.17.243/cgi-bin/pydap.cgi/AG/ssta/3day/AG2006001_2006003_ssta.nc.kml?LAYERS=AGssta
-      // contentType = "application/vnd.google-earth.kml+xml";
-      // Opera says handling program is "Opera"!  So I manually added this mime type to Opera.
-      contentType = KML_MIME_TYPE;
 
     } else if (extension.equals(".kmz")) {
       contentType = "application/vnd.google-earth.kmz";
@@ -404,8 +374,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
 
     } else if (extension.equals(".ots")) {
       contentType = "application/vnd.oasis.opendocument.spreadsheet-template";
-    } else if (extension.equals(".parquet") || extension.equals(".parquetWMeta")) {
-      contentType = "application/parquet";
     } else if (extension.equals(".pbm")) {
       contentType = "image/x-portable-bitmap";
 
@@ -468,9 +436,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
 
     } else if (extension.equals(".pyc")) {
       contentType = "application/x-bytecode.python";
-
-    } else if (extension.equals(".qt")) {
-      contentType = "video/quicktime";
 
     } else if (extension.equals(".ra")) {
       contentType = "audio/x-realaudio";
@@ -576,10 +541,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
 
     } else if (extension.equals(".tif") || extension.equals(".tiff")) {
       contentType = "image/tiff";
-
-    } else if (extension.equals(".tsv")) {
-      contentType = "text/tab-separated-values";
-
     } else if (extension.equals(".ttf")) {
       contentType = "application/x-font-ttf";
 
@@ -646,36 +607,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
     } else if (extension.equals(".xbm")) {
       contentType = "image/x-xbitmap";
 
-    } else if (extension.equals(".xhtml")) {
-      // PROBLEM: MS Internet Explorer doesn't display .xhtml files.
-      // It just shows endless series of "Save As..." dialog boxes.
-      // "application/xhtml+xml" is proper mime type,
-      //  see http://keystonewebsites.com/articles/mime_type.php
-      // Lots of websites serve xhtml successfully using this
-      //  e.g., in firefox, see Tools : Page Info for
-      //  https://www.w3.org/MarkUp/Forms/2003/xforms-for-html-authors
-      // see https://www.w3.org/TR/xhtml1/#guidelines
-      // But they do something else.
-      //
-      // I did:
-      // "<p>XHTML and Internet Explorer - Attempts to view .xhtml files in Internet Explorer on
-      // Windows XP \n" +
-      // "<br>often leads to an endless series of \"Save As...\" dialog boxes. The problem seems to
-      // be that \n" +
-      // "<br>Windows XP has no registry entry for the standard XHTML mime type:
-      // application/xhtml+xml.\n" +
-      // "<br>See <a href=\"http://www.peterprovost.org/archive/2004/10/22/2003.aspx\">this blog</a>
-      // for a possible solution.\n" +
-      // But that is not a good solution for ERDDAP clients (too risky).
-      //
-      // SOLUTION from http://www.ibm.com/developerworks/xml/library/x-tipapachexhtml/index.html
-      // if request is from Internet Explorer, use mime type text/html.
-      String userAgent = request.getHeader("user-agent"); // case-insensitive
-      if (userAgent != null && userAgent.indexOf("MSIE") >= 0) {
-        contentType = "text/html"; // the hack
-        if (verbose) String2.log(".xhtml request from user-agent=MSIE: using mime=text/html");
-      } else contentType = "application/xhtml+xml"; // the right thing for everyone else
-
     } else if (extension.equals(".xif")) {
       contentType = "image/vnd.xiff";
 
@@ -734,9 +665,7 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
       // how specify file name in popup window that user is shown? see below
       // see http://forum.java.sun.com/thread.jspa?threadID=696263&messageID=4043287
     }
-    return new Object[] {
-      contentType, headerMap, Boolean.valueOf(genericCompressed), Boolean.valueOf(otherCompressed)
-    };
+    return new FileTypeInfo(contentType, headerMap, genericCompressed, otherCompressed);
   }
 
   /**
@@ -751,12 +680,15 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
    */
   public static boolean showFileSaveAs(
       boolean genericCompressed, String fileType, String extension) {
-
-    return genericCompressed
-        || // include all genericCompressed types
-        extension.equals(".cdf")
+    if (genericCompressed) {
+      return true;
+    }
+    EDDFileTypeInfo fileInfo = EDD.EDD_FILE_TYPE_INFO.get(fileType);
+    if (fileInfo != null) {
+      return fileInfo.getAddContentDispositionHeader();
+    }
+    return extension.equals(".cdf")
         || extension.equals(".csv")
-        || fileType.equals(".esriAscii")
         || extension.equals(".itx")
         || extension.equals(".js")
         || fileType.equals(".json")
@@ -765,9 +697,6 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
         || extension.equals(".kml")
         || extension.equals(".mat")
         || extension.equals(".nc")
-        || fileType.equals(".odvTxt")
-        || // don't force Save As for other .txt, but do for .odvTxt
-        extension.equals(".parquet")
         || extension.equals(".pdf")
         || extension.equals(".tif")
         || extension.equals(".tsv")
@@ -812,20 +741,18 @@ public class OutputStreamFromHttpResponse implements OutputStreamSource {
 
     // get and apply the fileTypeInfo
     // 2020-12-07 this is the section that was inline but now uses the static methods above
-    Object fileTypeInfo[] = getFileTypeInfo(request, fileType, extension);
-    String contentType = (String) fileTypeInfo[0];
-    HashMap headerMap = (HashMap) fileTypeInfo[1];
+    FileTypeInfo fileTypeInfo = getFileTypeInfo(fileType, extension);
+    String contentType = fileTypeInfo.contentType();
+    Map<String, String> headerMap = fileTypeInfo.headerMap();
     boolean genericCompressed =
-        ((Boolean) fileTypeInfo[2]).booleanValue(); // true for generic compressed files, e.g., .zip
+        fileTypeInfo.genericCompressed(); // true for generic compressed files, e.g., .zip
     boolean otherCompressed =
-        ((Boolean) fileTypeInfo[3])
-            .booleanValue(); // true for app specific compressed (but not audio/ image/ video)
+        fileTypeInfo
+            .otherCompressed; // true for app specific compressed (but not audio/ image/ video)
 
     response.setContentType(contentType);
-    Iterator it = headerMap.keySet().iterator();
-    while (it.hasNext()) {
-      String key = (String) it.next();
-      response.setHeader(key, (String) headerMap.get(key));
+    for (Entry<String, String> entry : headerMap.entrySet()) {
+      response.setHeader(entry.getKey(), entry.getValue());
     }
 
     // set the characterEncoding

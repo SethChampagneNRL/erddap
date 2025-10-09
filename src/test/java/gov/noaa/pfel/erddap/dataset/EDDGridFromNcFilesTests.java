@@ -1,5 +1,7 @@
 package gov.noaa.pfel.erddap.dataset;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.cohort.array.PrimitiveArray;
 import com.cohort.util.Calendar2;
 import com.cohort.util.File2;
@@ -8,17 +10,21 @@ import com.cohort.util.Math2;
 import com.cohort.util.MustBe;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
+import com.cohort.util.TestUtil;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.coastwatch.sgt.SgtMap;
 import gov.noaa.pfel.coastwatch.util.FileVisitorDNLS;
 import gov.noaa.pfel.coastwatch.util.SSR;
+import gov.noaa.pfel.coastwatch.util.SharedWatchService;
+import gov.noaa.pfel.erddap.Erddap;
 import gov.noaa.pfel.erddap.GenerateDatasetsXml;
+import gov.noaa.pfel.erddap.util.EDMessages;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.EDV;
-import gov.noaa.pfel.erddap.variable.EDVGridAxis;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -39,9 +45,17 @@ import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDatasets;
 
 class EDDGridFromNcFilesTests {
+  private static boolean initialUpdateRss;
+
   @BeforeAll
   static void init() {
     Initialization.edStatic();
+    initialUpdateRss = EDStatic.config.updateSubsRssOnFileChanges;
+  }
+
+  @AfterEach
+  void cleanup() {
+    EDStatic.config.updateSubsRssOnFileChanges = initialUpdateRss;
   }
 
   /** This prints time, lat, and lon values from an .ncml dataset. */
@@ -113,9 +127,6 @@ class EDDGridFromNcFilesTests {
   @TagIncompleteTest // https://github.com/ERDDAP/erddap/issues/148
   void testNcml() throws Throwable {
 
-    // String2.log("\n*** EDDGridFromNcFiles.testNcml");
-    int language = 0;
-
     // 2022-02-07 These were the simplest test I could create to demonstrate
     // problems reading .ncml file
     // when using individual netcdf modules, instead of netcdf-java.
@@ -185,7 +196,7 @@ class EDDGridFromNcFilesTests {
       // pre 5.4.1
       Test.ensureEqual(results, expected, "results=\n" + results);
     } catch (Exception e) {
-      Test.knownProblem(
+      TestUtil.knownProblem(
           "2022-07-07 This fails with switch to netcdf v5.5.3 and modules (not netcdfAll). "
               + "I reported to netcdf-java people.",
           e);
@@ -206,13 +217,9 @@ class EDDGridFromNcFilesTests {
     // testVerboseOn();
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
-    String id = "testGriddedNcFiles";
+    String tName, results, tResults, expected, userDapQuery;
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestGriddedNcFiles();
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
 
     // *** test getting .nccsvMetadata for entire dataset
     String2.log("\n*** .nccsvMetadata for entire dataset\n");
@@ -222,10 +229,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_nccsvMeta",
             ".nccsvMetadata");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "*GLOBAL*,Conventions,\"COARDS, CF-1.6, ACDD-1.3, NCCSV-1.2\"\n"
@@ -367,10 +374,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_nccsvAxis",
             ".nccsv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "*GLOBAL*,Conventions,\"COARDS, CF-1.6, ACDD-1.3, NCCSV-1.2\"\n"
@@ -484,10 +491,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_nccsvData",
             ".nccsv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "*GLOBAL*,Conventions,\"COARDS, CF-1.6, ACDD-1.3, NCCSV-1.2\"\n"
@@ -665,10 +672,8 @@ class EDDGridFromNcFilesTests {
     // String2.log("\n****************** EDDGridFromNcFiles.testNc()
     // *****************\n");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
+    String tName, results, tResults, expected, userDapQuery;
     int language = 0;
-    String error = "";
-    EDVGridAxis edvga;
     String id = "testGriddedNcFiles";
     EDDGridFromNcFiles.deleteCachedDatasetInfo(id);
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestGriddedNcFiles();
@@ -682,10 +687,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -851,10 +856,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Entire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -901,10 +906,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         // verified with
@@ -936,10 +941,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".csvp");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         // verified with
@@ -957,10 +962,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".csv0");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected = csvExpected;
     // verified with
@@ -976,10 +981,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         // verified with
@@ -1000,10 +1005,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".tsv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         // verified with
@@ -1036,10 +1041,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".tsvp");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         // verified with
@@ -1057,10 +1062,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".tsv0");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected = tsvExpected;
     // verified with
@@ -1080,8 +1085,6 @@ class EDDGridFromNcFilesTests {
     String fileName =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/data/nc/invalidShortened2.nc").toURI())
             .toString();
-    String id = "testBadNcFile";
-    int language = 0;
 
     // try to read it many times, reduced from 1,000,000 to 1,000
     for (int i = 0; i <= 1000; i++) {
@@ -1141,8 +1144,6 @@ class EDDGridFromNcFilesTests {
     String fileName =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/data/nc/invalidShortened.nc").toURI())
             .toString();
-    String id = "testBadNcFile";
-    int language = 0;
 
     NetcdfFile ncFile = null;
     try {
@@ -1194,14 +1195,9 @@ class EDDGridFromNcFilesTests {
   @TagLargeFiles
   @TagImageComparison
   void testAwsS3(boolean deleteCachedDatasetInfo) throws Throwable {
-    // String2.log("\n****************** EDDGridFromNcFiles.testAwsS3()
-    // *****************\n");
-    // testVerboseOn();
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
+    String tName, results, tResults, expected, userDapQuery;
     String id = "testAwsS3";
     if (deleteCachedDatasetInfo) EDDGridFromNcFiles.deleteCachedDatasetInfo(id);
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestAwsS3();
@@ -1216,10 +1212,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected = // 2020-10-02 lots of small changes to source metadata
         "Attributes {\n"
@@ -1370,10 +1366,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Entire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -1400,10 +1396,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         /*
@@ -1461,7 +1457,7 @@ class EDDGridFromNcFilesTests {
             obsDir,
             baseName,
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
   }
 
@@ -1480,9 +1476,7 @@ class EDDGridFromNcFilesTests {
     EDStatic.reallyVerbose = true;
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
+    String tName, results, tResults, expected, userDapQuery;
     String id = "testPrivateAwsS3";
     String cacheDir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/largePoints/testPrivateAwsS3/").toURI())
@@ -1515,7 +1509,6 @@ class EDDGridFromNcFilesTests {
     }
 
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
 
     // *** test getting das for entire dataset
     String2.log("\n*** .nc test das dds for entire dataset\n");
@@ -1525,10 +1518,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -1704,10 +1697,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_privateAwsS3",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         // note that the dataset in erddap has altitude manually adjusted to be 10m.
@@ -1741,9 +1734,7 @@ class EDDGridFromNcFilesTests {
   void testCwHdf(boolean deleteCachedDatasetInfo) throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testCwHdf()\n");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
     String today =
         Calendar2.getCurrentISODateTimeStringZulu()
             .substring(0, 14); // 14 is enough to check hour. Hard
@@ -1765,10 +1756,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_CwHdfEntire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -1819,9 +1810,9 @@ class EDDGridFromNcFilesTests {
             + "    String autonav_performed \"true\";\n"
             + "    Int32 autonav_quality 2;\n"
             + "    String cdm_data_type \"Grid\";\n"
-            + (EDStatic.useSaxParser ? "    Int32 cols 1140;\n" : "")
+            + (EDStatic.config.useSaxParser ? "    Int32 cols 1140;\n" : "")
             + "    String Conventions \"COARDS, CF-1.6, ACDD-1.3\";\n"
-            + (EDStatic.useSaxParser
+            + (EDStatic.config.useSaxParser
                 ? "    String cwhdf_version \"3.4\";\n"
                     + "    Float64 et_affine 0.0, -1470.0, 1470.0, 0.0, -9778346.500515733, 4398734.085407009;\n"
                     + "    Int32 gctp_datum 12;\n"
@@ -1852,20 +1843,20 @@ class EDDGridFromNcFilesTests {
             + "particular purpose, or assumes any legal liability for the accuracy,\n"
             + "completeness, or usefulness, of this information.\";\n"
             + "    String origin \"USDOC/NOAA/NESDIS CoastWatch\";\n"
-            + (EDStatic.useSaxParser ? "    Int32 pass_date 13990;\n" : "")
+            + (EDStatic.config.useSaxParser ? "    Int32 pass_date 13990;\n" : "")
             + "    String pass_type \"day\";\n"
-            + (EDStatic.useSaxParser
+            + (EDStatic.config.useSaxParser
                 ? "    Float64 polygon_latitude 36.89432948408865, 36.89432948408865, 36.89432948408865, 36.89432948408865, 36.89432948408865, 33.51643401115052, 29.999999999936534, 26.35308766180611, 22.586165505358508, 22.586165505358508, 22.586165505358508, 22.586165505358508, 22.586165505358508, 26.35308766180611, 29.999999999936534, 33.51643401115052, 36.89432948408865;\n"
                     + "    Float64 polygon_longitude -87.8403811482992, -84.08019057414958, -80.32000000000001, -76.5598094258504, -72.79961885170081, -72.79961885170081, -72.79961885170081, -72.79961885170081, -72.79961885170081, -76.5598094258504, -80.32000000000001, -84.08019057414958, -87.8403811482992, -87.8403811482992, -87.8403811482992, -87.8403811482992, -87.8403811482992;\n"
                 : "")
             + "    String projection \"Mercator\";\n"
             + "    String projection_type \"mapped\";\n"
-            + (EDStatic.useSaxParser ? "    Int32 rows 1248;\n" : "")
+            + (EDStatic.config.useSaxParser ? "    Int32 rows 1248;\n" : "")
             + "    String satellite \"noaa-18\";\n"
             + "    String sensor \"avhrr\";\n"
             + "    String sourceUrl \"(local files)\";\n"
             + "    String standard_name_vocabulary \"CF Standard Name Table v70\";\n"
-            + (EDStatic.useSaxParser ? "    Float64 start_time 65502.0;\n" : "")
+            + (EDStatic.config.useSaxParser ? "    Float64 start_time 65502.0;\n" : "")
             + "    String summary \"???\";\n"
             + "    String title \"Test of CoastWatch HDF files\";\n"
             + "  }\n"
@@ -1884,10 +1875,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_CwHdfEntire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -1919,10 +1910,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_CwHdfData1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "rows,cols,sst\n"
@@ -1955,10 +1946,7 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXml() throws Throwable {
-
-    String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXml");
-    int language = 0;
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     String erdQSwindDir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/largeFiles/erdQSwind1day/").toURI())
             .toString();
@@ -2243,7 +2231,8 @@ class EDDGridFromNcFilesTests {
     EDD.deleteCachedDatasetInfo(tDatasetID);
     EDD edd = EDDGridFromNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), suggDatasetID, "");
-    Test.ensureEqual(edd.title(), "Wind, QuikSCAT, Global, Science Quality (1 Day Composite)", "");
+    Test.ensureEqual(
+        edd.title(language), "Wind, QuikSCAT, Global, Science Quality (1 Day Composite)", "");
     Test.ensureEqual(
         String2.toCSSVString(edd.dataVariableDestinationNames()), "x_wind, y_wind, mod", "");
 
@@ -2258,9 +2247,6 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXml2() throws Throwable {
-
-    String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXml2");
-    int language = 0;
     String geosgribDir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/largeFiles/geosgrib/").toURI())
             .toString();
@@ -2548,10 +2534,6 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXml3() throws Throwable {
-
-    String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXml3");
-    int language = 0;
-
     String sDir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/largeSatellite/PH2/sstd/1day/").toURI())
             .toString();
@@ -3071,11 +3053,6 @@ class EDDGridFromNcFilesTests {
   @org.junit.jupiter.api.Test
   @TagLargeFiles
   void testGenerateDatasetsXml4() throws Throwable {
-
-    // String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXml4");
-    // reallyVerbose = true;
-    int language = 0;
-
     // takes a long time and no longer useful
     // String2.pressEnterToContinue(
     // "\nCopy the latest file from coastwatch\n" +
@@ -3457,10 +3434,6 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXml5() throws Throwable {
-
-    // String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXml5");
-    int language = 0;
-    // reallyVerbose = true;
     String results, gdxResults, expected;
 
     String fileDir =
@@ -3900,13 +3873,6 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXmlStructures() throws Throwable {
-
-    // String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXmlStructures");
-    // reallyVerbose = true;
-    // boolean oDebug = debugMode;
-    // debugMode = true;
-    int language = 0;
-
     // takes a long time and no longer useful
     // String2.pressEnterToContinue(
     // "\nCopy the latest file from coastwatch\n" +
@@ -4003,29 +3969,7 @@ class EDDGridFromNcFilesTests {
             + "    </dataVariable>\n"
             + "</dataset>\n"
             + "\n";
-    // String2.log(results);
     Test.ensureEqual(results, expected, "");
-
-    // test specifying axis0 (better if it included the size, e.g., axis0_10)
-    // This (reasonably) fails: "ERROR: dimension=axis0 not found in the file!"
-    if (false) { // so don't do this test
-      results =
-          EDDGridFromNcFiles.generateDatasetsXml(
-              fileDir,
-              "SDScompound\\.h5",
-              "",
-              "", // group
-              "axis0",
-              -1,
-              null,
-              null); // dimensionsCSV, reloadMinutes, cacheFromUrl
-      Test.ensureEqual(results, expected, "\nresults=\n" + results);
-    }
-
-    // String2.log("\nEDDGridFromNcFiles.testGenerateDatasetsXmlStructures passed
-    // the test.");
-    // debugMode = oDebug;
-
   }
 
   /**
@@ -4035,13 +3979,6 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXmlStructuresPrivate() throws Throwable {
-
-    // String2.log("\n***
-    // EDDGridFromNcFiles.testGenerateDatasetsXmlStructuresPrivate");
-    // reallyVerbose = true;
-    // boolean oDebug = debugMode;
-    // debugMode = true;
-    int language = 0;
     String dir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/largeFiles/justin/").toURI())
             .toString();
@@ -4076,10 +4013,7 @@ class EDDGridFromNcFilesTests {
   @TagAWS
   @TagLargeFiles
   void testGenerateDatasetsXmlAwsS3() throws Throwable {
-
-    String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXmlAwsS3");
-    int language = 0;
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     String cacheFromUrl =
         "https://nasanex.s3.us-west-2.amazonaws.com/NEX-DCP30/BCSD/rcp26/mon/atmos/tasmin/r1i1p1/v1.0/CONUS"; // intentionally
     // left
@@ -4325,7 +4259,9 @@ class EDDGridFromNcFilesTests {
     EDD edd = EDDGridFromNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), suggDatasetID, "");
     Test.ensureEqual(
-        edd.title(), "800m Downscaled NEX CMIP5 Climate Projections for the Continental US", "");
+        edd.title(language),
+        "800m Downscaled NEX CMIP5 Climate Projections for the Continental US",
+        "");
     Test.ensureEqual(String2.toCSSVString(edd.dataVariableDestinationNames()), "tasmin", "");
 
     // String2.log("\nEDDGridFromNcFiles.testGenerateDatasetsXmlAwsS3 passed the
@@ -4342,10 +4278,7 @@ class EDDGridFromNcFilesTests {
   @ValueSource(booleans = {true, false})
   @TagAWS
   void testGenerateDatasetsXmlPrivateAwsS3(boolean deleteCachedFiles) throws Throwable {
-
-    String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXmlPrivateAwsS3()");
-    int language = 0;
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     String cacheFromUrl =
         "https://bobsimonsdata.s3.us-east-1.amazonaws.com/erdQSwind1day"; // intentionally left
     // off trailing /
@@ -4656,7 +4589,8 @@ class EDDGridFromNcFilesTests {
       edd = EDDGridFromNcFiles.oneFromXmlFragment(null, results);
     }
     Test.ensureEqual(edd.datasetID(), suggDatasetID, "");
-    Test.ensureEqual(edd.title(), "Wind, QuikSCAT, Global, Science Quality (1 Day Composite)", "");
+    Test.ensureEqual(
+        edd.title(language), "Wind, QuikSCAT, Global, Science Quality (1 Day Composite)", "");
     Test.ensureEqual(
         String2.toCSSVString(edd.dataVariableDestinationNames()), "x_wind, y_wind, mod", "");
   }
@@ -4669,7 +4603,6 @@ class EDDGridFromNcFilesTests {
    * identify matching variables.
    */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest // Cannot load from object array because "this.sourceAxisValues" is null
   void testGenerateDatasetsXmlGroups() throws Throwable {
     // A test for Jessica Hausman
     // the test file is from
@@ -4681,10 +4614,11 @@ class EDDGridFromNcFilesTests {
     int language = 0;
 
     String dataDir =
-        Path.of(EDDGridFromNcFilesTests.class.getResource("/largeFiles/hdf/").toURI()).toString();
+        Path.of(EDDGridFromNcFilesTests.class.getResource("/largeFiles/hdf/").toURI()).toString()
+            + "/";
 
     // test if netcdf java considers group name to have trailing slash
-    NetcdfFile ncFile = NetcdfFiles.open(dataDir + "/Q2011237000100.L2_SCI_V4.0");
+    NetcdfFile ncFile = NetcdfFiles.open(dataDir + "Q2011237000100.L2_SCI_V4.0");
     try {
       Variable var = ncFile.findVariable("Navigation/scat_latfoot");
       Test.ensureEqual(var.getParentGroup().getFullName(), "Navigation", "");
@@ -4695,11 +4629,12 @@ class EDDGridFromNcFilesTests {
       ncFile.close();
     }
     String suggDatasetID =
-        EDDGridFromNcFiles.suggestDatasetID(dataDir + "/Q2011237000100.L2_SCI_V4\\.0");
+        EDDGridFromNcFiles.suggestDatasetID(
+            "Aquarius_Flags/" + dataDir + "Q2011237000100.L2_SCI_V4\\.0");
 
     results =
         EDDGridFromNcFiles.generateDatasetsXml(
-                dataDir + "/",
+                dataDir,
                 "Q2011237000100.L2_SCI_V4\\.0",
                 "",
                 "", // group
@@ -4721,7 +4656,7 @@ class EDDGridFromNcFilesTests {
             + "    <updateEveryNMillis>10000</updateEveryNMillis>\n"
             + "    <fileDir>"
             + dataDir
-            + "/</fileDir>\n"
+            + "</fileDir>\n"
             + "    <fileNameRegex>Q2011237000100.L2_SCI_V4\\.0</fileNameRegex>\n"
             + "    <recursive>true</recursive>\n"
             + "    <pathRegex>.*</pathRegex>\n"
@@ -4892,10 +4827,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroupsA_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -5024,10 +4959,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroupsA_Entire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -5056,10 +4991,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroupsA_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "axis0,axis1,axis2,axis3,Aquarius_Flags_rad_rfi_flags\n"
@@ -5080,11 +5015,12 @@ class EDDGridFromNcFilesTests {
         "\nresults=\n" + results.substring(0, 500));
 
     suggDatasetID =
-        EDDGridFromNcFiles.suggestDatasetID(dataDir + "/Q2011237000100.L2_SCI_V4\\\\.0");
+        EDDGridFromNcFiles.suggestDatasetID(
+            "Navigation/" + dataDir + "Q2011237000100.L2_SCI_V4\\.0");
     // *********** test group
     results =
         EDDGridFromNcFiles.generateDatasetsXml(
-                dataDir + "/",
+                dataDir,
                 "Q2011237000100.L2_SCI_V4\\.0",
                 "",
                 "Navigation", // group
@@ -5106,7 +5042,7 @@ class EDDGridFromNcFilesTests {
             + "    <updateEveryNMillis>10000</updateEveryNMillis>\n"
             + "    <fileDir>"
             + dataDir
-            + "/</fileDir>\n"
+            + "</fileDir>\n"
             + "    <fileNameRegex>Q2011237000100.L2_SCI_V4\\.0</fileNameRegex>\n"
             + "    <recursive>true</recursive>\n"
             + "    <pathRegex>.*</pathRegex>\n"
@@ -5375,10 +5311,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -5574,10 +5510,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups_Entire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -5644,10 +5580,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Navigation_axis0,Navigation_axis1,Navigation_axis2,Aquarius_Flags_radiometer_flags,Block_Attributes_rad_samples,Navigation_cellatfoot,Navigation_cellonfoot,Navigation_scat_latfoot,Navigation_scat_lonfoot\n"
@@ -5667,22 +5603,22 @@ class EDDGridFromNcFilesTests {
    * @throws Throwable if touble
    */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest // Cannot load from object array because "this.sourceAxisValues" is null
   void testGenerateDatasetsXmlGroups2() throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXmlGroups2");
     // reallyVerbose = true;
     String results, tResults, gdxResults, expected, tName, userDapQuery;
-    int po, tPo;
+    int tPo;
     EDDGrid eddGrid;
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
     int language = 0;
 
     String fileDir =
-        Path.of(EDDGridFromNcFilesTests.class.getResource("/data/charles/").toURI()).toString();
+        Path.of(EDDGridFromNcFilesTests.class.getResource("/data/charles/").toURI()).toString()
+            + "/";
     String fileRegex = "testGroups2\\.nc"; // just 1 file, don't aggregate
 
-    String suggDatasetID = EDDGridFromNcFiles.suggestDatasetID(fileDir + "/" + fileRegex);
+    String suggDatasetID =
+        EDDGridFromNcFiles.suggestDatasetID("Synthetic_032_-_1/" + fileDir + fileRegex);
 
     /* */
     // *** group="" dimensionsCSV=""
@@ -5724,7 +5660,7 @@ class EDDGridFromNcFilesTests {
             + "    <updateEveryNMillis>10000</updateEveryNMillis>\n"
             + "    <fileDir>"
             + fileDir
-            + "\\</fileDir>\n"
+            + "</fileDir>\n"
             + "    <fileNameRegex>testGroups2\\.nc</fileNameRegex>\n"
             + "    <recursive>true</recursive>\n"
             + "    <pathRegex>.*</pathRegex>\n"
@@ -5895,10 +5831,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups2_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -6020,10 +5956,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups2_Entire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -6076,10 +6012,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups2_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,Synthetic_032_1_Y_Depth_Averaged_Velocity,Synthetic_032_1_Y_Wind_Velocity,Synthetic_032_1_Water_Elevation,Synthetic_032_1_X_Depth_Averaged_Velocity,Synthetic_032_1_X_Wind_Velocity,Synthetic_032_1_Atmospheric_Pressure\n"
@@ -6109,7 +6045,7 @@ class EDDGridFromNcFilesTests {
     expected = "java.lang.RuntimeException: ERROR: dimension=rgb not found in the file!";
     Test.ensureEqual(results, expected, "results=\n" + results);
 
-    suggDatasetID = EDDGridFromNcFiles.suggestDatasetID(fileDir + "/" + fileRegex);
+    suggDatasetID = EDDGridFromNcFiles.suggestDatasetID("Synthetic_035_-_3/" + fileDir + fileRegex);
 
     /* */
     // group="Synthetic_035_-_3"
@@ -6132,7 +6068,7 @@ class EDDGridFromNcFilesTests {
             + "    <updateEveryNMillis>10000</updateEveryNMillis>\n"
             + "    <fileDir>"
             + fileDir
-            + "/</fileDir>\n"
+            + "</fileDir>\n"
             + "    <fileNameRegex>testGroups2\\.nc</fileNameRegex>\n"
             + "    <recursive>true</recursive>\n"
             + "    <pathRegex>.*</pathRegex>\n"
@@ -6312,8 +6248,10 @@ class EDDGridFromNcFilesTests {
                 null)
             + "\n"; // dimensionsCSV, reloadMinutes, cacheFromUrl
     // only difference is new datasetID
-    results =
-        String2.replaceAll(results, "ncSynthetic_035___3_dc8e_ae64_2f1c", "charles_9f77_002c_68c1");
+    String newDatasetId =
+        EDDGridFromNcFiles.suggestDatasetID(
+            "Synthetic_035_-_3/" + fileDir + fileRegex + "Synthetic_035_-_3/time");
+    results = String2.replaceAll(results, newDatasetId, suggDatasetID);
     String2.log("results=\n" + results);
     Test.ensureEqual(results, expected, "");
 
@@ -6328,10 +6266,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups2_Entire",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -6450,10 +6388,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups2_Entire",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -6506,10 +6444,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_testGroups2_Data1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,Synthetic_035_3_X_Depth_Averaged_Velocity,Synthetic_035_3_X_Wind_Velocity,Synthetic_035_3_Y_Depth_Averaged_Velocity,Synthetic_035_3_Y_Wind_Velocity,Synthetic_035_3_Water_Elevation,Synthetic_035_3_Atmospheric_Pressure\n"
@@ -6564,14 +6502,10 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXmlLong2() throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testGenerateDatasetsXmlLong2()");
-    // testVerboseOn();
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
+    String tName, results, expected;
     int po;
-    EDV edv;
 
     String dataDir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/data/long2/").toURI()).toString() + "/";
@@ -6724,7 +6658,7 @@ class EDDGridFromNcFilesTests {
     EDD.deleteCachedDatasetInfo(suggDatasetID);
     EDD edd = EDDGridFromNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), suggDatasetID, "");
-    Test.ensureEqual(edd.title(), "Data from a local source.", "");
+    Test.ensureEqual(edd.title(language), "Data from a local source.", "");
     Test.ensureEqual(String2.toCSSVString(edd.dataVariableDestinationNames()), "VHMAX", "");
     tName =
         edd.makeNewFileForDapQuery(
@@ -6732,10 +6666,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "VHMAX[(2019-07-03T00:00:00Z):1:(2019-07-03T00:00:00Z)][(25):1:(25.01)][(52):1:(52.01)]",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_TestLong2Grid",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "time,latitude,longitude,VHMAX\n"
             + "UTC,degrees_north,degrees_east,m\n"
@@ -6759,9 +6693,7 @@ class EDDGridFromNcFilesTests {
     // String2.log("\n****************** EDDGridFromNcFiles.testGrib_42()
     // *****************\n");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
     int language = 0;
 
@@ -6780,10 +6712,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_42",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -6931,10 +6863,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_42",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -6963,10 +6895,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribData1",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,height_above_ground,latitude,longitude,wind_speed\n"
@@ -7019,17 +6951,9 @@ class EDDGridFromNcFilesTests {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void testGrib2_42(boolean deleteCachedDatasetInfo) throws Throwable {
-    // String2.log("\n****************** EDDGridFromNcFiles.testGrib2_42()
-    // *****************\n");
-    // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
     int language = 0;
-
-    // String2.log(NcHelper.ncdump(String2.unitTestBigDataDir +
-    // "geosgrib/multi_1.glo_30m.all.grb2", "-h"));
 
     // generateDatasetsXml
     String id = "testGrib2_42";
@@ -7044,10 +6968,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_42",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -7469,10 +7393,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_42",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -7595,10 +7519,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribData1_42",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,latitude,longitude,Wind_speed\n"
@@ -7666,9 +7590,7 @@ class EDDGridFromNcFilesTests {
     // String2.log("\n****************** EDDGridFromNcFiles.testGrib_43()
     // *****************\n");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
     int language = 0;
 
@@ -7687,10 +7609,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_43",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected = // 2013-09-03 The details of the GRIB attributes change frequently!
         "Attributes {\n"
@@ -7840,10 +7762,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_43",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -7872,10 +7794,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribData1_43",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,height_above_ground,latitude,longitude,wind_speed\n"
@@ -7905,12 +7827,7 @@ class EDDGridFromNcFilesTests {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void testGrib2_43(boolean deleteCachedDatasetInfo) throws Throwable {
-    // String2.log("\n****************** EDDGridFromNcFiles.testGrib2_43(" +
-    // deleteCachedDatasetInfo + ") *****************\n");
-    // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
     int language = 0;
 
@@ -7929,10 +7846,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_43",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -8292,10 +8209,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribEntire_43",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -8418,10 +8335,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_GribData1_43",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,latitude,longitude,Wind_speed_surface\n"
@@ -8481,7 +8398,7 @@ class EDDGridFromNcFilesTests {
 
     String2.log("\n*** EDDGridFromNcFiles.testLogAxis()");
     String obsDir = Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR);
-    String tName, baseName, start, query, results, expected;
+    String tName, baseName, start, query;
     EDDGrid eddGrid;
     int language = 0;
 
@@ -8495,7 +8412,7 @@ class EDDGridFromNcFilesTests {
       query = "sst[last-7:last][0][(25)][(242)]&.draw=lines&.vars=sst|time";
       baseName = start + "DefaultIsLinear";
       tName = eddGrid.makeNewFileForDapQuery(language, null, null, query, obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
     }
 
@@ -8505,42 +8422,42 @@ class EDDGridFromNcFilesTests {
       /* */
       baseName = start + "DefaultIsLinear";
       tName = eddGrid.makeNewFileForDapQuery(language, null, null, query, obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "5_500DefaultIsAscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500||", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500|true|Linear", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500|true|log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "DescendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500|false|Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=1e-5|1e5||Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "HardIntraDecadeLog";
@@ -8558,7 +8475,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "SuperHardIntraDecadeLog";
@@ -8574,7 +8491,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
       /* */
     }
@@ -8588,42 +8505,42 @@ class EDDGridFromNcFilesTests {
 
       baseName = start + "DefaultIsLinear";
       tName = eddGrid.makeNewFileForDapQuery(language, null, null, query, obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "5_500DefaultIsAscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500||", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500|true|Linear", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500|true|log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "DescendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500|false|Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=1e-5|1e5||Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "HardIntraDecadeLog";
@@ -8642,7 +8559,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "SuperHardIntraDecadeLog";
@@ -8658,7 +8575,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
       /* */
     }
@@ -8683,49 +8600,49 @@ class EDDGridFromNcFilesTests {
 
       baseName = start + "DefaultIsLog";
       tName = eddGrid.makeNewFileForDapQuery(language, null, null, query, obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "DefaultIsAscendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500||", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500|true|Linear", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500|true|Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "DescendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5|500|false|Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=1e-5|1e5||Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLog5";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.yRange=5e-6|5e5||Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLogFalse5";
@@ -8738,7 +8655,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
       /* */
     }
@@ -8755,49 +8672,49 @@ class EDDGridFromNcFilesTests {
 
       baseName = start + "DefaultIsLinear";
       tName = eddGrid.makeNewFileForDapQuery(language, null, null, query, obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "DefaultIsAscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500||", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLinear";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500|true|Linear", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "AscendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500|true|Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "DescendingLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5|500|false|Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLog";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=1e-5|1e5||Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "WideRangeLog5";
       tName =
           eddGrid.makeNewFileForDapQuery(
               language, null, null, query + "&.xRange=5e-6|5e5||Log", obsDir, baseName, ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "HardIntraDecadeLog";
@@ -8816,7 +8733,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
       baseName = start + "SuperHardIntraDecadeLog";
@@ -8832,7 +8749,7 @@ class EDDGridFromNcFilesTests {
               obsDir,
               baseName,
               ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
       /* */
     }
@@ -8861,7 +8778,7 @@ class EDDGridFromNcFilesTests {
     // The SAX parser doesn't throw errors during dataset construction to this level.
     // Even during the parse one logic. So just make sure we didn't get a dataset back.
     // TODO maybe check explicitly for that error somehow?
-    if (EDStatic.useSaxParser) {
+    if (EDStatic.config.useSaxParser) {
       Test.ensureEqual(eddGrid, null, "Dataset should be null from exception during construction.");
     } else {
       Test.ensureEqual(
@@ -8890,7 +8807,7 @@ class EDDGridFromNcFilesTests {
     // The SAX parser doesn't throw errors during dataset construction to this level.
     // Even during the parse one logic. So just make sure we didn't get a dataset back.
     // TODO maybe check explicitly for that error somehow?
-    if (EDStatic.useSaxParser) {
+    if (EDStatic.config.useSaxParser) {
       Test.ensureEqual(eddGrid, null, "Dataset should be null from exception during construction.");
     } else {
       Test.ensureTrue(
@@ -8922,7 +8839,7 @@ class EDDGridFromNcFilesTests {
     // The SAX parser doesn't throw errors during dataset construction to this level.
     // Even during the parse one logic. So just make sure we didn't get a dataset back.
     // TODO maybe check explicitly for that error somehow?
-    if (EDStatic.useSaxParser) {
+    if (EDStatic.config.useSaxParser) {
       Test.ensureEqual(eddGrid, null, "Dataset should be null from exception during construction.");
     } else {
       Test.ensureTrue(
@@ -8951,7 +8868,7 @@ class EDDGridFromNcFilesTests {
     // The SAX parser doesn't throw errors during dataset construction to this level.
     // Even during the parse one logic. So just make sure we didn't get a dataset back.
     // TODO maybe check explicitly for that error somehow?
-    if (EDStatic.useSaxParser) {
+    if (EDStatic.config.useSaxParser) {
       Test.ensureEqual(eddGrid, null, "Dataset should be null from exception during construction.");
     } else {
       Test.ensureTrue(
@@ -8971,7 +8888,7 @@ class EDDGridFromNcFilesTests {
   void testTimePrecisionMillis() throws Throwable {
     String2.log("\n*** EDDGridFromNcFiles.testTimePrecisionMillis()\n");
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestTimePrecisionMillis();
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String aq = "[(1984-02-01T12:00:59.001Z):1:(1984-02-01T12:00:59.401Z)]";
     String userDapQuery = "ECEF_X" + aq + ",IB_time" + aq;
     String fName = "testTimePrecisionMillis";
@@ -9244,7 +9161,7 @@ class EDDGridFromNcFilesTests {
   void testSimpleTestNc() throws Throwable {
     String2.log("\n*** EDDGridFromNcFiles.testSimpleTestNc()\n");
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestSimpleTestNc();
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String obsDir = Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR);
     String userDapQuery =
         "hours[1:2],minutes[1:2],seconds[1:2],millis[1:2],bytes[1:2],"
@@ -9707,12 +9624,12 @@ class EDDGridFromNcFilesTests {
             obsDir,
             baseName,
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName); //Known problem, so don't
+    // TestUtil.displayInBrowser("file://" + tDir + tName); //Known problem, so don't
     // switch to testImagesIdentical
-    // String tDir = EDStatic.fullTestCacheDirectory;
+    // String tDir = EDStatic.config.fullTestCacheDirectory;
     Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
-    // Test.knownProblem("SgtGraph DOESN'T SUPPORT TWO TIME AXES !!!!",
+    // TestUtil.knownProblem("SgtGraph DOESN'T SUPPORT TWO TIME AXES !!!!",
     // "See SgtGraph \"yIsTimeAxis = false;\".");
     // Math2.sleep(10000);
 
@@ -9727,7 +9644,7 @@ class EDDGridFromNcFilesTests {
   void testSimpleTestNc2() throws Throwable {
     String2.log("\n*** EDDGridFromNcFiles.testSimpleTestNc2()\n");
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestSimpleTestNc();
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String userDapQuery = "bytes[2:3],doubles[2:3],Strings[2:3]";
     String fName = "testSimpleTestNc2";
     String tName, results, ts, expected;
@@ -9988,17 +9905,12 @@ class EDDGridFromNcFilesTests {
     // EDDGridFromNcFiles.testGenerateDatasetsXmlWithRemoteThreddsFiles()\n");
     // testVerboseOn();
     String results, expected;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
     // 2018-08-08 used to work with /catalog/. Now needs /fileServer/
     String dir =
         "https://data.nodc.noaa.gov/thredds/fileServer/aquarius/nodc_binned_V4.0/"; // catalog.html
-    int language = 0;
 
     if (true)
-      Test.knownProblem(
+      TestUtil.knownProblem(
           "2020-10-26 This needs a new test url. The current one is unreliable: " + dir);
 
     try {
@@ -10204,18 +10116,11 @@ class EDDGridFromNcFilesTests {
   @ValueSource(booleans = {true, false})
   @TagThredds
   void testRemoteThreddsFiles(boolean deleteCachedInfo) throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testRemoteThreddsFiles(" +
-    // deleteCachedInfo +
-    // ")\n");
-    // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    int po;
+    String tName, results, tResults, expected, userDapQuery;
     String today =
         Calendar2.getCurrentISODateTimeStringZulu()
             .substring(0, 14); // 14 is enough to check hour. Hard
     // to check min:sec.
-    String id = "testRemoteThreddsFiles"; // from generateDatasetsXml above but different datasetID
     int language = 0;
     // try {
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestRemoteThreddsFiles();
@@ -10228,10 +10133,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_trtf",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -10357,10 +10262,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_trtf",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -10396,10 +10301,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className() + "_trtf",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,latitude,longitude,sss\n"
@@ -10436,25 +10341,16 @@ class EDDGridFromNcFilesTests {
 
   /** This tests matchAxisNDigits */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest // Runtime datasets.xml error on or before line #208: AxisVariable=time has
-  // tied
-  // values:
   void testMatchAxisNDigits() throws Throwable {
 
     String2.log("\n *** EDDGridFromNcFiles.testMatchAxisNDigits() ***");
     int language = 0;
 
-    // force reload files
-    File2.delete("/erddapBPD/dataset/ay/erdATssta3day/fileTable.nc");
-
     // load dataset
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String cDir = EDStatic.fullTestCacheDirectory;
-    String error = "";
-    int po;
-    String id = "erdATssta3day";
-    EDDGrid eddGrid = (EDDGrid) EDDTestDataset.geterdATssta3day();
+    String tName, results, expected;
+    String cDir = EDStatic.config.fullTestCacheDirectory;
+    EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestMinimalReadSource();
     Table table;
     PrimitiveArray pa1, pa2;
 
@@ -10463,9 +10359,19 @@ class EDDGridFromNcFilesTests {
     tName =
         eddGrid.makeNewFileForDapQuery(
             language, null, null, "time", cDir, eddGrid.className() + "_tmnd0", ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
-    expected = "time\n" + "UTC\n" + "2004-02-18T12:00:00Z\n" + "2004-03-20T12:00:00Z\n";
+    expected =
+        "time\n"
+            + "UTC\n"
+            + "1981-08-25T12:00:00Z\n"
+            + "1981-08-26T12:00:00Z\n"
+            + "1981-08-27T12:00:00Z\n"
+            + "1981-08-28T12:00:00Z\n"
+            + "1981-08-29T12:00:00Z\n"
+            + "1981-08-30T12:00:00Z\n"
+            + "1981-08-31T12:00:00Z\n"
+            + "2020-12-31T12:00:00Z\n";
     Test.ensureEqual(results, expected, "\nresults=\n" + results);
 
     // a further test by hand:
@@ -10478,14 +10384,26 @@ class EDDGridFromNcFilesTests {
     String2.log("\n*** test get one lon, all lats\n");
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "sst[0][0][][0]", cDir, eddGrid.className() + "_tmnd1", ".csv");
+            language,
+            null,
+            null,
+            "wind_speed[0][0][]",
+            cDir,
+            eddGrid.className() + "_tmnd1",
+            ".csv");
     table = new Table();
     table.readASCII(cDir + tName, 0, 2);
     pa1 = table.getColumn("latitude");
 
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "sst[1][0][][0]", cDir, eddGrid.className() + "_tmnd2", ".csv");
+            language,
+            null,
+            null,
+            "wind_speed[1][0][]",
+            cDir,
+            eddGrid.className() + "_tmnd2",
+            ".csv");
     table = new Table();
     table.readASCII(cDir + tName, 0, 2);
     pa2 = table.getColumn("latitude");
@@ -10498,14 +10416,26 @@ class EDDGridFromNcFilesTests {
     String2.log("\n*** test get one lat, all lons\n");
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "sst[0][0][0][]", cDir, eddGrid.className() + "_tmnd3", ".csv");
+            language,
+            null,
+            null,
+            "wind_speed[0][0][0]",
+            cDir,
+            eddGrid.className() + "_tmnd3",
+            ".csv");
     table = new Table();
     table.readASCII(cDir + tName, 0, 2);
     pa1 = table.getColumn("longitude");
 
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "sst[1][0][0][]", cDir, eddGrid.className() + "_tmnd4", ".csv");
+            language,
+            null,
+            null,
+            "wind_speed[1][0][0]",
+            cDir,
+            eddGrid.className() + "_tmnd4",
+            ".csv");
     table = new Table();
     table.readASCII(cDir + tName, 0, 2);
     pa2 = table.getColumn("longitude");
@@ -10527,8 +10457,7 @@ class EDDGridFromNcFilesTests {
   void testUInt16File() throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testUInt16File");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery;
-    String today = Calendar2.getCurrentISODateTimeStringZulu() + "Z";
+    String tName, results, tResults, expected, userDapQuery;
     String fileDir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/data/unsigned").toURI()).toString()
             + "/";
@@ -10925,8 +10854,14 @@ class EDDGridFromNcFilesTests {
     // .das das isn't affected by userDapQuery
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "", EDStatic.fullTestCacheDirectory, eddGrid.className(), ".das");
-    results = File2.readFromFile88591(EDStatic.fullTestCacheDirectory + tName)[1];
+            language,
+            null,
+            null,
+            "",
+            EDStatic.config.fullTestCacheDirectory,
+            eddGrid.className(),
+            ".das");
+    results = File2.readFromFile88591(EDStatic.config.fullTestCacheDirectory + tName)[1];
     expected =
         "Attributes {\n"
             + "  time {\n"
@@ -11048,8 +10983,14 @@ class EDDGridFromNcFilesTests {
     // .dds dds isn't affected by userDapQuery
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "", EDStatic.fullTestCacheDirectory, eddGrid.className(), ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+            language,
+            null,
+            null,
+            "",
+            EDStatic.config.fullTestCacheDirectory,
+            eddGrid.className(),
+            ".dds");
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected = // difference from testUInt16Dap: lat lon are float here, not double
         "Dataset {\n"
             + "  Float64 time[time = 1];\n"
@@ -11083,10 +11024,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className(),
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     String2.log(results);
     expected = // difference from testUInt16Dap: lat lon are float here, not double
         "time,latitude,longitude,sst,sst_quality\n"
@@ -11128,10 +11069,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className(),
             ".nc");
-    results = NcHelper.ncdump(EDStatic.fullTestCacheDirectory + tName, "");
+    results = NcHelper.ncdump(EDStatic.config.fullTestCacheDirectory + tName, "");
     String2.log(results);
     expected = // difference from testUInt16Dap: lat lon are float here, not double
         "netcdf EDDGridFromNcFiles.nc {\n"
@@ -11321,7 +11262,7 @@ class EDDGridFromNcFilesTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             baseName,
             ".png");
-    // Test.displayInBrowser("file://" + EDStatic.fullTestCacheDirectory + tName);
+    // TestUtil.displayInBrowser("file://" + EDStatic.config.fullTestCacheDirectory + tName);
     Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
   }
 
@@ -11333,16 +11274,10 @@ class EDDGridFromNcFilesTests {
   @org.junit.jupiter.api.Test
   @TagImageComparison
   void testSpecialAxis0Time() throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testSpecialAxis0Time()\n");
-    // testVerboseOn();
-
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
-    String id = "erdSW1chlamday";
+    String tName, results, tResults, expected, userDapQuery;
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.geterdSW1chlamday();
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String testName = "EDDGridFromNcFiles_Axis0Time";
     int language = 0;
 
@@ -11568,7 +11503,7 @@ class EDDGridFromNcFilesTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             testName + "_img",
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, testName + ".png", testName + "_diff.png");
   }
 
@@ -11583,13 +11518,10 @@ class EDDGridFromNcFilesTests {
     // String2.log("\n*** EDDGridFromNcFiles.testSpecialAxis0FileNameInt()\n");
     // testVerboseOn();
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
-    String id = "testSpecialAxis0FileNameInt";
+    String tName, results, tResults, expected, userDapQuery;
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestSpecialAxis0FileNameInt();
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String testName = "EDDGridFromNcFiles_Axis0FileNameInt";
     int language = 0;
 
@@ -11796,7 +11728,7 @@ class EDDGridFromNcFilesTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             testName + "_img",
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, testName + ".png", testName + "_diff.png");
   }
 
@@ -11806,19 +11738,15 @@ class EDDGridFromNcFilesTests {
    * @throws Throwable if trouble
    */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest // Cannot load from object array because "this.sourceAxisValues" is null
   @TagImageComparison
   void testSpecialAxis0PathNameInt() throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testSpecialAxis0PathNameInt()\n");
     // testVerboseOn();
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
-    String id = "testSpecialAxis0PathNameInt";
+    String tName, results, tResults, expected, userDapQuery;
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestSpecialAxis0PathNameInt();
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String testName = "EDDGridFromNcFiles_Axis0PathNameInt";
     int language = 0;
 
@@ -12017,7 +11945,7 @@ class EDDGridFromNcFilesTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             testName + "_img",
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, testName + ".png", testName + "_diff.png");
   }
 
@@ -12032,9 +11960,7 @@ class EDDGridFromNcFilesTests {
     // String2.log("\n*** EDDGridFromNcFiles.testSpecialAxis0GlobalDouble()\n");
     // testVerboseOn();
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
+    String tName, results, tResults, expected, userDapQuery;
     int language = 0;
 
     // ncdump a source .nc file
@@ -12052,7 +11978,7 @@ class EDDGridFromNcFilesTests {
     String id = "testSpecialAxis0GlobalDouble";
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestSpecialAxis0GlobalDouble();
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String testName = "EDDGridFromNcFiles_Axis0GlobalDouble";
 
     // *** test getting das for entire dataset
@@ -12258,7 +12184,7 @@ class EDDGridFromNcFilesTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             testName + "_img",
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, testName + ".png", testName + "_diff.png");
   }
 
@@ -12270,17 +12196,11 @@ class EDDGridFromNcFilesTests {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void testFileName(boolean deleteCachedDatasetInfo) throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testFileName(" +
-    // deleteCachedDatasetInfo + ")");
-    // testVerboseOn();
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    int po;
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
 
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String id = "erdMH1chlamday";
     if (deleteCachedDatasetInfo) EDD.deleteCachedDatasetInfo(id);
 
@@ -12499,17 +12419,11 @@ class EDDGridFromNcFilesTests {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void testReplaceFromFileName(boolean deleteCachedDatasetInfo) throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testReplaceFromFileName(" +
-    // deleteCachedDatasetInfo + ")");
-    // testVerboseOn();
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    int po;
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
 
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String id = "nceiPH53sstd1day";
     if (deleteCachedDatasetInfo) EDD.deleteCachedDatasetInfo(id);
 
@@ -12962,8 +12876,7 @@ class EDDGridFromNcFilesTests {
   @TagLocalERDDAP
   void testDapErrors() throws Throwable {
     String baseRequest = "http://localhost:8080/cwexperimental/griddap/";
-    String results, expected;
-    int language = 0;
+    String results;
 
     String2.log("\n*** EDDGridFromNcFiles.testDapErrors()");
     String comment =
@@ -13107,10 +13020,8 @@ class EDDGridFromNcFilesTests {
     // testVerboseOn();
     int language = 0;
 
-    String name, tName, results, tResults, expected;
-    String error = "";
+    String tName, results, expected;
     int po;
-    EDV edv;
     String id = "testUnsignedGrid";
     EDD.deleteCachedDatasetInfo(id);
     EDD edd = EDDTestDataset.gettestUnsignedGrid();
@@ -13284,10 +13195,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery, // DataType=ubyte
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".asc");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "Dataset {\n"
             + "  GRID {\n"
@@ -13316,10 +13227,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery, // DataType=ubyte
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "rgb,eightbitcolor,palette\n"
             + "count,count,\n"
@@ -13340,10 +13251,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     results = results.replaceAll("2\\d{3}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z ", "[TODAY] ");
     expected =
         "Attributes {\n"
@@ -13416,10 +13327,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "Dataset {\n"
             + "  GRID {\n"
@@ -13441,10 +13352,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".htmlTable");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "<table class=\"erd commonBGColor nowrap\">\n"
             + "<tr>\n"
@@ -13499,10 +13410,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".itx");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     results = String2.replaceAll(results, '\r', '\n');
     expected =
         "IGOR\n"
@@ -13547,10 +13458,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".json");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "{\n"
             + "  \"table\": {\n"
@@ -13578,10 +13489,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".jsonlCSV1");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "[\"rgb\", \"eightbitcolor\", \"palette\"]\n"
             + "[0, 146, 252]\n"
@@ -13599,10 +13510,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".jsonlKVP");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "{\"rgb\":0, \"eightbitcolor\":146, \"palette\":252}\n"
             + "{\"rgb\":0, \"eightbitcolor\":147, \"palette\":0}\n"
@@ -13619,10 +13530,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".nccsv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     results = results.replaceAll("2\\d{3}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z ", "[TODAY] ");
     expected =
         "*GLOBAL*,Conventions,\"CF-1.6, COARDS, ACDD-1.3, NCCSV-1.2\"\n"
@@ -13695,10 +13606,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".ncml");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<netcdf xmlns=\"https://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"http://localhost:8080/griddap/testUnsignedGrid\">\n"
@@ -13770,10 +13681,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".tsv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "rgb\teightbitcolor\tpalette\n"
             + "count\tcount\t\n"
@@ -13792,10 +13703,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testUnsignedGrid",
             ".xhtml");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "<table class=\"erd commonBGColor nowrap\">\n"
             + "<tr>\n"
@@ -13861,10 +13772,8 @@ class EDDGridFromNcFilesTests {
     // *****************\n");
     // testVerboseOn();
     int language = 0;
-    String tName, results, expected, userDapQuery, tQuery;
-    String error = "";
-    String tDir = EDStatic.fullTestCacheDirectory;
-    String id = "testGridNThreads";
+    String tName, results, expected;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestGridNThreads();
     StringBuilder bigResults = new StringBuilder("\nEDDGridFromNcFiles.testNThreads finished.\n");
 
@@ -13922,11 +13831,8 @@ class EDDGridFromNcFilesTests {
     // String2.log("\n*** EDDGridFromNcFiles.testStructure()");
     // testVerboseOn();
 
-    String name, tName, results, tResults, expected;
-    String error = "";
+    String tName, results, expected;
     int language = 0;
-    int po;
-    EDV edv;
     String id = "testStructure";
     EDD.deleteCachedDatasetInfo(id);
     EDD edd = EDDTestDataset.gettestStructure();
@@ -13939,10 +13845,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testStructure",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "axis0,ArrayOfStructures_a_name,ArrayOfStructures_c_name,ArrayOfStructures_b_name\n"
             + "count,,,\n"
@@ -13965,10 +13871,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "ArrayOfStructures_b_name[4:2:8]",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testStructure_b",
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "axis0,ArrayOfStructures_b_name\n" + "count,\n" + "4,16.0\n" + "6,36.0\n" + "8,64.0\n";
     Test.ensureEqual(results, expected, "results=\n" + results);
@@ -13980,10 +13886,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testStructure",
             ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     results = results.replaceAll("2\\d{3}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z ", "[TODAY] ");
     expected =
         "Attributes {\n"
@@ -14036,10 +13942,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             dapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             edd.className() + "_testStructure",
             ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "Dataset {\n"
             + "  Int32 axis0[axis0 = 10];\n"
@@ -14074,17 +13980,8 @@ class EDDGridFromNcFilesTests {
   void testStructurePrivate() throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testStructurePrivate()");
     // testVerboseOn();
-
-    String name, tName, results, tResults, expected;
-    String error = "";
     int language = 0;
-    int po;
-    EDV edv;
 
-    String dir =
-        Path.of(EDDGridFromNcFilesTests.class.getResource("/largeFiles/justin/").toURI())
-            .toString();
-    String fileName = "test.h5"; // sample_file.h5 has 128bit int so null pointer in netcdf-java
     // String2.log("contents of " + dir + fileName + "\n" +
     // NcHelper.ncdump(dir + fileName, "-h"));
 
@@ -14093,48 +13990,45 @@ class EDDGridFromNcFilesTests {
     EDD edd = EDDTestDataset.gettestStructurePrivate();
 
     // .das
-    tName =
-        edd.makeNewFileForDapQuery(
-            language,
-            null,
-            null,
-            "",
-            EDStatic.fullTestCacheDirectory,
-            edd.className() + "_testStructurePrivate",
-            ".das");
-    // String2.log(File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory +
+    edd.makeNewFileForDapQuery(
+        language,
+        null,
+        null,
+        "",
+        EDStatic.config.fullTestCacheDirectory,
+        edd.className() + "_testStructurePrivate",
+        ".das");
+    // String2.log(File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory +
     // tName));
     // String2.pressEnterToContinue(
     // "EDDGridFromNcFiles.testStructurePrivate()\n" +
     // "Okay?");
 
     // .dds
-    tName =
-        edd.makeNewFileForDapQuery(
-            language,
-            null,
-            null,
-            "",
-            EDStatic.fullTestCacheDirectory,
-            edd.className() + "_testStructurePrivate",
-            ".dds");
-    // String2.log(File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory +
+    edd.makeNewFileForDapQuery(
+        language,
+        null,
+        null,
+        "",
+        EDStatic.config.fullTestCacheDirectory,
+        edd.className() + "_testStructurePrivate",
+        ".dds");
+    // String2.log(File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory +
     // tName));
     // String2.pressEnterToContinue(
     // "EDDGridFromNcFiles.testStructurePrivate()\n" +
     // "Okay?");
 
     // .csv subset
-    tName =
-        edd.makeNewFileForDapQuery(
-            language,
-            null,
-            null,
-            "Yaw[0:500:3500],latitude[0:500:3500],longitude[0:500:3500]",
-            EDStatic.fullTestCacheDirectory,
-            edd.className() + "_testStructurePrivate",
-            ".csv");
-    // String2.log(File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory +
+    edd.makeNewFileForDapQuery(
+        language,
+        null,
+        null,
+        "Yaw[0:500:3500],latitude[0:500:3500],longitude[0:500:3500]",
+        EDStatic.config.fullTestCacheDirectory,
+        edd.className() + "_testStructurePrivate",
+        ".csv");
+    // String2.log(File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory +
     // tName));
     // String2.pressEnterToContinue(
     // "EDDGridFromNcFiles.testStructurePrivate()\n" +
@@ -14148,15 +14042,13 @@ class EDDGridFromNcFilesTests {
    * @throws Throwable if touble
    */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest // results != zztop
   void testRTechHdf() throws Throwable {
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // String2.log("\n*** EDDGridFromNcFiles.testRTechHdf");
     String dir =
         Path.of(EDDGridFromNcFilesTests.class.getResource("/data/rtech/").toURI()).toString() + "/";
     String regex = "MT.*\\.hdf";
     String fileName = "MT1_L2-FLUX-SCASL1A2-1.06_2015-01-01T01-42-24_V1-00.hdf";
-    int language = 0;
     String2.log(NcHelper.ncdump(dir + fileName, "-h"));
 
     String results =
@@ -14172,9 +14064,972 @@ class EDDGridFromNcFilesTests {
             + "\n"; // dimensionsCSV,
     // reloadMinutes,
     // cacheFromUrl
-    String expected = "zztop\n\n";
+    String tDatasetID = EDDGridFromNcFiles.suggestDatasetID("Geolocation_Fields/" + dir + regex);
+    String expected =
+        "<!-- NOTE! The source for this dataset has nGridVariables=38,\n"
+            + "  but this dataset will only serve 37 because the others use different dimensions. -->\n"
+            + "<dataset type=\"EDDGridFromNcFiles\" datasetID=\""
+            + tDatasetID
+            + "\" active=\"true\">\n"
+            + "    <reloadEveryNMinutes>10080</reloadEveryNMinutes>\n"
+            + "    <updateEveryNMillis>10000</updateEveryNMillis>\n"
+            + "    <fileDir>"
+            + dir
+            + "</fileDir>\n"
+            + "    <fileNameRegex>"
+            + regex
+            + "</fileNameRegex>\n"
+            + "    <recursive>true</recursive>\n"
+            + "    <pathRegex>.*</pathRegex>\n"
+            + "    <metadataFrom>last</metadataFrom>\n"
+            + "    <matchAxisNDigits>20</matchAxisNDigits>\n"
+            + "    <fileTableInMemory>false</fileTableInMemory>\n"
+            + "    <!-- sourceAttributes>\n"
+            + "        <att name=\"_History\">Direct read of HDF4 file through CDM library</att>\n"
+            + "        <att name=\"A_coefficient\">  0.9160</att>\n"
+            + "        <att name=\"Ancillary_Files\">ALBE8501; FLUE8501; msw_txt; geoe8501; mwinter_txt</att>\n"
+            + "        <att name=\"Beginning_Acquisition_Date\">2015-01-01T01:42:24</att>\n"
+            + "        <att name=\"East_Bounding_Longitude\" type=\"float\">360.0</att>\n"
+            + "        <att name=\"End_Acquisition_Date\">2015-01-01T03:36:42</att>\n"
+            + "        <att name=\"File_Name\">MT1_L2-FLUX-SCASL1A2-1.06_2015-01-01T01-42-24_V1-00.hdf</att>\n"
+            + "        <att name=\"Flip_End_Scan_Number\">NONE</att>\n"
+            + "        <att name=\"Flip_Start_Scan_Number\">NONE</att>\n"
+            + "        <att name=\"Geom_Cal_File_Version\">9_16</att>\n"
+            + "        <att name=\"HDF4_Version\">4.2.5 (HDF Version 4.2 Release 5, February 17, 2010)</att>\n"
+            + "        <att name=\"HDF_Version\">HDF Version 4.2 Release 5, February 17, 2010</att>\n"
+            + "        <att name=\"Icare_ID\">20150101014230</att>\n"
+            + "        <att name=\"Input_Files\">MT1SCASL1A2_1.06_000_9_16_I_2015_01_01_01_41_24_2015_01_01_03_36_42_16627_16628_172_41_42_BL1_00.h5</att>\n"
+            + "        <att name=\"Level1_Version\">ISRO_SAC_DP-MT1-SCAL1A2SW-VER-1.06F000(ISRO_SAC_DP-MT1-SW_PROD_ID-100_01_L1A2_011_01_L1A3-0007000)</att>\n"
+            + "        <att name=\"list_of_ECMWF_file\">ECMWF_201501010000_v1.2.0_1deg_AN.grb; ECMWF_201501010600_v1.2.0_1deg_AN.grb; ECMWF_201501011200_v1.2.0_1deg_AN.grb; ECMWF_201412312100_v1.2.0_1deg_FC_201412310000.grb; ECMWF_201501010300_v1.2.0_1deg_FC_201412311200.grb; ECMWF_201501010900_v1.2.0_1deg_FC_201412311200.grb</att>\n"
+            + "        <att name=\"Man_End_Scan_Number\">NONE</att>\n"
+            + "        <att name=\"Man_Start_Scan_Number\">NONE</att>\n"
+            + "        <att name=\"Mission\">Megha-Tropiques</att>\n"
+            + "        <att name=\"Nadir_Pixel_Size\">approximately 40 km squared</att>\n"
+            + "        <att name=\"nb_invalid_scan\" type=\"short\">0</att>\n"
+            + "        <att name=\"North_Bounding_Latitude\" type=\"float\">29.84</att>\n"
+            + "        <att name=\"Nskip\">NONE</att>\n"
+            + "        <att name=\"Orbit_End_Number\">16628</att>\n"
+            + "        <att name=\"Orbit_Revolution_Number\">41</att>\n"
+            + "        <att name=\"Orbit_Start_Number\">16627</att>\n"
+            + "        <att name=\"Proc_Param_File_Version\">ISRO_SAC_DP-MT1-SCAL1A2SW-VER-1.06F000(ISRO_SAC_DP-MT1-SW_PROD_ID-100_01_L1A2_011_01_L1A3-0007000)</att>\n"
+            + "        <att name=\"Product_Description\">The product contains one orbit of estimated top of the atmosphere (TOA) SW and LW fluxes as well as scene identifications and some input data (radiances, angles...). In this product, we have two different TOA fluxes: one derived from SEL algorithm, based on the ERBE ADMs (Suttles et al. 1988, 1989) and corresponding inversion methods (Wielicki and Green 1989)) and one derived from SANN algorithm, ScaRaB Artificial Neural Network. You can fin a description of this approach on Viollier et al. (2009).</att>\n"
+            + "        <att name=\"Product_Name\">L2-FLUX-SCASL1A2-1.06</att>\n"
+            + "        <att name=\"Product_Version\">V1-00</att>\n"
+            + "        <att name=\"Production_Center\">ICARE</att>\n"
+            + "        <att name=\"Production_Date\">2015/01/03 02:11:11</att>\n"
+            + "        <att name=\"QF_Product\">100.00</att>\n"
+            + "        <att name=\"Rad_Cal_File_Version\">9_16</att>\n"
+            + "        <att name=\"Sample_Number\" type=\"short\">51</att>\n"
+            + "        <att name=\"Scan_Number\" type=\"short\">1144</att>\n"
+            + "        <att name=\"Sensors\">MT/SCARAB</att>\n"
+            + "        <att name=\"Skip_End_Scan_Number\">NONE</att>\n"
+            + "        <att name=\"Skip_Start_Scan_Number\">NONE</att>\n"
+            + "        <att name=\"SLConf\">110010</att>\n"
+            + "        <att name=\"Software_Version\">3.1.0</att>\n"
+            + "        <att name=\"South_Bounding_Latitude\" type=\"float\">-29.69</att>\n"
+            + "        <att name=\"West_Bounding_Longitude\" type=\"float\">0.0</att>\n"
+            + "    </sourceAttributes -->\n"
+            + "    <addAttributes>\n"
+            + "        <att name=\"_History\">null</att>\n"
+            + "        <att name=\"A_coefficient\">0.9160</att>\n"
+            + "        <att name=\"cdm_data_type\">Grid</att>\n"
+            + "        <att name=\"Conventions\">COARDS, CF-1.10, ACDD-1.3</att>\n"
+            + "        <att name=\"Flip_End_Scan_Number\">null</att>\n"
+            + "        <att name=\"Flip_Start_Scan_Number\">null</att>\n"
+            + "        <att name=\"history\">Direct read of HDF4 file through CDM library</att>\n"
+            + "        <att name=\"infoUrl\">???</att>\n"
+            + "        <att name=\"Input_Files\">null</att>\n"
+            + "        <att name=\"institution\">???</att>\n"
+            + "        <att name=\"keywords\">across, albedo, along, angle, atmosphere, atmospheric, azimuth, channel, colatitude, data, Data_Fields/Across_Track_diagonal_dimension, Data_Fields/Along_Track_diagonal_dimension, Data_Fields/Filtered_Radiance_for_Infrared_Channel, Data_Fields/Filtered_Radiance_for_Solar_Channel, Data_Fields/Filtered_Radiance_for_Synthetic_LW_Channel, Data_Fields/Filtered_Radiance_for_Total_Channel, Data_Fields/Filtered_Radiance_for_Visible_Channel, Data_Fields/Geotype, Data_Fields/Pixel_Orientation, Data_Fields/QF_RD_IR, Data_Fields/QF_RD_LW_Synthetic, Data_Fields/QF_RD_SW, Data_Fields/QF_RD_Total, Data_Fields/QF_RD_Vis, Data_Fields/Quality_Index, Data_Fields/Relative_Azimuth_Angle, Data_Fields/SANN_Albedo_(1), Data_Fields/SANN_Albedo_(2), Data_Fields/SANN_LW_Scene_Identification, Data_Fields/SANN_SW_Scene_Identification, Data_Fields/SANN_TOA_LW_Flux_(1), Data_Fields/SANN_TOA_LW_Flux_(2), Data_Fields/SANN_TOA_SW_Flux_(1), Data_Fields/SANN_TOA_SW_Flux_(2), Data_Fields/SEL_Albedo, Data_Fields/SEL_Scene_Identification, Data_Fields/SEL_TOA_LW_Flux, Data_Fields/SEL_TOA_SW_Flux, Data_Fields/Solar_Zenith_Angle, Data_Fields/Unfiltered_LW_radiance, Data_Fields/Unfiltered_SW_radiance, Data_Fields/Viewing_Azimuth_Angle, Data_Fields/Viewing_Zenith_Angle, diagonal, dimension, earth, Earth Science &gt; Atmosphere &gt; Atmospheric Radiation &gt; Incoming Solar Radiation, Earth Science &gt; Atmosphere &gt; Atmospheric Radiation &gt; Solar Irradiance, Earth Science &gt; Atmosphere &gt; Atmospheric Radiation &gt; Solar Radiation, fields, fields/npix, fields/nscan, filtered, flux, geolocation, Geolocation_Fields/Colatitude_for_radiance_at_surface, Geolocation_Fields/Colatitude_for_radiance_at_TOA, Geolocation_Fields/Longitude_for_radiance_at_surface, Geolocation_Fields/Longitude_for_radiance_at_TOA, Geolocation_Fields/npix, Geolocation_Fields/nscan, geotype, identification, incoming, index, infrared, irradiance, local, longitude, meteorology, npix, nscan, optical, optical properties, orientation, pixel, properties, quality, radiance, radiation, relative, sann, scene, science, sel, solar, solar_zenith_angle, source, surface, synthetic, toa, total, track, unfiltered, viewing, vis, visible, zenith</att>\n"
+            + "        <att name=\"keywords_vocabulary\">GCMD Science Keywords</att>\n"
+            + "        <att name=\"license\">[standard]</att>\n"
+            + "        <att name=\"Man_End_Scan_Number\">null</att>\n"
+            + "        <att name=\"Man_Start_Scan_Number\">null</att>\n"
+            + "        <att name=\"Nskip\">null</att>\n"
+            + "        <att name=\"Skip_End_Scan_Number\">null</att>\n"
+            + "        <att name=\"Skip_Start_Scan_Number\">null</att>\n"
+            + "        <att name=\"standard_name_vocabulary\">CF Standard Name Table v70</att>\n"
+            + "        <att name=\"summary\">Data from a local source.</att>\n"
+            + "        <att name=\"title\">Data from a local source.</att>\n"
+            + "    </addAttributes>\n"
+            + "    <axisVariable>\n"
+            + "        <sourceName>Geolocation_Fields/nscan</sourceName>\n"
+            + "        <destinationName>Geolocation_Fields_nscan</destinationName>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"ioos_category\">Location</att>\n"
+            + "            <att name=\"long_name\">Geolocation Fields/nscan</att>\n"
+            + "        </addAttributes>\n"
+            + "    </axisVariable>\n"
+            + "    <axisVariable>\n"
+            + "        <sourceName>Geolocation_Fields/npix</sourceName>\n"
+            + "        <destinationName>Geolocation_Fields_npix</destinationName>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"ioos_category\">Location</att>\n"
+            + "            <att name=\"long_name\">Geolocation Fields/npix</att>\n"
+            + "        </addAttributes>\n"
+            + "    </axisVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Geolocation_Fields/Colatitude_for_radiance_at_surface</sourceName>\n"
+            + "        <destinationName>Geolocation_Fields_Colatitude_for_radiance_at_surface</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">6001 12014</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Colatitude of samples projected on ground. The Colatitude is between 0 deg to 180 deg with 0 deg is north, 90 deg is equator and 180 deg is south.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Colatitude_for_radiance_at_surface</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">60.0 120.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">6000 12000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">6001.0 12014.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">140.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">40.0</att>\n"
+            + "            <att name=\"ioos_category\">Location</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Geolocation_Fields/Longitude_for_radiance_at_surface</sourceName>\n"
+            + "        <destinationName>Geolocation_Fields_Longitude_for_radiance_at_surface</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 -29536</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Longitude of samples projected on ground. 0 deg is Greewich meridian.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Longitude_for_radiance_at_surface</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 360.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -29536</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 -29536.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-200.0</att>\n"
+            + "            <att name=\"ioos_category\">Location</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Geolocation_Fields/Colatitude_for_radiance_at_TOA</sourceName>\n"
+            + "        <destinationName>Geolocation_Fields_Colatitude_for_radiance_at_TOA</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">6031 11984</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Colatitude of samples projected from top of atmosphere i.e the point where the sensor s optical axis intercepts the 20 km altitude earth envelop. The Colatitude is between 0 deg to 180 with 0 deg is north, 90 deg is equator and 180 deg is south.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Colatitude_for_radiance_at_TOA</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">60.0 120.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">6000 12000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">6031.0 11984.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">140.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">40.0</att>\n"
+            + "            <att name=\"ioos_category\">Location</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Geolocation_Fields/Longitude_for_radiance_at_TOA</sourceName>\n"
+            + "        <destinationName>Geolocation_Fields_Longitude_for_radiance_at_TOA</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 -29536</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Longitude of samples projected from top of atmosphere i.e the point where the sensor s optical axis intercepts the 20 km altitude earth envelop. 0 deg is Greewich meridian.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Longitude_for_radiance_at_TOA</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 360.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -29536</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 -29536.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-200.0</att>\n"
+            + "            <att name=\"ioos_category\">Location</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Along_Track_diagonal_dimension</sourceName>\n"
+            + "        <destinationName>Data_Fields_Along_Track_diagonal_dimension</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">5812 10016</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Dimension in meters of the along track diagonal of each pixel.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Along_Track_diagonal_dimension</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 200000.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">10.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Meter</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 20000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">5812.0 10016.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">110000.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">50000.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">meter</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Across_Track_diagonal_dimension</sourceName>\n"
+            + "        <destinationName>Data_Fields_Across_Track_diagonal_dimension</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">5843 19819</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Dimension in meters of the across track diagonal of each pixel.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Across_Track_diagonal_dimension</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 200000.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">10.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Meter</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 20000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">5843.0 19819.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">250000.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">50000.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">meter</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Pixel_Orientation</sourceName>\n"
+            + "        <destinationName>Data_Fields_Pixel_Orientation</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">24944 29056</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Pixel orientation on earth.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Pixel_Orientation</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 360.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -29536</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">24944.0 29056.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">300.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">240.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Viewing_Zenith_Angle</sourceName>\n"
+            + "        <destinationName>Data_Fields_Viewing_Zenith_Angle</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">25 5940</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Viewing zenith angle at pixel center.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Viewing_Zenith_Angle</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 90.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 9000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">25.0 5940.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">90.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-90.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Viewing_Azimuth_Angle</sourceName>\n"
+            + "        <destinationName>Data_Fields_Viewing_Azimuth_Angle</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 -29537</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Viewing azimuth angle at pixel center.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Viewing_Azimuth_Angle</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 360.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -29536</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 -29537.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-200.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Solar_Zenith_Angle</sourceName>\n"
+            + "        <destinationName>Data_Fields_Solar_Zenith_Angle</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">3055 14909</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Solar zenith angle at pixel center.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Solar_Zenith_Angle</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 90.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 9000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">3055.0 14909.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">90.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-90.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"standard_name\">solar_zenith_angle</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Relative_Azimuth_Angle</sourceName>\n"
+            + "        <destinationName>Data_Fields_Relative_Azimuth_Angle</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 -29538</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Relative azimuth angle at pixel center.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Relative_Azimuth_Angle</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 360.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">Degrees</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -29536</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 -29538.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-200.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"units\">degrees</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Filtered_Radiance_for_Visible_Channel</sourceName>\n"
+            + "        <destinationName>Data_Fields_Filtered_Radiance_for_Visible_Channel</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 8204</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Raw measurement of channel 1 after count conversion (calibrated radiances).</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Filtered_Radiance_for_Visible_Channel</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">2</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58342</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 120.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 12000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 8204.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">100.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Meteorology</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Filtered_Radiance_for_Solar_Channel</sourceName>\n"
+            + "        <destinationName>Data_Fields_Filtered_Radiance_for_Solar_Channel</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 29068</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Raw measurement of channel 2 after count conversion (calibrated radiances).</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Filtered_Radiance_for_Solar_Channel</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 425.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -23036</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 29068.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">300.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Filtered_Radiance_for_Total_Channel</sourceName>\n"
+            + "        <destinationName>Data_Fields_Filtered_Radiance_for_Total_Channel</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">2636 29490</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Raw measurement of channel 3 after count conversion (calibrated radiances).</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Filtered_Radiance_for_Total_Channel</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 500.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -15536</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">2636.0 29490.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">300.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Filtered_Radiance_for_Infrared_Channel</sourceName>\n"
+            + "        <destinationName>Data_Fields_Filtered_Radiance_for_Infrared_Channel</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 2734</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Raw measurement of channel 4 after count conversion (calibrated radiances).</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Filtered_Radiance_for_Infrared_Channel</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 30.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 3000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 2734.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">30.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Filtered_Radiance_for_Synthetic_LW_Channel</sourceName>\n"
+            + "        <destinationName>Data_Fields_Filtered_Radiance_for_Synthetic_LW_Channel</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">2630 10624</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Raw measurement for LW synthetic channel after count conversion (calibrated radiances).</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Filtered_Radiance_for_Synthetic_LW_Channel</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 240.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 24000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">2630.0 10624.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">120.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">20.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Unfiltered_SW_radiance</sourceName>\n"
+            + "        <destinationName>Data_Fields_Unfiltered_SW_radiance</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 29009</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Correction for underestimation at the shortest wavelengths, domain where the instrument response diminishes.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Unfiltered_SW_radiance</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">2</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">529</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">57813</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 425.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 -23036</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">0.0 29009.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">300.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Unfiltered_LW_radiance</sourceName>\n"
+            + "        <destinationName>Data_Fields_Unfiltered_LW_radiance</destinationName>\n"
+            + "        <dataType>double</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">2628 10623</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Subtraction of the SW unfiltered radiance from the Total unfiltered radiance. SW unfiltered radiance is weighted by coefficient A.</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Unfiltered_LW_radiance</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">2</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">529</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">57813</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 120.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">0.01</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2 sr-1</att>\n"
+            + "            <att name=\"valid_range\" type=\"shortList\">0 12000</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"actual_range\" type=\"doubleList\">2628.0 10623.0</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">120.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">20.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/QF_RD_Vis</sourceName>\n"
+            + "        <destinationName>Data_Fields_QF_RD_Vis</destinationName>\n"
+            + "        <dataType>ushort</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 -20480</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Quality flag for samples radiances of channel 1. 16-bits array (0=good, 1=bad). #0:TBD ... #15:TBD</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">QF_RD_Vis</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">N/A</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-20000.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "            <att name=\"units\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/QF_RD_SW</sourceName>\n"
+            + "        <destinationName>Data_Fields_QF_RD_SW</destinationName>\n"
+            + "        <dataType>ushort</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 12288</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Quality flag for samples radiances of channel 2. 16-bits array (0=good, 1=bad). #0:TBD ... #15:TBD</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">QF_RD_SW</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">N/A</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">15000.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "            <att name=\"units\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/QF_RD_Total</sourceName>\n"
+            + "        <destinationName>Data_Fields_QF_RD_Total</destinationName>\n"
+            + "        <dataType>ushort</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 12296</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Quality flag for samples radiances of channel 3. 16-bits array (0=good, 1=bad). #0:TBD ... #15:TBD</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">QF_RD_Total</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">N/A</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">15000.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "            <att name=\"units\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/QF_RD_IR</sourceName>\n"
+            + "        <destinationName>Data_Fields_QF_RD_IR</destinationName>\n"
+            + "        <dataType>ushort</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 -19456</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Quality flag for samples radiances of channel 4. 16-bits array (0=good, 1=bad). #0:TBD ... #15:TBD</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">QF_RD_IR</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">N/A</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">-15000.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "            <att name=\"units\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/QF_RD_LW_Synthetic</sourceName>\n"
+            + "        <destinationName>Data_Fields_QF_RD_LW_Synthetic</destinationName>\n"
+            + "        <dataType>ushort</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"short\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"shortList\">0 12296</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">23</att>\n"
+            + "            <att name=\"Comments\">Quality flag for samples radiances of LW synthetic channel. 16-bits array (0=good, 1=bad). #0:TBD ... #15:TBD</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">QF_RD_LW_Synthetic</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"short\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58344</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">N/A</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ushort\">65535</att>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">15000.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "            <att name=\"units\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/Geotype</sourceName>\n"
+            + "        <destinationName>Data_Fields_Geotype</destinationName>\n"
+            + "        <dataType>ubyte</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"byte\">-1</att>\n"
+            + "            <att name=\"actual_range\" type=\"byteList\">1 18</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">21</att>\n"
+            + "            <att name=\"Comments\">Surface GeoType</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"long_name\">Geotype</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"byte\">-2</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">2</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">0</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">58342</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 20.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">N/A</att>\n"
+            + "            <att name=\"valid_range\" type=\"byteList\">0 20</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"ubyte\">255</att>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">20.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "            <att name=\"units\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n"
+            + "    <dataVariable>\n"
+            + "        <sourceName>Data_Fields/SEL_TOA_SW_Flux</sourceName>\n"
+            + "        <destinationName>Data_Fields_SEL_TOA_SW_Flux</destinationName>\n"
+            + "        <dataType>float</dataType>\n"
+            + "        <!-- sourceAttributes>\n"
+            + "            <att name=\"_FillValue\" type=\"float\">99999.0</att>\n"
+            + "            <att name=\"actual_range\" type=\"floatList\">0.0 32767.0</att>\n"
+            + "            <att name=\"add_offset\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"add_offset_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"calibrated_nt\" type=\"int\">5</att>\n"
+            + "            <att name=\"Comments\">The SW unfiltered radiance is converted into flux, using the view and sun angles, the scene identification and the SW Erbe bi-directional function (Suttles et al, 1988). A linear interpolation of BRDF between angles is used in order to remove the discrete nature of the angular model TOA : top of atmosphere (30km altitude as in Erbe).</att>\n"
+            + "            <att name=\"HDF_Calibration_Equation\">physical_value = scale_factor*(SDS_count - add_offset)</att>\n"
+            + "            <att name=\"L2-FLUX_failed_value\" type=\"float\">32767.0</att>\n"
+            + "            <att name=\"long_name\">SEL_TOA_SW_Flux</att>\n"
+            + "            <att name=\"Missing_Output\" type=\"float\">999999.0</att>\n"
+            + "            <att name=\"Num_Fill\" type=\"int\">2</att>\n"
+            + "            <att name=\"Num_Missing_Output\" type=\"int\">529</att>\n"
+            + "            <att name=\"Num_Valid\" type=\"int\">57813</att>\n"
+            + "            <att name=\"Physical_Range\" type=\"doubleList\">0.0 1000.0</att>\n"
+            + "            <att name=\"QA_SDS\">N/A</att>\n"
+            + "            <att name=\"scale_factor\" type=\"double\">1.0</att>\n"
+            + "            <att name=\"scale_factor_err\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"units\">W m-2</att>\n"
+            + "            <att name=\"valid_range\" type=\"floatList\">0.0 1000.0</att>\n"
+            + "        </sourceAttributes -->\n"
+            + "        <addAttributes>\n"
+            + "            <att name=\"add_offset\">null</att>\n"
+            + "            <att name=\"add_offset_err\">null</att>\n"
+            + "            <att name=\"colorBarMaximum\" type=\"double\">40000.0</att>\n"
+            + "            <att name=\"colorBarMinimum\" type=\"double\">0.0</att>\n"
+            + "            <att name=\"ioos_category\">Unknown</att>\n"
+            + "            <att name=\"L2-FLUX_failed_value\">null</att>\n"
+            + "            <att name=\"L2_FLUX_failed_value\" type=\"float\">32767.0</att>\n"
+            + "            <att name=\"QA_SDS\">null</att>\n"
+            + "            <att name=\"scale_factor\">null</att>\n"
+            + "            <att name=\"scale_factor_err\">null</att>\n"
+            + "        </addAttributes>\n"
+            + "    </dataVariable>\n";
     Test.ensureEqual(
-        results,
+        results.length() > expected.length() ? results.substring(0, expected.length()) : results,
         expected,
         "results.length="
             + results.length()
@@ -14182,15 +15037,15 @@ class EDDGridFromNcFilesTests {
             + expected.length()
             + "\nresults=\n"
             + results);
-
     // ensure it is ready-to-use by making a dataset from it
-    String tDatasetID = "erdQSwind1day_52db_1ed3_22ce";
     EDD.deleteCachedDatasetInfo(tDatasetID);
     EDD edd = EDDGridFromNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), tDatasetID, "");
-    Test.ensureEqual(edd.title(), "Wind, QuikSCAT, Global, Science Quality (1 Day Composite)", "");
+    Test.ensureEqual(edd.title(language), "Data from a local source.", "");
     Test.ensureEqual(
-        String2.toCSSVString(edd.dataVariableDestinationNames()), "x_wind, y_wind, mod", "");
+        String2.toCSSVString(edd.dataVariableDestinationNames()),
+        "Geolocation_Fields_Colatitude_for_radiance_at_surface, Geolocation_Fields_Longitude_for_radiance_at_surface, Geolocation_Fields_Colatitude_for_radiance_at_TOA, Geolocation_Fields_Longitude_for_radiance_at_TOA, Data_Fields_Along_Track_diagonal_dimension, Data_Fields_Across_Track_diagonal_dimension, Data_Fields_Pixel_Orientation, Data_Fields_Viewing_Zenith_Angle, Data_Fields_Viewing_Azimuth_Angle, Data_Fields_Solar_Zenith_Angle, Data_Fields_Relative_Azimuth_Angle, Data_Fields_Filtered_Radiance_for_Visible_Channel, Data_Fields_Filtered_Radiance_for_Solar_Channel, Data_Fields_Filtered_Radiance_for_Total_Channel, Data_Fields_Filtered_Radiance_for_Infrared_Channel, Data_Fields_Filtered_Radiance_for_Synthetic_LW_Channel, Data_Fields_Unfiltered_SW_radiance, Data_Fields_Unfiltered_LW_radiance, Data_Fields_QF_RD_Vis, Data_Fields_QF_RD_SW, Data_Fields_QF_RD_Total, Data_Fields_QF_RD_IR, Data_Fields_QF_RD_LW_Synthetic, Data_Fields_Geotype, Data_Fields_SEL_TOA_SW_Flux, Data_Fields_SEL_TOA_LW_Flux, Data_Fields_SEL_Scene_Identification, Data_Fields_SEL_Albedo, Data_Fields_SANN_TOA_SW_Flux_1, Data_Fields_SANN_TOA_LW_Flux_1, Data_Fields_SANN_Albedo_1, Data_Fields_SANN_TOA_SW_Flux_2, Data_Fields_SANN_TOA_LW_Flux_2, Data_Fields_SANN_Albedo_2, Data_Fields_SANN_SW_Scene_Identification, Data_Fields_SANN_LW_Scene_Identification, Data_Fields_Quality_Index",
+        "");
 
     // String2.log("\nEDDGridFromNcFiles.testGenerateDatasetsXml passed the test.");
   }
@@ -14200,17 +15055,22 @@ class EDDGridFromNcFilesTests {
    *
    * @throws Throwable if trouble
    */
-  @org.junit.jupiter.api.Test
   @TagSlowTests
-  void testUpdate() throws Throwable {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testUpdate(boolean allowRssUpdates) throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testUpdate()\n");
+    String datasetId = "testGriddedNcFiles";
     EDDGridFromNcFiles eddGrid = (EDDGridFromNcFiles) EDDTestDataset.gettestGriddedNcFiles();
     String dataDir = eddGrid.fileDir;
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String axisQuery = "time[]";
     String dataQuery = "x_wind[][][100][100]";
     String tName, results, expected;
     int language = 0;
+    // This is set back to the initial value in the @After for the class.
+    EDStatic.config.updateSubsRssOnFileChanges = allowRssUpdates;
+    Erddap.rssHashMap.remove(datasetId);
 
     // *** read the original data
     String2.log("\n*** read original data\n");
@@ -14265,17 +15125,21 @@ class EDDGridFromNcFilesTests {
     Test.ensureEqual(
         eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
     Test.ensureEqual(
-        eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+        eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
         oldMinMillis + ", " + oldMaxMillis,
         "actual_range");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
         oldMinTime,
         "time_coverage_start");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
         oldMaxTime,
         "time_coverage_end");
+
+    byte[] rssAr = Erddap.rssHashMap.get(datasetId);
+    String rss = String2.utf8BytesToString(rssAr);
+    Test.ensureEqual(rss, null, "initial_rss");
 
     // *** rename a data file so it doesn't match regex
     try {
@@ -14324,17 +15188,57 @@ class EDDGridFromNcFilesTests {
       Test.ensureEqual(
           eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
       Test.ensureEqual(
-          eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+          eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
           newMinMillis + ", " + oldMaxMillis,
           "actual_range");
       Test.ensureEqual(
-          eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+          eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
           newMinTime,
           "time_coverage_start");
       Test.ensureEqual(
-          eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+          eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
           oldMaxTime,
           "time_coverage_end");
+
+      rssAr = Erddap.rssHashMap.get(datasetId);
+      rss = String2.utf8BytesToString(rssAr);
+      if (!allowRssUpdates) {
+        Test.ensureEqual(rss, null, "initial_rss");
+      } else {
+        String rssExpected =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<rss version=\"2.0\" xmlns=\"http://backend.userland.com/rss2\">\n"
+                + "  <channel>\n"
+                + "    <title>ERDDAP: Wind, QuikSCAT, Global, Science Quality (1 Day Composite)</title>\n"
+                + "    <description>This RSS feed changes when the dataset changes.</description>\n"
+                + "    <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+                + "    <pubDate>PUBLISHED_DATE</pubDate>\n"
+                + "    <item>\n"
+                + "      <title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>\n"
+                + "      <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+                + "      <description>The numberOfValues for axisVariable #0=time changed:\n"
+                + "  old=10,\n"
+                + "  new=7.\n"
+                + "The minValue for axisVariable #0=time changed:\n"
+                + "  old=1.1991456E9,\n"
+                + "  new=1.1994048E9.\n"
+                + "The combinedAttribute for axisVariable #0=time changed:\n"
+                + "  old line #8=&quot;    actual_range=1.1991888E9d,1.1999664E9d&quot;,\n"
+                + "  new line #8=&quot;    actual_range=1.199448E9d,1.1999664E9d&quot;.\n"
+                + "A combinedGlobalAttribute changed:\n"
+                + "  old line #30=&quot;    time_coverage_start=2008-01-01T12:00:00Z&quot;,\n"
+                + "  new line #30=&quot;    time_coverage_start=2008-01-04T12:00:00Z&quot;.\n"
+                + "</description>\n"
+                + "    </item>\n"
+                + "  </channel>\n"
+                + "</rss>\n";
+        rss = rss.replaceAll("<pubDate>.*</pubDate>", "<pubDate>PUBLISHED_DATE</pubDate>");
+        rss =
+            rss.replaceAll(
+                "<title>This dataset changed ....-..-..T..:..:..Z</title>",
+                "<title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>");
+        Test.ensureEqual(rss, rssExpected, "results=\n" + rss);
+      }
 
     } finally {
       // rename it back to original
@@ -14365,17 +15269,57 @@ class EDDGridFromNcFilesTests {
     Test.ensureEqual(
         eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
     Test.ensureEqual(
-        eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+        eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
         oldMinMillis + ", " + oldMaxMillis,
         "actual_range");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
         oldMinTime,
         "time_coverage_start");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
         oldMaxTime,
         "time_coverage_end");
+
+    rssAr = Erddap.rssHashMap.get(datasetId);
+    rss = String2.utf8BytesToString(rssAr);
+    String rssExpected =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<rss version=\"2.0\" xmlns=\"http://backend.userland.com/rss2\">\n"
+            + "  <channel>\n"
+            + "    <title>ERDDAP: Wind, QuikSCAT, Global, Science Quality (1 Day Composite)</title>\n"
+            + "    <description>This RSS feed changes when the dataset changes.</description>\n"
+            + "    <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+            + "    <pubDate>PUBLISHED_DATE</pubDate>\n"
+            + "    <item>\n"
+            + "      <title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>\n"
+            + "      <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+            + "      <description>The numberOfValues for axisVariable #0=time changed:\n"
+            + "  old=7,\n"
+            + "  new=10.\n"
+            + "The minValue for axisVariable #0=time changed:\n"
+            + "  old=1.1994048E9,\n"
+            + "  new=1.1991456E9.\n"
+            + "The combinedAttribute for axisVariable #0=time changed:\n"
+            + "  old line #8=&quot;    actual_range=1.199448E9d,1.1999664E9d&quot;,\n"
+            + "  new line #8=&quot;    actual_range=1.1991888E9d,1.1999664E9d&quot;.\n"
+            + "A combinedGlobalAttribute changed:\n"
+            + "  old line #30=&quot;    time_coverage_start=2008-01-04T12:00:00Z&quot;,\n"
+            + "  new line #30=&quot;    time_coverage_start=2008-01-01T12:00:00Z&quot;.\n"
+            + "</description>\n"
+            + "    </item>\n"
+            + "  </channel>\n"
+            + "</rss>\n";
+    if (!allowRssUpdates) {
+      Test.ensureEqual(rss, null, "initial_rss");
+    } else {
+      rss = rss.replaceAll("<pubDate>.*</pubDate>", "<pubDate>PUBLISHED_DATE</pubDate>");
+      rss =
+          rss.replaceAll(
+              "<title>This dataset changed ....-..-..T..:..:..Z</title>",
+              "<title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>");
+      Test.ensureEqual(rss, rssExpected, "results=\n" + rss);
+    }
 
     // *** rename a non-data file so it matches the regex
     try {
@@ -14409,17 +15353,30 @@ class EDDGridFromNcFilesTests {
       Test.ensureEqual(
           eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
       Test.ensureEqual(
-          eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+          eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
           oldMinMillis + ", " + oldMaxMillis,
           "actual_range");
       Test.ensureEqual(
-          eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+          eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
           oldMinTime,
           "time_coverage_start");
       Test.ensureEqual(
-          eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+          eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
           oldMaxTime,
           "time_coverage_end");
+
+      rssAr = Erddap.rssHashMap.get(datasetId);
+      rss = String2.utf8BytesToString(rssAr);
+      if (!allowRssUpdates) {
+        Test.ensureEqual(rss, null, "initial_rss");
+      } else {
+        rss = rss.replaceAll("<pubDate>.*</pubDate>", "<pubDate>PUBLISHED_DATE</pubDate>");
+        rss =
+            rss.replaceAll(
+                "<title>This dataset changed ....-..-..T..:..:..Z</title>",
+                "<title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>");
+        Test.ensureEqual(rss, rssExpected, "results=\n" + rss);
+      }
     } catch (Exception e) {
       String2.log("Note exception being thrown:\n" + MustBe.throwableToString(e));
       throw e;
@@ -14453,17 +15410,30 @@ class EDDGridFromNcFilesTests {
     Test.ensureEqual(
         eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
     Test.ensureEqual(
-        eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+        eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
         oldMinMillis + ", " + oldMaxMillis,
         "actual_range");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
         oldMinTime,
         "time_coverage_start");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
         oldMaxTime,
         "time_coverage_end");
+
+    rssAr = Erddap.rssHashMap.get(datasetId);
+    rss = String2.utf8BytesToString(rssAr);
+    if (!allowRssUpdates) {
+      Test.ensureEqual(rss, null, "initial_rss");
+    } else {
+      rss = rss.replaceAll("<pubDate>.*</pubDate>", "<pubDate>PUBLISHED_DATE</pubDate>");
+      rss =
+          rss.replaceAll(
+              "<title>This dataset changed ....-..-..T..:..:..Z</title>",
+              "<title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>");
+      Test.ensureEqual(rss, rssExpected, "results=\n" + rss);
+    }
 
     // test time for update if 0 events
     long cumTime = 0;
@@ -14481,6 +15451,150 @@ class EDDGridFromNcFilesTests {
   }
 
   /**
+   * This tests the EDDGridFromFiles.changed().
+   *
+   * @throws Throwable if trouble
+   */
+  @org.junit.jupiter.api.Test
+  void testChanged() throws Throwable {
+    String datasetId = "testGriddedNcFiles";
+    EDDGridFromNcFiles eddGrid = (EDDGridFromNcFiles) EDDTestDataset.gettestGriddedNcFiles();
+    String dataDir = eddGrid.fileDir;
+    String expected = "";
+    Erddap.rssHashMap.remove(datasetId);
+
+    byte[] rssAr = Erddap.rssHashMap.get(datasetId);
+    String rss = String2.utf8BytesToString(rssAr);
+    Test.ensureEqual(rss, null, "initial_rss");
+    Map<String, String> originalSnapshot = eddGrid.snapshot();
+    assertEquals(expected, eddGrid.changed(originalSnapshot));
+
+    Map<String, String> snapshotDiff;
+
+    // *** rename a data file so it doesn't match regex
+    try {
+      File2.rename(dataDir, "erdQSwind1day_20080101_03.nc.gz", "erdQSwind1day_20080101_03.nc.gz2");
+      Math2.sleep(500);
+      SharedWatchService.processEvents();
+
+      snapshotDiff = eddGrid.snapshot();
+      expected =
+          "The numberOfValues for axisVariable #0=time changed:\n"
+              + "  old=10,\n"
+              + "  new=7.\n"
+              + "The minValue for axisVariable #0=time changed:\n"
+              + "  old=1.1991456E9,\n"
+              + "  new=1.1994048E9.\n"
+              + "The combinedAttribute for axisVariable #0=time changed:\n"
+              + "  old line #8=\"    actual_range=1.1991888E9d,1.1999664E9d\",\n"
+              + "  new line #8=\"    actual_range=1.199448E9d,1.1999664E9d\".\n"
+              + "A combinedGlobalAttribute changed:\n"
+              + "  old line #30=\"    time_coverage_start=2008-01-01T12:00:00Z\",\n"
+              + "  new line #30=\"    time_coverage_start=2008-01-04T12:00:00Z\".\n";
+      assertEquals(expected, eddGrid.changed(originalSnapshot));
+      assertEquals(expected, eddGrid.changed(originalSnapshot));
+
+      rssAr = Erddap.rssHashMap.get(datasetId);
+      rss = String2.utf8BytesToString(rssAr);
+      String rssExpected =
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+              + "<rss version=\"2.0\" xmlns=\"http://backend.userland.com/rss2\">\n"
+              + "  <channel>\n"
+              + "    <title>ERDDAP: Wind, QuikSCAT, Global, Science Quality (1 Day Composite)</title>\n"
+              + "    <description>This RSS feed changes when the dataset changes.</description>\n"
+              + "    <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+              + "    <pubDate>PUBLISHED_DATE</pubDate>\n"
+              + "    <item>\n"
+              + "      <title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>\n"
+              + "      <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+              + "      <description>The numberOfValues for axisVariable #0=time changed:\n"
+              + "  old=10,\n"
+              + "  new=7.\n"
+              + "The minValue for axisVariable #0=time changed:\n"
+              + "  old=1.1991456E9,\n"
+              + "  new=1.1994048E9.\n"
+              + "The combinedAttribute for axisVariable #0=time changed:\n"
+              + "  old line #8=&quot;    actual_range=1.1991888E9d,1.1999664E9d&quot;,\n"
+              + "  new line #8=&quot;    actual_range=1.199448E9d,1.1999664E9d&quot;.\n"
+              + "A combinedGlobalAttribute changed:\n"
+              + "  old line #30=&quot;    time_coverage_start=2008-01-01T12:00:00Z&quot;,\n"
+              + "  new line #30=&quot;    time_coverage_start=2008-01-04T12:00:00Z&quot;.\n"
+              + "</description>\n"
+              + "    </item>\n"
+              + "  </channel>\n"
+              + "</rss>\n";
+      rss = rss.replaceAll("<pubDate>.*</pubDate>", "<pubDate>PUBLISHED_DATE</pubDate>");
+      rss =
+          rss.replaceAll(
+              "<title>This dataset changed ....-..-..T..:..:..Z</title>",
+              "<title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>");
+      Test.ensureEqual(rss, rssExpected, "results=\n" + rss);
+
+    } finally {
+      // rename it back to original
+      File2.rename(dataDir, "erdQSwind1day_20080101_03.nc.gz2", "erdQSwind1day_20080101_03.nc.gz");
+      Math2.sleep(500);
+      SharedWatchService.processEvents();
+    }
+
+    expected = "";
+    Map<String, String> snapshot2 = eddGrid.snapshot();
+    assertEquals(expected, eddGrid.changed(originalSnapshot));
+    assertEquals(expected, eddGrid.changed(snapshot2));
+    expected =
+        "The numberOfValues for axisVariable #0=time changed:\n"
+            + "  old=7,\n"
+            + "  new=10.\n"
+            + "The minValue for axisVariable #0=time changed:\n"
+            + "  old=1.1994048E9,\n"
+            + "  new=1.1991456E9.\n"
+            + "The combinedAttribute for axisVariable #0=time changed:\n"
+            + "  old line #8=\"    actual_range=1.199448E9d,1.1999664E9d\",\n"
+            + "  new line #8=\"    actual_range=1.1991888E9d,1.1999664E9d\".\n"
+            + "A combinedGlobalAttribute changed:\n"
+            + "  old line #30=\"    time_coverage_start=2008-01-04T12:00:00Z\",\n"
+            + "  new line #30=\"    time_coverage_start=2008-01-01T12:00:00Z\".\n";
+    assertEquals(expected, eddGrid.changed(snapshotDiff));
+    // *** back to original
+
+    rssAr = Erddap.rssHashMap.get(datasetId);
+    rss = String2.utf8BytesToString(rssAr);
+    String rssExpected =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<rss version=\"2.0\" xmlns=\"http://backend.userland.com/rss2\">\n"
+            + "  <channel>\n"
+            + "    <title>ERDDAP: Wind, QuikSCAT, Global, Science Quality (1 Day Composite)</title>\n"
+            + "    <description>This RSS feed changes when the dataset changes.</description>\n"
+            + "    <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+            + "    <pubDate>PUBLISHED_DATE</pubDate>\n"
+            + "    <item>\n"
+            + "      <title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>\n"
+            + "      <link>&erddapUrl;/griddap/testGriddedNcFiles.html</link>\n"
+            + "      <description>The numberOfValues for axisVariable #0=time changed:\n"
+            + "  old=7,\n"
+            + "  new=10.\n"
+            + "The minValue for axisVariable #0=time changed:\n"
+            + "  old=1.1994048E9,\n"
+            + "  new=1.1991456E9.\n"
+            + "The combinedAttribute for axisVariable #0=time changed:\n"
+            + "  old line #8=&quot;    actual_range=1.199448E9d,1.1999664E9d&quot;,\n"
+            + "  new line #8=&quot;    actual_range=1.1991888E9d,1.1999664E9d&quot;.\n"
+            + "A combinedGlobalAttribute changed:\n"
+            + "  old line #30=&quot;    time_coverage_start=2008-01-04T12:00:00Z&quot;,\n"
+            + "  new line #30=&quot;    time_coverage_start=2008-01-01T12:00:00Z&quot;.\n"
+            + "</description>\n"
+            + "    </item>\n"
+            + "  </channel>\n"
+            + "</rss>\n";
+    rss = rss.replaceAll("<pubDate>.*</pubDate>", "<pubDate>PUBLISHED_DATE</pubDate>");
+    rss =
+        rss.replaceAll(
+            "<title>This dataset changed ....-..-..T..:..:..Z</title>",
+            "<title>This dataset changed YYYY-MM-DDThh:mm:ssZ</title>");
+    Test.ensureEqual(rss, rssExpected, "results=\n" + rss);
+  }
+
+  /**
    * This tests quickRestart().
    *
    * @throws Throwable if trouble
@@ -14494,7 +15608,7 @@ class EDDGridFromNcFilesTests {
 
     EDDGridFromNcFiles eddGrid = (EDDGridFromNcFiles) EDDTestDataset.gettestGriddedNcFiles();
     String dataDir = eddGrid.fileDir;
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String axisQuery = "time[]";
     String dataQuery = "x_wind[][][100][100]";
     String tName, results, expected;
@@ -14710,15 +15824,15 @@ class EDDGridFromNcFilesTests {
     Test.ensureEqual(
         eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
     Test.ensureEqual(
-        eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+        eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
         oldMinMillis + ", " + oldMaxMillis,
         "actual_range");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
         oldMinTime,
         "time_coverage_start");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
         oldMaxTime,
         "time_coverage_end");
 
@@ -14761,15 +15875,15 @@ class EDDGridFromNcFilesTests {
       Test.ensureEqual(
           eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
       Test.ensureEqual(
-          eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+          eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
           oldMinMillis + ", " + oldMaxMillis,
           "actual_range");
       Test.ensureEqual(
-          eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+          eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
           oldMinTime,
           "time_coverage_start");
       Test.ensureEqual(
-          eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+          eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
           oldMaxTime,
           "time_coverage_end");
 
@@ -14787,8 +15901,9 @@ class EDDGridFromNcFilesTests {
       expected =
           "There was a (temporary?) problem.  Wait a minute, then try again.  (In a browser, click the Reload button.)\n"
               + "(Cause: java.io.FileNotFoundException: "
-              + dataDir
+              + File2.forwardSlashDir(dataDir)
               + "erdQSwind1day_20080101_03.nc.gz";
+      results = File2.forwardSlashDir(results);
       Test.ensureEqual(results.substring(0, expected.length()), expected, "\nresults=\n" + results);
 
     } finally {
@@ -14845,15 +15960,15 @@ class EDDGridFromNcFilesTests {
     Test.ensureEqual(
         eddGrid.axisVariables()[0].destinationMaxString(), oldMaxTime, "av[0].destinationMax");
     Test.ensureEqual(
-        eddGrid.axisVariables()[0].combinedAttributes().get("actual_range").toString(),
+        eddGrid.axisVariables()[0].combinedAttributes().get(language, "actual_range").toString(),
         oldMinMillis + ", " + oldMaxMillis,
         "actual_range");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_start"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_start"),
         oldMinTime,
         "time_coverage_start");
     Test.ensureEqual(
-        eddGrid.combinedGlobalAttributes().getString("time_coverage_end"),
+        eddGrid.combinedGlobalAttributes().getString(language, "time_coverage_end"),
         oldMaxTime,
         "time_coverage_end");
   }
@@ -14867,19 +15982,14 @@ class EDDGridFromNcFilesTests {
    * @throws Throwable if trouble
    */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest
+  @TagMissingDataset
   void testGenerateDatasetsXmlWithRemoteHyraxFiles() throws Throwable {
     // String2.log("\n***
     // EDDGridFromNcFiles.testGenerateDatasetsXmlWithRemoteHyraxFiles()\n");
     // testVerboseOn();
     String results, expected;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
     String dir =
         "https://opendap.jpl.nasa.gov/opendap/hyrax/allData/avhrr/L4/reynolds_er/v3b/monthly/netcdf/2014/";
-    int language = 0;
 
     results =
         EDDGridFromNcFiles.generateDatasetsXml( // dir is a HYRAX catalog.html URL!
@@ -14915,7 +16025,7 @@ class EDDGridFromNcFilesTests {
     // deleteCachedInfo +
     // ")\n");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
+    /*String name, tName, results, tResults, expected, userDapQuery, tQuery;
     String error = "";
     int po;
     EDV edv;
@@ -14926,13 +16036,13 @@ class EDDGridFromNcFilesTests {
     String id = "testRemoteHyraxFiles";
     int language = 0;
 
-    /*
+
      * //*** test getting das for entire dataset
      * String2.log("\n*** testCwHdf test das dds for entire dataset\n");
      * tName = eddGrid.makeNewFileForDapQuery(language, null, null, "",
-     * EDStatic.fullTestCacheDirectory,
+     * EDStatic.config.fullTestCacheDirectory,
      * eddGrid.className() + "_CwHdfEntire", ".das");
-     * results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory +
+     * results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory +
      * tName);
      * //String2.log(results);
      * expected =
@@ -15029,9 +16139,9 @@ class EDDGridFromNcFilesTests {
      *
      * //*** test getting dds for entire dataset
      * tName = eddGrid.makeNewFileForDapQuery(language, null, null, "",
-     * EDStatic.fullTestCacheDirectory,
+     * EDStatic.config.fullTestCacheDirectory,
      * eddGrid.className() + "_CwHdfEntire", ".dds");
-     * results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory +
+     * results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory +
      * tName);
      * //String2.log(results);
      * expected =
@@ -15060,9 +16170,9 @@ class EDDGridFromNcFilesTests {
      * String2.log("\n*** testCwHdf test read from one file\n");
      * userDapQuery = "sst[600:2:606][500:503]";
      * tName = eddGrid.makeNewFileForDapQuery(language, null, null, userDapQuery,
-     * EDStatic.fullTestCacheDirectory,
+     * EDStatic.config.fullTestCacheDirectory,
      * eddGrid.className() + "_CwHdfData1", ".csv");
-     * results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory +
+     * results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory +
      * tName);
      * //String2.log(results);
      * expected =
@@ -15100,14 +16210,10 @@ class EDDGridFromNcFilesTests {
   void testIgor() throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testIgor()\n");
     // testVerboseOn();
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String error = "";
+    String tName, results, expected, userDapQuery;
+    String dir = EDStatic.config.fullTestCacheDirectory;
     int po;
     int language = 0;
-    EDV edv;
-
-    String id = "jplMURSST41";
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.getjplMURSST41();
 
     // test axes-only request
@@ -15442,90 +16548,23 @@ class EDDGridFromNcFilesTests {
    * @throws Throwable if trouble
    */
   @org.junit.jupiter.api.Test
-  @TagMissingDataset // Cannot load from object array because "this.sourceAxisValues" is null
+  @TagMissingDataset
   void testGroups() throws Throwable {
     // String2.log("\n*** EDDGridFromNcFiles.testGroups()\n");
     // testVerboseOn();
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDVGridAxis edvga;
-    // the test file is from
-    // ftp://podaac.jpl.nasa.gov/allData/aquarius/L2/V4/2011/237/
-    int language = 0;
+    // String name, tName, results, tResults, expected, userDapQuery, tQuery;
+    // String error = "";
+    // EDVGridAxis edvga;
+    // // the test file is from
+    // // ftp://podaac.jpl.nasa.gov/allData/aquarius/L2/V4/2011/237/
+    // int language = 0;
 
-    String id = "testGroups";
-    EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestGroups();
-    String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    String tDir = EDStatic.fullTestCacheDirectory;
-    String testName = "EDDGridFromNcFiles_groups";
-  }
-
-  /** This tests that a dataset can be quick restarted, */
-  @org.junit.jupiter.api.Test
-  @TagLocalERDDAP
-  void testQuickRestart2() throws Throwable {
-    String2.log("\n*** EDDGridFromNcFiles.testQuickRestart2\n");
-    String datasetID = "testGriddedNcFiles";
-    String fullName =
-        Path.of(
-                EDDGridFromNcFilesTests.class
-                    .getResource("/largeFiles/erdQSwind1day/subfolder/erdQSwind1day_20080108_10.nc")
-                    .toURI())
-            .toString();
-    long timestamp = File2.getLastModified(fullName); // orig 2009-01-07T11:55 local
-    int language = 0;
-    try {
-      // restart local erddap
-      // String2.pressEnterToContinue(
-      // "Restart the local erddap with quickRestart=true and with datasetID=" +
-      // datasetID + " .\n" +
-      // "Wait until all datasets are loaded.");
-      Math2.sleep(30000); // allow tasks to finish
-
-      // change the file's timestamp
-      File2.setLastModified(fullName, timestamp - 60000); // 1 minute earlier
-      Math2.sleep(1000);
-
-      // request info from that dataset
-      // .csv with data from one file
-      String2.log("\n*** .nc test read from one file\n");
-      String userDapQuery = "y_wind[(1.1999664e9)][0][(36.5)][(230):3:(238)]";
-      String results =
-          SSR.getUrlResponseStringUnchanged(
-              EDStatic.erddapUrl + "/griddap/" + datasetID + ".csv?" + userDapQuery);
-      String expected =
-          // verified with
-          // https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdQSwind1day.csv?y_wind[(1.1999664e9)][0][(36.5)][(230):3:(238)]
-          "time,altitude,latitude,longitude,y_wind\n"
-              + "UTC,m,degrees_north,degrees_east,m s-1\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,230.125,3.555585\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,230.875,2.82175\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,231.625,4.539375\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,232.375,4.975015\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,233.125,5.643055\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,233.875,2.72394\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,234.625,1.39762\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,235.375,2.10711\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,236.125,3.019165\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,236.875,3.551915\n"
-              + "2008-01-10T12:00:00Z,0.0,36.625,237.625,NaN\n"; // test of NaN
-      Test.ensureEqual(results, expected, "\nresults=\n" + results);
-
-      // request status.html
-      SSR.getUrlResponseStringUnchanged(EDStatic.erddapUrl + "/status.html");
-      // Math2.sleep(1000);
-      // Test.displayInBrowser("file://" + EDStatic.bigParentDirectory +
-      // "logs/log.txt");
-
-      // String2.pressEnterToContinue(
-      // "Look at log.txt to see if update was run and successfully " +
-      // "noticed the changed file.");
-
-    } finally {
-      // change timestamp back to original
-      File2.setLastModified(fullName, timestamp);
-    }
+    // String id = "testGroups";
+    // EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestGroups();
+    // String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
+    // String tDir = EDStatic.config.fullTestCacheDirectory;
+    // String testName = "EDDGridFromNcFiles_groups";
   }
 
   /**
@@ -15558,9 +16597,9 @@ class EDDGridFromNcFilesTests {
             + fileType
             + ")"
             + "\n  partialRequestMaxBytes="
-            + EDStatic.partialRequestMaxBytes
+            + EDStatic.config.partialRequestMaxBytes
             + " estimated nPartialRequests="
-            + Math2.hiDiv(nTimePoints * 4320 * 8640, EDStatic.partialRequestMaxBytes)
+            + Math2.hiDiv(nTimePoints * 4320 * 8640, EDStatic.config.partialRequestMaxBytes)
             + "\n  expected size="
             + expectedBytes
             + "  expected time~="
@@ -15571,7 +16610,7 @@ class EDDGridFromNcFilesTests {
 
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.getnceiPH53sstd1day();
     String query = "sea_surface_temperature[0:" + (nTimePoints - 1) + "][][]";
-    String dir = EDStatic.fullTestCacheDirectory;
+    String dir = EDStatic.config.fullTestCacheDirectory;
     String tName;
 
     // tName = eddGrid.makeNewFileForDapQuery(language, null, null, query,
@@ -15620,20 +16659,11 @@ class EDDGridFromNcFilesTests {
   @ValueSource(booleans = {true, false})
   @TagMissingDataset // source seems to not have data
   void testMakeCopyFileTasks(boolean deleteAllLocalFiles) throws Exception {
-
-    // String2.log("\n*** EDDGridFromNcFiles.testMakeCopyFileTasks");
-    // FileVisitorDNLS.verbose = true;
-    // FileVisitorDNLS.reallyVerbose = true;
-    // FileVisitorDNLS.debugMode = true;
-    int language = 0;
-
-    boolean testMode = false;
     boolean tRecursive = true;
     boolean tDirectoriesToo = false;
     String tSourceUrl =
         "https://podaac-opendap.jpl.nasa.gov/opendap/allData/ghrsst/data/GDS2/L4/GLOB/JPL/MUR/"; // contents.html
     String tFileNameRegex = "[0-9]{14}-JPL-L4_GHRSST-SSTfnd-MUR-GLOB-v02\\.0-fv04\\.1\\.nc";
-    boolean recursive = true;
     // or String tPathRegex = ".*/v4\\.1/(|2018/(|01./))"; //for test, just get 01x
     // dirs/files. Read regex: "(|2018/(|/[0-9]{3}/))";
     String tPathRegex =
@@ -15729,22 +16759,12 @@ class EDDGridFromNcFilesTests {
   @org.junit.jupiter.api.Test
   @TagLocalERDDAP
   void testGenerateDatasetsXmlCopy() throws Throwable {
-
-    String2.log(
-        "\n*** EDDGridFromNcFiles.testGenerateDatasetsXmlCopy\n"
-            + "*** This needs erdMWchla1day in localhost ERDDAP.");
-
-    boolean testMode = false;
-    boolean tRecursive = true;
-    boolean tDirectoriesToo = false;
+    int language = EDMessages.DEFAULT_LANGUAGE;
     String tSourceUrl =
         "http://localhost:8080/cwexperimental/files/erdMWchla1day/"; // contents.html
     String tFileNameRegex = "MW200219.*\\.nc(|\\.gz)"; // only 10 files match
-    boolean recursive = true;
     String tLocalDir = "/u00/data/points/testEDDGridCopyFiles/";
     String results, expected;
-    int language = 0;
-
     // delete all cached files
     File2.deleteAllFiles(tLocalDir, true, true);
 
@@ -16008,7 +17028,9 @@ class EDDGridFromNcFilesTests {
     edd = EDDGridFromNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), tDatasetID, "");
     Test.ensureEqual(
-        edd.title(), "Chlorophyll-a, Aqua MODIS, NPP, 0.0125 degrees, West US, EXPERIMENTAL", "");
+        edd.title(language),
+        "Chlorophyll-a, Aqua MODIS, NPP, 0.0125 degrees, West US, EXPERIMENTAL",
+        "");
     Test.ensureEqual(String2.toCSSVString(edd.dataVariableDestinationNames()), "MWchla", "");
 
     String2.log("\nEDDGridFromNcFiles.testGenerateDatasetsXmlCopy passed the test.");
@@ -16023,26 +17045,10 @@ class EDDGridFromNcFilesTests {
   @ValueSource(booleans = {true, false})
   @TagLocalERDDAP
   void testCopyFiles(boolean deleteDataFiles) throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testCopyFiles(" + deleteDataFiles +
-    // ")\n" +
-    // "If deleteDataFiles is true, this requires erdMWchla1day in localhost
-    // ERDDAP.");
     int language = 0;
-    // testVerboseOn();
-    // FileVisitorDNLS.verbose = true;
-    // FileVisitorDNLS.reallyVerbose = true;
-    // FileVisitorDNLS.debugMode = true;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    int po;
-    EDV edv;
-
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard to
-    // check min:sec.
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tName, results, tResults, expected, userDapQuery;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String id = "testEDDGridCopyFiles";
     if (deleteDataFiles) {
       File2.deleteAllFiles("/u00/data/points/testEDDGridCopyFiles/", true, true);
@@ -16280,25 +17286,9 @@ class EDDGridFromNcFilesTests {
   @ValueSource(booleans = {true, false})
   @TagLocalERDDAP
   void testCacheFiles(boolean deleteDataFiles) throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testCacheFiles(" + deleteDataFiles +
-    // ")\n" +
-    // "This requires erdMWchla1day in localhost ERDDAP.");
     int language = 0;
-    // testVerboseOn();
-    // FileVisitorDNLS.verbose = true;
-    // FileVisitorDNLS.reallyVerbose = true;
-    // FileVisitorDNLS.debugMode = true;
-
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    int po;
-    EDV edv;
-
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard to
-    // check min:sec.
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tName, results, tResults, expected, userDapQuery;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String id = "testEDDGridCacheFiles";
     EDDGridFromNcFiles.deleteCachedDatasetInfo(id); // always
     if (deleteDataFiles)
@@ -16551,18 +17541,11 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testMinimalReadSource() throws Throwable {
-    // String2.log("\n*** EDDGridFromNcFiles.testMinimalReadSource");
-    // testVerboseOn();
-    // boolean oDebugMode = debugMode;
-    // debugMode = true;
     int language = 0;
 
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    int po;
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
 
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String id = "testMinimalReadSource";
     EDDGridFromNcFiles.deleteCachedDatasetInfo(id); // always
 
@@ -17026,30 +18009,21 @@ class EDDGridFromNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testIslandShift() throws Throwable {
-    // String2.log("\n****************** EDDGridFromNcFiles.testIslandShift()
-    // *****************\n");
-    // testVerboseOn();
-
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
     int language = 0;
-    String error = "";
-    EDVGridAxis edvga;
-    String id = "testIslandShift";
     EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestIslandShift();
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
 
     for (int i = 1; i <= 4; i++) {
-      String baseName = "EDDGridFromNcFiles_testIslandShift_" + SgtMap.drawLandMask_OPTIONS[i];
-      tName =
-          eddGrid.makeNewFileForDapQuery(
-              language,
-              null,
-              null,
-              "&.land=" + SgtMap.drawLandMask_OPTIONS[i],
-              tDir,
-              baseName,
-              ".png");
-      // Test.displayInBrowser("file://" + tDir + tName);
+      String baseName = "EDDGridFromNcFiles_testIslandShift_" + SgtMap.drawLandMask_OPTIONS.get(i);
+      eddGrid.makeNewFileForDapQuery(
+          language,
+          null,
+          null,
+          "&.land=" + SgtMap.drawLandMask_OPTIONS.get(i),
+          tDir,
+          baseName,
+          ".png");
+      // TestUtil.displayInBrowser("file://" + tDir + tName);
       // !!! graphing system works correctly, but island location is knownProblem
       // Image2.testImagesIdentical(
       // tDir + tName,
@@ -17072,10 +18046,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             zarrGrid.className() + "_Compressed",
             ".das");
-    String results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    String results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     String expected =
         "Attributes {\n"
             + //
@@ -17275,10 +18249,10 @@ class EDDGridFromNcFilesTests {
             null,
             null,
             "null_compressor%5B0:1:0%5D%5B0:1:199%5D,comp_filt_Adler_shuffle_deflate%5B0:1:0%5D%5B0:1:199%5D,comp_filt_shuffle_deflate%5B0:1:0%5D%5B0:1:199%5D,compressed_adler32%5B0:1:0%5D%5B0:1:199%5D,compressed_crc32%5B0:1:0%5D%5B0:1:199%5D,compressed_deflate1%5B0:1:0%5D%5B0:1:199%5D,compressed_deflate9%5B0:1:0%5D%5B0:1:199%5D,compressed_scaleOffset%5B0:1:0%5D%5B0:1:199%5D,compressed_shuffle%5B0:1:0%5D%5B0:1:199%5D,filtered_adler32%5B0:1:0%5D%5B0:1:199%5D,filtered_adler_shuffle%5B0:1:0%5D%5B0:1:199%5D",
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             zarrGrid.className(),
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     expected =
         "dim0,dim1,null_compressor,comp_filt_Adler_shuffle_deflate,comp_filt_shuffle_deflate,compressed_adler32,compressed_crc32,compressed_deflate1,compressed_deflate9,compressed_scaleOffset,compressed_shuffle,filtered_adler32,filtered_adler_shuffle\n"
             + //
@@ -17991,7 +18965,7 @@ class EDDGridFromNcFilesTests {
             + //
             "    enum Identification_of_originating_generating_centre { };\n"
             + //
-            "    enum Satellite_classification { 'Nimbus' = 0, 'VTPR' = 1, 'Tiros 1 (Tiros, NOAA-6 to NOAA-13)' = 2, 'Tiros 2 (NOAA-14 onwards)' = 3, 'EOS' = 10, 'GPM-core' = 20, 'DMSP' = 31, 'EUMETSAT Polar System (EPS)' = 61, 'ERS' = 91, 'Sentinel-3' = 92, 'ADEOS' = 121, 'GCOM' = 122, 'GOES' = 241, 'JASON' = 261, 'GMS' = 271, 'MTSAT' = 272, 'Himawari' = 273, 'COMS' = 281, 'INSAT' = 301, 'METEOSAT Operational Programme (MOP)' = 331, 'METEOSAT Transitional Programme (MTP)' = 332, 'METEOSAT Second Generation Programme (MSG)' = 333, 'GOMS' = 351, 'FY-1' = 380, 'FY-2' = 381, 'FY-3' = 382, 'FY-4' = 383, 'GPS' = 401, 'GLONASS' = 402, 'GALILEO' = 403, 'BDS (BeiDou navigation satellite system)' = 404, 'Missing value' = 511};\n"
+            "    enum Satellite_classification { 'Nimbus' = 0, 'VTPR' = 1, 'Tiros 1 (Tiros, NOAA-6 to NOAA-13)' = 2, 'Tiros 2 (NOAA-14 onwards)' = 3, 'EOS' = 10, 'GPM-core' = 20, 'DMSP' = 31, 'EUMETSAT Polar System (EPS)' = 61, 'EUMETSAT Polar System (EPS-SG)' = 62, 'ERS' = 91, 'Sentinel-3' = 92, 'ADEOS' = 121, 'GCOM' = 122, 'GOES' = 241, 'TROPICS' = 251, 'JASON' = 261, 'GMS' = 271, 'MTSAT' = 272, 'Himawari' = 273, 'COMS' = 281, 'INSAT' = 301, 'METEOSAT Operational Programme (MOP)' = 331, 'METEOSAT Transitional Programme (MTP)' = 332, 'METEOSAT Second Generation Programme (MSG)' = 333, 'METEOSAT Third Generation Programme (MTG)' = 334, 'GOMS' = 351, 'Meteor-M N2' = 352, 'FY-1' = 380, 'FY-2' = 381, 'FY-3' = 382, 'FY-4' = 383, 'GPS' = 401, 'GLONASS' = 402, 'GALILEO' = 403, 'BDS (BeiDou navigation satellite system)' = 404, 'Quasi-Zenith Satellite System (QZSS)' = 405, 'Missing value' = 511};\n"
             + //
             "    enum Satellite-derived_wind_computation_method { 'Wind derived from cloud motion observed in the infrared channel' = 1, 'Wind derived from cloud motion observed in the visible channel' = 2, 'Wind derived from cloud motion observed in the water vapour channel' = 3, 'Wind derived from motion observed in a combination of spectral channels' = 4, 'Wind derived from motion observed in the water vapour channel in clear air' = 5, 'Wind derived from motion observed in the ozone channel' = 6, 'Wind derived from motion observed in water vapour channel (cloud or clear air not specified)' = 7, 'Root-mean-square' = 13, 'Missing value' = 15};\n"
             + //
@@ -18003,13 +18977,13 @@ class EDDGridFromNcFilesTests {
             + //
             "    enum Origin_of_first-guess_information_for_GOES-I_M_soundings { 'Nested Grid Model (NGM)' = 0, 'Aviation Model (AVN)' = 1, 'Medium Range Forecast (MRF) Model' = 2, 'Global Data Assimilation System (GDAS) Forecast Model' = 3, 'Prior soundings (within 3 hours of current time)' = 4, 'Climatology' = 5, 'Missing value' = 15};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
             "    enum Height_assignment_method { 'Auto editor' = 0, 'IRW height assignment' = 1, 'WV height assignment' = 2, 'H2O intercept height assignment' = 3, 'CO2 slicing height assignment' = 4, 'Low pixel max gradient' = 5, 'Higher pixel max gradient' = 6, 'Primary height assignment' = 7, 'Layer thickness assignment' = 8, 'Cumulative contribution function - 10 per cent height' = 9, 'Cumulative contribution function - 50 per cent height' = 10, 'Cumulative contribution function - 90 per cent height' = 11, 'Cumulative contribution function - height of maximum gradient' = 12, 'IR / two WV channel ratioing method' = 13, 'Composite height assignment' = 14, 'Missing value' = 15};\n"
             + //
@@ -18937,7 +19911,7 @@ class EDDGridFromNcFilesTests {
             + //
             "    enum Identification_of_originating_generating_centre { };\n"
             + //
-            "    enum Satellite_classification { 'Nimbus' = 0, 'VTPR' = 1, 'Tiros 1 (Tiros, NOAA-6 to NOAA-13)' = 2, 'Tiros 2 (NOAA-14 onwards)' = 3, 'EOS' = 10, 'GPM-core' = 20, 'DMSP' = 31, 'EUMETSAT Polar System (EPS)' = 61, 'ERS' = 91, 'Sentinel-3' = 92, 'ADEOS' = 121, 'GCOM' = 122, 'GOES' = 241, 'JASON' = 261, 'GMS' = 271, 'MTSAT' = 272, 'Himawari' = 273, 'COMS' = 281, 'INSAT' = 301, 'METEOSAT Operational Programme (MOP)' = 331, 'METEOSAT Transitional Programme (MTP)' = 332, 'METEOSAT Second Generation Programme (MSG)' = 333, 'GOMS' = 351, 'FY-1' = 380, 'FY-2' = 381, 'FY-3' = 382, 'FY-4' = 383, 'GPS' = 401, 'GLONASS' = 402, 'GALILEO' = 403, 'BDS (BeiDou navigation satellite system)' = 404, 'Missing value' = 511};\n"
+            "    enum Satellite_classification { 'Nimbus' = 0, 'VTPR' = 1, 'Tiros 1 (Tiros, NOAA-6 to NOAA-13)' = 2, 'Tiros 2 (NOAA-14 onwards)' = 3, 'EOS' = 10, 'GPM-core' = 20, 'DMSP' = 31, 'EUMETSAT Polar System (EPS)' = 61, 'EUMETSAT Polar System (EPS-SG)' = 62, 'ERS' = 91, 'Sentinel-3' = 92, 'ADEOS' = 121, 'GCOM' = 122, 'GOES' = 241, 'TROPICS' = 251, 'JASON' = 261, 'GMS' = 271, 'MTSAT' = 272, 'Himawari' = 273, 'COMS' = 281, 'INSAT' = 301, 'METEOSAT Operational Programme (MOP)' = 331, 'METEOSAT Transitional Programme (MTP)' = 332, 'METEOSAT Second Generation Programme (MSG)' = 333, 'METEOSAT Third Generation Programme (MTG)' = 334, 'GOMS' = 351, 'Meteor-M N2' = 352, 'FY-1' = 380, 'FY-2' = 381, 'FY-3' = 382, 'FY-4' = 383, 'GPS' = 401, 'GLONASS' = 402, 'GALILEO' = 403, 'BDS (BeiDou navigation satellite system)' = 404, 'Quasi-Zenith Satellite System (QZSS)' = 405, 'Missing value' = 511};\n"
             + //
             "    enum Satellite-derived_wind_computation_method { 'Wind derived from cloud motion observed in the infrared channel' = 1, 'Wind derived from cloud motion observed in the visible channel' = 2, 'Wind derived from cloud motion observed in the water vapour channel' = 3, 'Wind derived from motion observed in a combination of spectral channels' = 4, 'Wind derived from motion observed in the water vapour channel in clear air' = 5, 'Wind derived from motion observed in the ozone channel' = 6, 'Wind derived from motion observed in water vapour channel (cloud or clear air not specified)' = 7, 'Root-mean-square' = 13, 'Missing value' = 15};\n"
             + //
@@ -18949,13 +19923,13 @@ class EDDGridFromNcFilesTests {
             + //
             "    enum Origin_of_first-guess_information_for_GOES-I_M_soundings { 'Nested Grid Model (NGM)' = 0, 'Aviation Model (AVN)' = 1, 'Medium Range Forecast (MRF) Model' = 2, 'Global Data Assimilation System (GDAS) Forecast Model' = 3, 'Prior soundings (within 3 hours of current time)' = 4, 'Climatology' = 5, 'Missing value' = 15};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
             "    enum Height_assignment_method { 'Auto editor' = 0, 'IRW height assignment' = 1, 'WV height assignment' = 2, 'H2O intercept height assignment' = 3, 'CO2 slicing height assignment' = 4, 'Low pixel max gradient' = 5, 'Higher pixel max gradient' = 6, 'Primary height assignment' = 7, 'Layer thickness assignment' = 8, 'Cumulative contribution function - 10 per cent height' = 9, 'Cumulative contribution function - 50 per cent height' = 10, 'Cumulative contribution function - 90 per cent height' = 11, 'Cumulative contribution function - height of maximum gradient' = 12, 'IR / two WV channel ratioing method' = 13, 'Composite height assignment' = 14, 'Missing value' = 15};\n"
             + //
@@ -20749,9 +21723,9 @@ class EDDGridFromNcFilesTests {
             + //
             "    enum Type_of_data_buoy { 'Unspecified drifting buoy' = 0, 'Standard Lagrangian drifter (Global Drifter Programme)' = 1, 'Standard FGGE type drifting buoy (non-Lagrangian meteorological drifting buoy)' = 2, 'Wind measuring FGGE type drifting buoy (non-Lagrangian meteorological drifting buoy)' = 3, 'Ice drifter' = 4, 'SVPG Standard Lagrangian drifter with GPS' = 5, 'SVP-HR drifter with high-resolution temperature or thermistor string' = 6, 'Unspecified subsurface float' = 8, 'SOFAR' = 9, 'ALACE' = 10, 'MARVOR' = 11, 'RAFOS' = 12, 'PROVOR' = 13, 'SOLO' = 14, 'APEX' = 15, 'Unspecified moored buoy' = 16, 'Nomad' = 17, '3-metre discus' = 18, '10-12-metre discus' = 19, 'ODAS 30 series' = 20, 'ATLAS (e.g. TAO area)' = 21, 'TRITON buoy' = 22, 'FLEX mooring (e.g. TIP area)' = 23, 'Omnidirectional waverider' = 24, 'Directional waverider' = 25, 'Subsurface ARGO float' = 26, 'PALACE' = 27, 'NEMO' = 28, 'NINJA' = 29, 'Ice buoy/float (POPS or ITP)' = 30, 'Mooring oceanographic' = 34, 'Mooring meteorological' = 35, 'Mooring multidisciplinary (OceanSITES)' = 36, 'Mooring tide gauge or tsunami buoy' = 37, 'Ice beacon' = 38, 'Ice mass balance buoy' = 39, 'Missing value' = 63};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
             "    enum Indicator_for_digitization { 'Values at selected depths (data points fixed by the instrument or selected by any other method)' = 0, 'Values at selected depths (data points taken from traces at significant depths)' = 1, 'Missing value' = 3};\n"
             + //
@@ -21756,13 +22730,13 @@ class EDDGridFromNcFilesTests {
             + //
             "    enum Present_weather { 'Cloud development not observed or not observable' = 0, 'Clouds generally dissolving or becoming less developed' = 1, 'State of sky on the whole unchanged' = 2, 'Clouds generally forming or developing' = 3, 'Visibility reduced by smoke, e.g. veldt or forest fires, industrial smoke or volcanic ashes' = 4, 'Haze' = 5, 'Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation' = 6, 'Dust or sand raised by wind at or near the station at the time of observation, but no well-developed dust whirl(s) or sand whirl(s), and no duststorm or sandstorm seen; or, in the case of sea stations and coastal stations, blowing spray at the station' = 7, 'Well-developed dust whirl(s) or sand whirl(s) seen at or near the station during the preceding hour or at the same time of observation, but no duststorm or sandstorm' = 8, 'Duststorm or sandstorm within sight at the time of observation, or at the station during the preceding hour' = 9, 'Mist' = 10, 'Patches' = 11, 'More or less continuous' = 12, 'Lightning visible, no thunder heard' = 13, 'Precipitation within sight, not reaching the ground or the surface of the sea' = 14, 'Precipitation within sight, reaching the ground or the surface of the sea, but distant, i.e. estimated to be more than 5 km from the station' = 15, 'Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station' = 16, 'Thunderstorm, but no precipitation at the time of observation' = 17, 'Squalls' = 18, 'Funnel cloud(s)' = 19, 'Drizzle (not freezing) or snow grains' = 20, 'Rain (not freezing)' = 21, 'Snow' = 22, 'Rain and snow or ice pellets' = 23, 'Freezing drizzle or freezing rain' = 24, 'Shower(s) of rain' = 25, 'Shower(s) of snow, or of rain and snow' = 26, 'Shower(s) of hail, or of rain and hail' = 27, 'Fog or ice fog' = 28, 'Thunderstorm (with or without precipitation)' = 29, 'Slight or moderate duststorm or sandstorm' = 30, 'Slight or moderate duststorm or sandstorm' = 31, 'Slight or moderate duststorm or sandstorm' = 32, 'Severe duststorm or sandstorm' = 33, 'Severe duststorm or sandstorm' = 34, 'Severe duststorm or sandstorm' = 35, 'Slight or moderate drifting snow' = 36, 'Heavy drifting snow' = 37, 'Slight or moderate blowing snow' = 38, 'Heavy blowing snow' = 39, 'Fog or ice fog at a distance at the time of observation, but not at the station during the preceding hour, the fog or ice fog extending to a level above that of the observer' = 40, 'Fog or ice fog in patches' = 41, 'Fog or ice fog, sky visible' = 42, 'Fog or ice fog, sky invisible' = 43, 'Fog or ice fog, sky visible' = 44, 'Fog or ice fog, sky invisible' = 45, 'Fog or ice fog, sky visible' = 46, 'Fog or ice fog, sky invisible' = 47, 'Fog, depositing rime, sky visible' = 48, 'Fog, depositing rime, sky invisible' = 49, 'Drizzle, not freezing, intermittent' = 50, 'Drizzle, not freezing, continuous' = 51, 'Drizzle, not freezing, intermittent' = 52, 'Drizzle, not freezing, continuous' = 53, 'Drizzle, not freezing, intermittent' = 54, 'Drizzle, not freezing, continuous' = 55, 'Drizzle, freezing, slight' = 56, 'Drizzle, freezing, moderate or heavy (dense)' = 57, 'Drizzle and rain, slight' = 58, 'Drizzle and rain, moderate or heavy' = 59, 'Rain, not freezing, intermittent' = 60, 'Rain, not freezing, continuous' = 61, 'Rain, not freezing, intermittent' = 62, 'Rain, not freezing, continuous' = 63, 'Rain, not freezing, intermittent' = 64, 'Rain, not freezing, continuous' = 65, 'Rain, freezing, slight' = 66, 'Rain, freezing, moderate or heavy' = 67, 'Rain or drizzle and snow, slight' = 68, 'Rain or drizzle and snow, moderate or heavy' = 69, 'Intermittent fall of snowflakes' = 70, 'Continuous fall of snowflakes' = 71, 'Intermittent fall of snowflakes' = 72, 'Continuous fall of snowflakes' = 73, 'Intermittent fall of snowflakes' = 74, 'Continuous fall of snowflakes' = 75, 'Diamond dust (with or without fog)' = 76, 'Snow grains (with or without fog)' = 77, 'Isolated star-like snow crystals (with or without fog)' = 78, 'Ice pellets' = 79, 'Rain shower(s), slight' = 80, 'Rain shower(s), moderate or heavy' = 81, 'Rain shower(s), violent' = 82, 'Shower(s) of rain and snow mixed, slight' = 83, 'Shower(s) of rain and snow mixed, moderate or heavy' = 84, 'Snow shower(s), slight' = 85, 'Snow shower(s), moderate or heavy' = 86, 'Shower(s) of snow pellets or small hail, with or without rain or rain and snow mixed' = 87, 'Shower(s) of snow pellets or small hail, with or without rain or rain and snow mixed' = 88, 'Shower(s) of hail, with or without rain or rain and snow mixed, not associated with thunder' = 89, 'Shower(s) of hail, with or without rain or rain and snow mixed, not associated with thunder' = 90, 'Slight rain at time of observation' = 91, 'Moderate or heavy rain at time of observation' = 92, 'Slight snow, or rain and snow mixed or hail at time of observation' = 93, 'Moderate or heavy snow, or rain and snow mixed or hail at time of observation' = 94, 'Thunderstorm, slight or moderate, without hail, but with rain and/or snow at time of observation' = 95, 'Thunderstorm, slight or moderate, with hail at time of observation' = 96, 'Thunderstorm, heavy, without hail, but with rain and/or snow at time of observation' = 97, 'Thunderstorm combined with duststorm or sandstorm at time of observation' = 98, 'Thunderstorm, heavy, with hail at time of observation' = 99, 'No significant weather observed' = 100, 'Clouds generally dissolving or becoming less developed during the past hour' = 101, 'State of sky on the whole unchanged during the past hour' = 102, 'Clouds generally forming or developing during the past hour' = 103, 'Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km' = 104, 'Haze or smoke, or dust in suspension in the air, visibility less than 1 km' = 105, 'Mist' = 110, 'Diamond dust' = 111, 'Distant lightning' = 112, 'Squalls' = 118, 'Fog' = 120, 'PRECIPITATION' = 121, 'Drizzle (not freezing) or snow grains' = 122, 'Rain (not freezing)' = 123, 'Snow' = 124, 'Freezing drizzle or freezing rain' = 125, 'Thunderstorm (with or without precipitation)' = 126, 'BLOWING OR DRIFTING SNOW OR SAND' = 127, 'Blowing or drifting snow or sand, visibility equal to, or greater than, 1 km' = 128, 'Blowing or drifting snow or sand, visibility less than 1 km' = 129, 'FOG' = 130, 'Fog or ice fog in patches' = 131, 'Fog or ice fog, has become thinner during the past hour' = 132, 'Fog or ice fog, no appreciable change during the past hour' = 133, 'Fog or ice fog, has begun or become thicker during the past hour' = 134, 'Fog, depositing rime' = 135, 'PRECIPITATION' = 140, 'Precipitation, slight or moderate' = 141, 'Precipitation, heavy' = 142, 'Liquid precipitation, slight or moderate' = 143, 'Liquid precipitation, heavy' = 144, 'Solid precipitation, slight or moderate' = 145, 'Solid precipitation, heavy' = 146, 'Freezing precipitation, slight or moderate' = 147, 'Freezing precipitation, heavy' = 148, 'DRIZZLE' = 150, 'Drizzle, not freezing, slight' = 151, 'Drizzle, not freezing, moderate' = 152, 'Drizzle, not freezing, heavy' = 153, 'Drizzle, freezing, slight' = 154, 'Drizzle, freezing, moderate' = 155, 'Drizzle, freezing, heavy' = 156, 'Drizzle and rain, slight' = 157, 'Drizzle and rain, moderate or heavy' = 158, 'RAIN' = 160, 'Rain, not freezing, slight' = 161, 'Rain, not freezing, moderate' = 162, 'Rain, not freezing, heavy' = 163, 'Rain, freezing, slight' = 164, 'Rain, freezing, moderate' = 165, 'Rain, freezing, heavy' = 166, 'Rain (or drizzle) and snow, slight' = 167, 'Rain (or drizzle) and snow, moderate or heavy' = 168, 'SNOW' = 170, 'Snow, slight' = 171, 'Snow, moderate' = 172, 'Snow, heavy' = 173, 'Ice pellets, slight' = 174, 'Ice pellets, moderate' = 175, 'Ice pellets, heavy' = 176, 'Snow grains' = 177, 'Ice crystals' = 178, 'SHOWER(S) OR INTERMITTENT PRECIPITATION' = 180, 'Rain shower(s) or intermittent rain, slight' = 181, 'Rain shower(s) or intermittent rain, moderate' = 182, 'Rain shower(s) or intermittent rain, heavy' = 183, 'Rain shower(s) or intermittent rain, violent' = 184, 'Snow shower(s) or intermittent snow, slight' = 185, 'Snow shower(s) or intermittent snow, moderate' = 186, 'Snow shower(s) or intermittent snow, heavy' = 187, 'Hail' = 189, 'THUNDERSTORM' = 190, 'Thunderstorm, slight or moderate, with no precipitation' = 191, 'Thunderstorm, slight or moderate, with rain showers and/or snow showers' = 192, 'Thunderstorm, slight or moderate, with hail' = 193, 'Thunderstorm, heavy, with no precipitation' = 194, 'Thunderstorm, heavy, with rain showers and/or snow showers' = 195, 'Thunderstorm, heavy, with hail' = 196, 'Tornado' = 199, 'Volcanic ash suspended in the air aloft' = 204, 'Thick dust haze, visibility less than 1 km' = 206, 'Blowing spray at the station' = 207, 'Drifting dust (sand)' = 208, 'Wall of dust or sand in distance (like haboob)' = 209, 'Snow haze' = 210, 'Whiteout' = 211, 'Lightning, cloud to surface' = 213, 'Dry thunderstorm' = 217, 'Tornado cloud (destructive) at or within sight of the station during preceding hour or at the time of observation' = 219, 'Deposition of volcanic ash' = 220, 'Deposition of dust or sand' = 221, 'Deposition of dew' = 222, 'Deposition of wet snow' = 223, 'Deposition of soft rime' = 224, 'Deposition of hard rime' = 225, 'Deposition of hoar frost' = 226, 'Deposition of glaze' = 227, 'Deposition of ice crust (ice slick)' = 228, 'Duststorm or sandstorm with temperature below 0 deg C' = 230, 'Blowing snow, impossible to determine whether snow is falling or not' = 239, 'Fog on sea' = 241, 'Fog in valleys' = 242, 'Arctic or Antarctic sea smoke' = 243, 'Steam fog (sea, lake or river)' = 244, 'Steam log (land)' = 245, 'Fog over ice or snow cover' = 246, 'Dense fog, visibility 60-90 m' = 247, 'Dense fog, visibility 30-60 m' = 248, 'Dense fog, visibility less than 30 m' = 249, 'Drizzle, rate of fall - less than 0.10 mm h-1' = 250, 'Drizzle, rate of fall - 0.10-0.19 mm h-1' = 251, 'Drizzle, rate of fall - 0.20-0.39 mm h-1' = 252, 'Drizzle, rate of fall - 0.40-0.79 mm h-1' = 253, 'Drizzle, rate of fall - 0.80-1.59 mm h-1' = 254, 'Drizzle, rate of fall - 1.60-3.19 mm h-1' = 255, 'Drizzle, rate of fall - 3.20-6.39 mm h-1' = 256, 'Drizzle, rate of fall - 6.4 mm h-1 or more' = 257, 'Drizzle and snow' = 259, 'Rain, rate of fall - less than 1.0 mm h-1' = 260, 'Rain, rate of fall - 1.0-1.9 mm h-1' = 261, 'Rain, rate of fall - 2.0-3.9 mm h-1' = 262, 'Rain, rate of fall - 4.0-7.9 mm h-1' = 263, 'Rain, rate of fall - 8.0-15.9 mm h-1' = 264, 'Rain, rate of fall - 16.0-31.9 mm h-1' = 265, 'Rain, rate of fall - 32.0-63.9 mm h-1' = 266, 'Rain, rate of fall - 64.0 mm h-1 or more' = 267, 'Snow, rate of fall - less than 1.0 cm h-1' = 270, 'Snow, rate of fall - 1.0-1.9 cm h-1' = 271, 'Snow, rate of fall - 2.0-3.9 cm h-1' = 272, 'Snow, rate of fall - 4.0-7.9 cm h-1' = 273, 'Snow, rate of fall - 8.0-15.9 cm h-1' = 274, 'Snow, rate of fall - 16.0-31.9 cm h-1' = 275, 'Snow, rate of fall - 32.0-63.9 cm h-1' = 276, 'Snow, rate of fall - 64.0 cm h-1 or more' = 277, 'Snow or ice crystal precipitation from a clear sky' = 278, 'Wet snow, freezing on contact' = 279, 'Precipitation of rain' = 280, 'Precipitation of rain, freezing' = 281, 'Precipitation of rain and snow mixed' = 282, 'Precipitation of snow' = 283, 'Precipitation of snow pellets or small hall' = 284, 'Precipitation of snow pellets or small hail, with rain' = 285, 'Precipitation of snow pellets or small hail, with rain and snow mixed' = 286, 'Precipitation of snow pellets or small hail, with snow' = 287, 'Precipitation of hail' = 288, 'Precipitation of hail, with rain' = 289, 'Precipitation of hall, with rain and snow mixed' = 290, 'Precipitation of hail, with snow' = 291, 'Shower(s) or thunderstorm over sea' = 292, 'Shower(s) or thunderstorm over mountains' = 293, 'No significant phenomenon to report, present and past weather omitted' = 508, 'No observation, data not available, present and past weather omitted' = 509, 'Present and past weather missing, but expected' = 510, 'Missing value' = 511};\n"
             + //
-            "    enum Past_weather_(1) { 'Cloud covering 1/2 or less of the sky throughout the appropriate period' = 0, 'Cloud covering more than 1/2 of the sky during part of the appropriate period and covering 1/2 or less during part of the period' = 1, 'Cloud covering more than 1/2 of the sky throughout the appropriate period' = 2, 'Sandstorm, duststorm or blowing snow' = 3, 'Fog or ice fog or thick haze' = 4, 'Drizzle' = 5, 'Rain' = 6, 'Snow, or rain and snow mixed' = 7, 'Shower(s)' = 8, 'Thunderstorm(s) with or without precipitation' = 9, 'No significant weather observed' = 10, 'VISIBILITY REDUCED (see Note)' = 11, 'Blowing phenomena, visibility reduced' = 12, 'FOG (see Note)' = 13, 'PRECIPITATION (see Note)' = 14, 'Drizzle' = 15, 'Rain' = 16, 'Snow or ice pellets' = 17, 'Showers or intermittent precipitation' = 18, 'Thunderstorm' = 19, 'Missing value' = 31};\n"
+            "    enum Past_weather_(1) { 'Cloud covering 1/2 or less of the sky throughout the appropriate period' = 0, 'Cloud covering more than 1/2 of the sky during part of the appropriate period and covering 1/2 or less during part of the period' = 1, 'Cloud covering more than 1/2 of the sky throughout the appropriate period' = 2, 'Sandstorm, duststorm or blowing snow' = 3, 'Fog or ice fog or thick haze' = 4, 'Drizzle' = 5, 'Rain' = 6, 'Snow, or rain and snow mixed' = 7, 'Shower(s)' = 8, 'Thunderstorm(s) with or without precipitation' = 9, 'No significant weather observed' = 10, 'VISIBILITY REDUCED' = 11, 'Blowing phenomena, visibility reduced' = 12, 'FOG' = 13, 'PRECIPITATION' = 14, 'Drizzle' = 15, 'Rain' = 16, 'Snow or ice pellets' = 17, 'Showers or intermittent precipitation' = 18, 'Thunderstorm' = 19, 'Missing value' = 31};\n"
             + //
-            "    enum Past_weather_(2) { 'Cloud covering 1/2 or less of the sky throughout the appropriate period' = 0, 'Cloud covering more than 1/2 of the sky during part of the appropriate period and covering 1/2 or less during part of the period' = 1, 'Cloud covering more than 1/2 of the sky throughout the appropriate period' = 2, 'Sandstorm, duststorm or blowing snow' = 3, 'Fog or ice fog or thick haze' = 4, 'Drizzle' = 5, 'Rain' = 6, 'Snow, or rain and snow mixed' = 7, 'Shower(s)' = 8, 'Thunderstorm(s) with or without precipitation' = 9, 'No significant weather observed' = 10, 'VISIBILITY REDUCED (see Note)' = 11, 'Blowing phenomena, visibility reduced' = 12, 'FOG (see Note)' = 13, 'PRECIPITATION (see Note)' = 14, 'Drizzle' = 15, 'Rain' = 16, 'Snow or ice pellets' = 17, 'Showers or intermittent precipitation' = 18, 'Thunderstorm' = 19, 'Missing value' = 31};\n"
+            "    enum Past_weather_(2) { 'Cloud covering 1/2 or less of the sky throughout the appropriate period' = 0, 'Cloud covering more than 1/2 of the sky during part of the appropriate period and covering 1/2 or less during part of the period' = 1, 'Cloud covering more than 1/2 of the sky throughout the appropriate period' = 2, 'Sandstorm, duststorm or blowing snow' = 3, 'Fog or ice fog or thick haze' = 4, 'Drizzle' = 5, 'Rain' = 6, 'Snow, or rain and snow mixed' = 7, 'Shower(s)' = 8, 'Thunderstorm(s) with or without precipitation' = 9, 'No significant weather observed' = 10, 'VISIBILITY REDUCED' = 11, 'Blowing phenomena, visibility reduced' = 12, 'FOG' = 13, 'PRECIPITATION' = 14, 'Drizzle' = 15, 'Rain' = 16, 'Snow or ice pellets' = 17, 'Showers or intermittent precipitation' = 18, 'Thunderstorm' = 19, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
-            "    enum Time_significance { 'Time series' = 1, 'Time averaged (see Note 1)' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean (see Note 2)' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
+            "    enum Time_significance { 'Time series' = 1, 'Time averaged' = 2, 'Accumulated' = 3, 'Forecast' = 4, 'Forecast time series' = 5, 'Forecast time averaged' = 6, 'Forecast accumulated' = 7, 'Ensemble mean' = 8, 'Ensemble mean time series' = 9, 'Ensemble mean time averaged' = 10, 'Ensemble mean accumulated' = 11, 'Ensemble mean forecast' = 12, 'Ensemble mean forecast time series' = 13, 'Ensemble mean forecast time averaged' = 14, 'Ensemble mean forecast accumulated' = 15, 'Analysis' = 16, 'Start of phenomenon' = 17, 'Radiosonde launch time' = 18, 'Start of orbit' = 19, 'End of orbit' = 20, 'Time of ascending node' = 21, 'Time of occurrence of wind shift' = 22, 'Monitoring period' = 23, 'Agreed time limit for report reception' = 24, 'Nominal reporting time' = 25, 'Time of last known position' = 26, 'First guess' = 27, 'Start of scan' = 28, 'End of scan or time of ending' = 29, 'Time of occurrence' = 30, 'Missing value' = 31};\n"
             + //
             "\n"
             + //

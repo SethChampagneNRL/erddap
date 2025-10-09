@@ -15,7 +15,14 @@ import com.cohort.util.Calendar2;
 import com.cohort.util.Math2;
 import com.cohort.util.String2;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.*;
+import gov.noaa.pfel.erddap.variable.EDV;
+import gov.noaa.pfel.erddap.variable.EDVAltGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVDepthGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVLatGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVLonGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVTimeGridAxis;
+import java.time.format.DateTimeFormatter;
 
 /**
  * This class provides access to the axis data corresponding to a axis data query to an EDDGrid.
@@ -38,12 +45,12 @@ public class AxisDataAccessor {
   public static boolean reallyVerbose = false;
 
   // things passed into the constructor
-  protected EDDGrid eddGrid;
-  protected String userDapQuery;
+  protected final EDDGrid eddGrid;
+  protected final String userDapQuery;
 
   // things the constructor generates
   protected EDVGridAxis[] rAxisVariables;
-  protected IntArray constraints;
+  protected final IntArray constraints;
   protected Attributes globalAttributes;
   protected Attributes rAxisAttributes[];
   protected PrimitiveArray rAxisValues[];
@@ -53,7 +60,7 @@ public class AxisDataAccessor {
    *
    * @param language the index of the selected language
    * @param tEDDGrid
-   * @param tRequestUrl the part of the user's request, after EDStatic.baseUrl, before '?'.
+   * @param tRequestUrl the part of the user's request, after EDStatic.config.baseUrl, before '?'.
    * @param tUserDapQuery the part after the '?', still percentEncoded, may be null.
    * @param tConstraints
    * @throws Throwable if trouble
@@ -75,20 +82,21 @@ public class AxisDataAccessor {
     StringArray destinationNames = new StringArray();
     constraints = new IntArray();
     eddGrid.parseAxisDapQuery(language, userDapQuery, destinationNames, constraints, false);
-    if (reallyVerbose)
+    if (reallyVerbose) {
       String2.log(
           "      requestedAxisVariables="
               + destinationNames
               + "\n      constraints="
               + constraints);
+    }
 
     // make globalAttributes
-    globalAttributes = new Attributes(eddGrid.combinedGlobalAttributes()); // a copy
+    globalAttributes = eddGrid.combinedGlobalAttributes().toAttributes(language); // a copy
 
     // fix up global attributes (always to a local COPY of global attributes)
     // remove acdd-style and google-style bounding box
-    EDD.addToHistory(globalAttributes, eddGrid.publicSourceUrl());
-    EDD.addToHistory(globalAttributes, EDStatic.baseUrl + tRequestUrl + "?" + tUserDapQuery);
+    EDD.addToHistory(globalAttributes, eddGrid.publicSourceUrl(language));
+    EDD.addToHistory(globalAttributes, EDStatic.config.baseUrl + tRequestUrl + "?" + tUserDapQuery);
     globalAttributes.remove("geospatial_lon_min");
     globalAttributes.remove("geospatial_lon_max");
     globalAttributes.remove("geospatial_lon_resolution");
@@ -129,7 +137,8 @@ public class AxisDataAccessor {
       rAxisValues[av] = rAxisVariables[av].toDestination(rAxisValues[av]);
 
       // make axisAttributes
-      rAxisAttributes[av] = new Attributes(rAxisVariables[av].combinedAttributes()); // a copy
+      rAxisAttributes[av] =
+          rAxisVariables[av].combinedAttributes().toAttributes(language); // a copy
 
       // setActualRangeAndBoundingBox  (see comments in method javadocs above)
       // if no data, don't specify range
@@ -214,7 +223,9 @@ public class AxisDataAccessor {
           globalAttributes.set("geospatial_vertical_max", dMax);
         }
       } else if (rAxisVariables[av] instanceof EDVTimeGridAxis) {
-        String tp = rAxisVariables[av].combinedAttributes().getString(EDV.TIME_PRECISION);
+        DateTimeFormatter tp =
+            Calendar2.timePrecisionToDateTimeFormatter(
+                rAxisVariables[av].combinedAttributes().getString(language, EDV.TIME_PRECISION));
         // "" unsets the attribute if dMin or dMax isNaN
         globalAttributes.set(
             "time_coverage_start", Calendar2.epochSecondsToLimitedIsoStringT(tp, dMin, ""));
@@ -222,34 +233,6 @@ public class AxisDataAccessor {
             "time_coverage_end", Calendar2.epochSecondsToLimitedIsoStringT(tp, dMax, ""));
       }
     }
-  }
-
-  /**
-   * This returns the EDDGrid that is the source of this data.
-   *
-   * @return the EDDGrid that is the source of this data.
-   */
-  public EDDGrid eddGrid() {
-    return eddGrid;
-  }
-
-  /**
-   * This returns the userDapQuery used to make this.
-   *
-   * @return the userDapQuery used to make this, still percentEncoded, may be null.
-   */
-  public String userDapQuery() {
-    return userDapQuery;
-  }
-
-  /**
-   * This returns the constraints derived from the userDapQuery. This is the internal data
-   * structure, so don't change it.
-   *
-   * @return the constraints derived from the userDapQuery.
-   */
-  public IntArray constraints() {
-    return constraints;
   }
 
   /**

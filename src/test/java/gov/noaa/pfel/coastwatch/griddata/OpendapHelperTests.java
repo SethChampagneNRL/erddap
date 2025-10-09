@@ -1,21 +1,28 @@
 package gov.noaa.pfel.coastwatch.griddata;
 
 import com.cohort.array.Attributes;
-import com.cohort.util.Calendar2;
 import com.cohort.util.File2;
 import com.cohort.util.MustBe;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
+import com.cohort.util.TestUtil;
 import dods.dap.DAS;
 import dods.dap.DConnect;
 import java.nio.file.Path;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
 import tags.TagIncompleteTest;
 import tags.TagThredds;
+import testDataset.Initialization;
 
 class OpendapHelperTests {
 
   @TempDir private static Path TEMP_DIR;
+
+  @BeforeAll
+  static void init() {
+    Initialization.edStatic();
+  }
 
   /** This tests getting attibutes, notably the DODS_strlen attribute. */
   @org.junit.jupiter.api.Test
@@ -68,9 +75,7 @@ class OpendapHelperTests {
   //   Maybe get a new version.
   @TagIncompleteTest
   void testDapToNcDArray() throws Throwable {
-    String2.log("\n\n*** OpendapHelper.testDapToNcDArray()");
     String fileName, expected, results;
-    String today = Calendar2.getCurrentISODateTimeStringLocalTZ().substring(0, 10);
 
     fileName = TEMP_DIR.toAbsolutePath() + "/testDapToNcDArray.nc";
     String dArrayUrl =
@@ -322,7 +327,7 @@ class OpendapHelperTests {
       File2.delete(fileName);
       if (true) throw new RuntimeException("shouldn't get here");
     } catch (OutOfMemoryError oome) {
-      Test.knownProblem(
+      TestUtil.knownProblem(
           "THREDDS OutOfMemoryError. I reported it to John Caron.",
           "2012-03-02 A TDS problem. I reported it to John Caron:\n"
               + MustBe.throwableToString(oome));
@@ -343,7 +348,7 @@ class OpendapHelperTests {
       // gov.noaa.pfel.coastwatch.griddata.OpendapHelper.testDapToNcDArray(OpendapHelper.java:1628)
       // at gov.noaa.pfel.coastwatch.TestAll.main(TestAll.java:723)
     } catch (Throwable t) {
-      Test.knownProblem(
+      TestUtil.knownProblem(
           "\nOutOfMememoryError from TDS bug was expected (but 404 Not Found/ 'Connection cannont be read' is also common)."
               + "\n(server timed out 2013-10-24)",
           t);
@@ -488,6 +493,18 @@ class OpendapHelperTests {
     }
   }
 
+  public static String dds(String fileName) throws Exception {
+    String sar[] = String2.splitNoTrim(NcHelper.readCDL(fileName), '\n');
+    int n = sar.length;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < n; i++) {
+      String trimS = sar[i].trim();
+      if (trimS.length() > 0 && !trimS.startsWith(":")) sb.append(sar[i] + "\n");
+      sar[i] = null;
+    }
+    return sb.toString();
+  }
+
   /**
    * Test allDapToNc.
    *
@@ -513,7 +530,7 @@ class OpendapHelperTests {
     fileName = "pointKachemakBay.nc";
     url = tdsUrl + "point/KachemakBay.nc";
     OpendapHelper.allDapToNc(url, dir + fileName);
-    results = NcHelper.dds(dir + fileName);
+    results = dds(dir + fileName);
     // String2.log(results);
     // expected = "zztop";
     // Test.ensureEqual(results, expected, "");
@@ -522,7 +539,7 @@ class OpendapHelperTests {
     fileName = "timeSeriesBodegaMarineLabBuoy.nc";
     url = tdsUrl + "timeSeries/BodegaMarineLabBuoy.nc";
     OpendapHelper.allDapToNc(url, dir + fileName);
-    results = NcHelper.dds(dir + fileName);
+    results = dds(dir + fileName);
     expected =
         "netcdf "
             + dir
@@ -559,7 +576,7 @@ class OpendapHelperTests {
     fileName = "trajectoryAoml_tsg.nc";
     url = tdsUrl + "trajectory/aoml_tsg.nc";
     OpendapHelper.allDapToNc(url, dir + fileName);
-    results = NcHelper.dds(dir + fileName);
+    results = dds(dir + fileName);
     // String2.log(results);
     expected =
         "netcdf "
@@ -603,7 +620,7 @@ class OpendapHelperTests {
     fileName = "trajectoryJason2_satelliteAltimeter.nc";
     url = tdsUrl + "trajectory/jason2_satelliteAltimeter.nc";
     OpendapHelper.allDapToNc(url, dir + fileName);
-    results = NcHelper.dds(dir + fileName);
+    results = dds(dir + fileName);
     // String2.log(results);
     expected =
         "netcdf "
@@ -664,7 +681,7 @@ class OpendapHelperTests {
     fileName = "timeSeriesProfileUsgs_internal_wave_timeSeries.nc";
     url = tdsUrl + "timeSeriesProfile/usgs_internal_wave_timeSeries.nc";
     OpendapHelper.allDapToNc(url, dir + fileName);
-    results = NcHelper.dds(dir + fileName);
+    results = dds(dir + fileName);
     // String2.log(results);
     expected =
         "netcdf "

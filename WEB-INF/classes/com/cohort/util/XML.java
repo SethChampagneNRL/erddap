@@ -4,16 +4,18 @@
  */
 package com.cohort.util;
 
+import com.google.common.collect.ImmutableList;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
+import org.apache.commons.text.StringSubstitutor;
+import org.apache.commons.text.io.StringSubstitutorReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,9 +24,6 @@ import org.xml.sax.InputSource;
 /** This has some static methods to facilitate reading and writing an XML file. */
 public class XML {
 
-  /** This returns the line separator from <code>System.getProperty("line.separator");</code> */
-  public static String LS = System.getProperty("line.separator");
-
   /**
    * For each character 0 - 255, these indicate how the character should appear in HTML content. See
    * HTML &amp; XHTML book, Appendix F. XML is same as HTML for 0-127 (see
@@ -32,278 +31,278 @@ public class XML {
    * ) &quot; and &#39; are encoded to be safe (see encodeAsXML comments) and consistent with
    * encodeAsXML.
    */
-  public static String[] HTML_ENTITIES = {
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "&#9;", // 0..  tab
-    "\n",
-    "",
-    "",
-    "\r",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "", // 10..
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "", // 20..
-    "",
-    "",
-    " ",
-    "!",
-    "&quot;",
-    "#",
-    "$",
-    "&#37;",
-    "&amp;",
-    "&#39;", // 30..   //% re percent encoding
-    "(",
-    ")",
-    "*",
-    "+",
-    ",",
-    "-",
-    ".",
-    "/",
-    "0",
-    "1", // 40..
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    ":",
-    ";", // 50..
-    "&lt;",
-    "=",
-    "&gt;",
-    "?",
-    "@",
-    "A",
-    "B",
-    "C",
-    "D",
-    "E", // 60..
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O", // 70..
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y", // 80..
-    "Z",
-    "[",
-    "\\",
-    "]",
-    "^",
-    "_",
-    "`",
-    "a",
-    "b",
-    "c", // 90..
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "k",
-    "l",
-    "m", // 100..
-    "n",
-    "o",
-    "p",
-    "q",
-    "r",
-    "s",
-    "t",
-    "u",
-    "v",
-    "w", // 110..
-    "x",
-    "y",
-    "z",
-    "{",
-    "|",
-    "}",
-    "~",
-    "", // 120..
-    // Assume 128-159 are from Windows https://en.wikipedia.org/wiki/Windows-1252
-    // So convert them to ASCII (a few) or HTML character entity.
-    //                                                upArrow  upDownArrow
-    //                          Zcaron
-    "&euro;",
-    "",
-    ",",
-    "&fnof;",
-    ",,",
-    "&hellip;",
-    "&#8224;",
-    "&#8225;",
-    "^",
-    "&permil;",
-    "&Scaron;",
-    "&lsaquo;",
-    "&OElig;",
-    "",
-    "&#381;",
-    "", // 128..
-    "",
-    "'",
-    "'",
-    "&quot;",
-    "&quot;",
-    "&bull;",
-    "&ndash;",
-    "&mdash;",
-    "~",
-    "&trade;",
-    "&scaron;",
-    "&rsaquo;",
-    "&oelig;",
-    "",
-    "&#382;",
-    "&Yuml;", // 144
-    "&nbsp;",
-    "&iexcl;",
-    "&cent;",
-    "&pound;",
-    "&curren;", // 160
-    "&yen;",
-    "&brvbar;",
-    "&sect;",
-    "&uml;",
-    "&copy;", // 165
-    "&ordf;",
-    "&laquo;",
-    "&not;",
-    "&shy;",
-    "&reg;", // 170
-    "&macr;",
-    "&deg;",
-    "&plusmn;",
-    "&sup2;",
-    "&sup3;", // 175..
-    "&acute;",
-    "&micro;",
-    "&para;",
-    "&middot;",
-    "&cedil;", // 180
-    "&sup1;",
-    "&ordm;",
-    "&raquo;",
-    "&frac14;",
-    "&frac12;", // 185..
-    "&frac34;",
-    "&iquest;",
-    "&Agrave;",
-    "&Aacute;",
-    "&Acirc;", // 190
-    "&Atilde;",
-    "&Auml;",
-    "&Aring;",
-    "&AElig;",
-    "&Ccedil;", // 195..
-    "&Egrave;",
-    "&Eacute;",
-    "&Ecirc;",
-    "&Euml;",
-    "&Igrave;", // 200
-    "&Iacute;",
-    "&Icirc;",
-    "&Iuml;",
-    "&ETH;",
-    "&Ntilde;", // 205..
-    "&Ograve;",
-    "&Oacute;",
-    "&Ocirc;",
-    "&Otilde;",
-    "&Ouml;", // 210
-    "&times;",
-    "&Oslash;",
-    "&Ugrave;",
-    "&Uacute;",
-    "&Ucirc;", // 215..
-    "&Uuml;",
-    "&Yacute;",
-    "&THORN;",
-    "&szlig;",
-    "&agrave;", // 220
-    "&aacute;",
-    "&acirc;",
-    "&atilde;",
-    "&auml;",
-    "&aring;", // 225..
-    "&aelig;",
-    "&ccedil;",
-    "&egrave;",
-    "&eacute;",
-    "&ecirc;", // 230
-    "&euml;",
-    "&igrave;",
-    "&iacute;",
-    "&icirc;",
-    "&iuml;", // 235..
-    "&eth;",
-    "&ntilde;",
-    "&ograve;",
-    "&oacute;",
-    "&ocirc;", // 240
-    "&otilde;",
-    "&ouml;",
-    "&divide;",
-    "&oslash;",
-    "&ugrave;", // 245..
-    "&uacute;",
-    "&ucirc;",
-    "&uuml;",
-    "&yacute;",
-    "&thorn;", // 250
-    "&yuml;"
-  }; // 255
+  public static final ImmutableList<String> HTML_ENTITIES =
+      ImmutableList.of(
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "&#9;", // 0..  tab
+          "\n",
+          "",
+          "",
+          "\r",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "", // 10..
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "", // 20..
+          "",
+          "",
+          " ",
+          "!",
+          "&quot;",
+          "#",
+          "$",
+          "&#37;",
+          "&amp;",
+          "&#39;", // 30..   //% re percent encoding
+          "(",
+          ")",
+          "*",
+          "+",
+          ",",
+          "-",
+          ".",
+          "/",
+          "0",
+          "1", // 40..
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          ":",
+          ";", // 50..
+          "&lt;",
+          "=",
+          "&gt;",
+          "?",
+          "@",
+          "A",
+          "B",
+          "C",
+          "D",
+          "E", // 60..
+          "F",
+          "G",
+          "H",
+          "I",
+          "J",
+          "K",
+          "L",
+          "M",
+          "N",
+          "O", // 70..
+          "P",
+          "Q",
+          "R",
+          "S",
+          "T",
+          "U",
+          "V",
+          "W",
+          "X",
+          "Y", // 80..
+          "Z",
+          "[",
+          "\\",
+          "]",
+          "^",
+          "_",
+          "`",
+          "a",
+          "b",
+          "c", // 90..
+          "d",
+          "e",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j",
+          "k",
+          "l",
+          "m", // 100..
+          "n",
+          "o",
+          "p",
+          "q",
+          "r",
+          "s",
+          "t",
+          "u",
+          "v",
+          "w", // 110..
+          "x",
+          "y",
+          "z",
+          "{",
+          "|",
+          "}",
+          "~",
+          "", // 120..
+          // Assume 128-159 are from Windows https://en.wikipedia.org/wiki/Windows-1252
+          // So convert them to ASCII (a few) or HTML character entity.
+          //                                                upArrow  upDownArrow
+          //                          Zcaron
+          "&euro;",
+          "",
+          ",",
+          "&fnof;",
+          ",,",
+          "&hellip;",
+          "&#8224;",
+          "&#8225;",
+          "^",
+          "&permil;",
+          "&Scaron;",
+          "&lsaquo;",
+          "&OElig;",
+          "",
+          "&#381;",
+          "", // 128..
+          "",
+          "'",
+          "'",
+          "&quot;",
+          "&quot;",
+          "&bull;",
+          "&ndash;",
+          "&mdash;",
+          "~",
+          "&trade;",
+          "&scaron;",
+          "&rsaquo;",
+          "&oelig;",
+          "",
+          "&#382;",
+          "&Yuml;", // 144
+          "&nbsp;",
+          "&iexcl;",
+          "&cent;",
+          "&pound;",
+          "&curren;", // 160
+          "&yen;",
+          "&brvbar;",
+          "&sect;",
+          "&uml;",
+          "&copy;", // 165
+          "&ordf;",
+          "&laquo;",
+          "&not;",
+          "&shy;",
+          "&reg;", // 170
+          "&macr;",
+          "&deg;",
+          "&plusmn;",
+          "&sup2;",
+          "&sup3;", // 175..
+          "&acute;",
+          "&micro;",
+          "&para;",
+          "&middot;",
+          "&cedil;", // 180
+          "&sup1;",
+          "&ordm;",
+          "&raquo;",
+          "&frac14;",
+          "&frac12;", // 185..
+          "&frac34;",
+          "&iquest;",
+          "&Agrave;",
+          "&Aacute;",
+          "&Acirc;", // 190
+          "&Atilde;",
+          "&Auml;",
+          "&Aring;",
+          "&AElig;",
+          "&Ccedil;", // 195..
+          "&Egrave;",
+          "&Eacute;",
+          "&Ecirc;",
+          "&Euml;",
+          "&Igrave;", // 200
+          "&Iacute;",
+          "&Icirc;",
+          "&Iuml;",
+          "&ETH;",
+          "&Ntilde;", // 205..
+          "&Ograve;",
+          "&Oacute;",
+          "&Ocirc;",
+          "&Otilde;",
+          "&Ouml;", // 210
+          "&times;",
+          "&Oslash;",
+          "&Ugrave;",
+          "&Uacute;",
+          "&Ucirc;", // 215..
+          "&Uuml;",
+          "&Yacute;",
+          "&THORN;",
+          "&szlig;",
+          "&agrave;", // 220
+          "&aacute;",
+          "&acirc;",
+          "&atilde;",
+          "&auml;",
+          "&aring;", // 225..
+          "&aelig;",
+          "&ccedil;",
+          "&egrave;",
+          "&eacute;",
+          "&ecirc;", // 230
+          "&euml;",
+          "&igrave;",
+          "&iacute;",
+          "&icirc;",
+          "&iuml;", // 235..
+          "&eth;",
+          "&ntilde;",
+          "&ograve;",
+          "&oacute;",
+          "&ocirc;", // 240
+          "&otilde;",
+          "&ouml;",
+          "&divide;",
+          "&oslash;",
+          "&ugrave;", // 245..
+          "&uacute;",
+          "&ucirc;",
+          "&uuml;",
+          "&yacute;",
+          "&thorn;", // 250
+          "&yuml;"); // 255
 
-  public static HashMap<String, Character> ENTITY_TO_CHAR_HASHMAP = new HashMap();
+  public static final HashMap<String, Character> ENTITY_TO_CHAR_HASHMAP = new HashMap<>();
 
   static {
-    Test.ensureEqual(HTML_ENTITIES.length, 256, "HTML_ENTITIES.length");
+    Test.ensureEqual(HTML_ENTITIES.size(), 256, "HTML_ENTITIES.length");
     for (int i = 0; i < 256; i++) {
       if (i >= 128 && i < 160) // but not the Windows-1252 characters
       continue;
-      String ent = HTML_ENTITIES[i];
-      if (ent.length() > 0) ENTITY_TO_CHAR_HASHMAP.put(ent, Character.valueOf((char) i));
+      String ent = HTML_ENTITIES.get(i);
+      if (ent.length() > 0) ENTITY_TO_CHAR_HASHMAP.put(ent, (char) i);
     }
   }
 
@@ -360,7 +359,7 @@ public class XML {
 
     for (int i = 0; i < size; i++) {
       int chi = plainText.charAt(i); // note: int
-      if (chi <= 255) output.append(HTML_ENTITIES[chi]);
+      if (chi <= 255) output.append(HTML_ENTITIES.get(chi));
       else output.append("&#x" + Integer.toHexString(chi) + ";");
     }
 
@@ -404,16 +403,6 @@ public class XML {
   }
 
   /**
-   * This is like encodeAsXML, but encodes char &gt;=256 so they can be shown in a DOW/Windows
-   * terminal window.
-   *
-   * @param plainText
-   */
-  public static String encodeAsTerminal(String plainText) {
-    return encodeAsXMLOpt(plainText, true);
-  }
-
-  /**
    * This is the standard encodeAsXML which leaves chars &gt;=256 as is.
    *
    * @param plainText
@@ -450,23 +439,12 @@ public class XML {
         // converting " is important to prevent cross site scripting;
         // it prevents attacker from closing href="..." quotes
         // [No. That's in a parameter. It shouldn't be needed for ordinary XML content.]
-        output.append(HTML_ENTITIES[chi]);
+        output.append(HTML_ENTITIES.get(chi));
       else if (encodeHighChar && chi > 255) output.append("&#x" + Integer.toHexString(chi) + ";");
       else output.append((char) chi);
     }
 
     return output.toString();
-  }
-
-  /**
-   * If encodeAsXML is true, this encodes as XML; otherwise it returns the original string.
-   *
-   * @param s
-   * @param encodeAsXML
-   * @return If encodeAsXML is true, this encodes as XML; otherwise it returns the original string.
-   */
-  public static String encodeAsXML(String s, boolean encodeAsXML) {
-    return encodeAsXML ? encodeAsXML(s) : s;
   }
 
   /**
@@ -515,7 +493,7 @@ public class XML {
     }
 
     // trailing spaces
-    for (int i = 0; i < nSpacesAtEnd; i++) sb.append((char) 160); // "&nbsp;"
+    sb.append(String.valueOf((char) 160).repeat(Math.max(0, nSpacesAtEnd))); // "&nbsp;"
 
     return sb.toString();
   }
@@ -600,190 +578,6 @@ public class XML {
   }
 
   /**
-   * This writes s to 'out'. If no error occurs or error.length()!=0, this returns 'error';
-   * otherwise, this returns a new error message.
-   *
-   * @param out
-   * @param s the string to be written
-   * @param error any previous error ("" if no error)
-   * @return an error String ("" if no error)
-   */
-  public static String toWriter(Writer out, String s, String error) {
-    try {
-      out.write(s);
-    } catch (Exception e) {
-      if (error.length() == 0) error = MustBe.throwableToString(e);
-    }
-    return error;
-  }
-
-  /**
-   * This writes one element to an XML stream. This handles encoding the value string. If no error
-   * occurs or error.length()!=0, this returns 'error'; otherwise, this returns a new error message.
-   *
-   * @param out
-   * @param indent
-   * @param name the name of the start element
-   * @param error the previous error ("" if no error)
-   * @return an error String ("" if no error)
-   */
-  public static String writeXMLStartElement(Writer out, String indent, String name, String error) {
-    return toWriter(out, indent + '<' + name + '>' + LS, error);
-  }
-
-  /**
-   * This writes one element to an XML stream. This handles encoding the value string. If no error
-   * occurs or error.length()!=0, this returns 'error'; otherwise, this returns a new error message.
-   *
-   * @param out
-   * @param indent
-   * @param name the name of the element
-   * @param error the previous error ("" if no error)
-   * @return an error String ("" if no error)
-   */
-  public static String writeXMLEndElement(Writer out, String indent, String name, String error) {
-    return toWriter(out, indent + "</" + name + '>' + LS, error);
-  }
-
-  /**
-   * This writes one element to an XML stream. This handles encoding the value string. If no error
-   * occurs or error.length()!=0, this returns 'error'; otherwise, this returns a new error message.
-   *
-   * @param out
-   * @param indent
-   * @param name the name of the element
-   * @param value the value of the element (not yet htmlEncoded)
-   * @param error the previous error ("" if no error)
-   * @return an error String ("" if no error)
-   */
-  public static String writeXMLElement(
-      Writer out, String indent, String name, String value, String error) {
-    return toWriter(
-        out, indent + '<' + name + '>' + encodeAsXML(value) + "</" + name + '>' + LS, error);
-  }
-
-  /**
-   * This makes the specified text into a valid xmlName.
-   *
-   * <p>FYI: XML names may contain letters, digits, '_', '-', '.'. XML names must start with a
-   * letter or '_'. One colon may be used to identify namespace (e.g., "namespace:name"). See XML in
-   * a Nutshell, 3rd ed, pg 18.
-   *
-   * <p>FYI: Java identifiers may contain letters, digits, '_', '$'. Java identifiers must start
-   * with a letter, '_', or '$'. But it is a little more complex than this, see Java API for
-   * Character.isJavaIdentifierPart and isJavaIdentifierStart.
-   *
-   * @param text The text for the xmlName. If name is null, this returns "", which will be detected
-   *     as invalid by <code>EnofClass.isValid</code>. This converts spaces to '_'. In keeping with
-   *     the requirements for XML element names, only letters, digits, underscores, hyphens, and
-   *     periods in the name are kept. Other characters are removed. If the first character is not a
-   *     letter or underscore, "_" is prepended.
-   */
-  public static String textToXMLName(String text) {
-
-    // ensure it is a valid xml name: letters, digits, "_", "-", "." only
-    text = text.trim();
-    text = XML.removeHTMLTags(text);
-    int textLength = text.length();
-    StringBuilder sb = new StringBuilder(textLength + 1);
-    for (int i = 0; i < textLength; i++) {
-      char ch = text.charAt(i);
-      if (ch == ' ') sb.append('_');
-      else if (String2.isDigitLetter(ch) || ch == '_' || ch == '-' || ch == '.') sb.append(ch);
-    }
-
-    // ensure first character is letter or '_'
-    if (sb.length() > 0 && !String2.isLetter(sb.charAt(0)) && sb.charAt(0) != '_')
-      sb.insert(0, '_');
-
-    // return the result (which may be "" and therefore invalid)
-    return sb.toString();
-  }
-
-  /**
-   * This substitutes the substitutions. This routine is not very smart -- it can be fooled by tags
-   * within comments. So it is best to remove comments first.
-   *
-   * @param template an XML document template with some elements e.g., &lt;tagA&gt;&lt;!-- put
-   *     something here --&gt;&lt;/tagA&gt; The results are put in here.
-   * @param substitutions Each line is in the form: &lt;tag1&gt;&lt;tag2&gt;data, where there may be
-   *     1 or more elements.
-   * @throws RuntimeException if trouble
-   */
-  public static void substitute(StringBuilder template, String substitutions[]) {
-
-    // for each substitution
-    for (int subN = 0; subN < substitutions.length; subN++) {
-      int temPo = 0; // one character beyond last tag found
-      String sub = substitutions[subN];
-      int tagStart = 0; // in sub
-      // String2.log("sub=" + encodeAsTerminal(sub));
-
-      // find each tag which identifies the
-      String tag = null; // with throw null pointer if no tag found
-      while (sub.charAt(tagStart) == '<') {
-        // get the tag name
-        int tagEnd = sub.indexOf('>', tagStart + 1);
-        tag = sub.substring(tagStart, tagEnd + 1);
-        tagStart = tagEnd + 1;
-        // String2.log("  tag=" + encodeAsTerminal(tag));
-
-        // find its location in the template
-        temPo = template.indexOf(tag, temPo);
-        Test.ensureNotEqual(
-            temPo,
-            -1,
-            "FGDC.substitute subN="
-                + subN
-                + " tag not found ="
-                + encodeAsTerminal(tag)
-                + "\n  substitution="
-                + encodeAsTerminal(sub));
-        temPo += tag.length();
-      }
-
-      // find the close tag
-      String closeTag = "</" + tag.substring(1);
-      int closeTagAt = template.indexOf(closeTag, temPo);
-      Test.ensureNotEqual(
-          closeTagAt,
-          -1,
-          "FGDC.substitute subN="
-              + subN
-              + " close tag not found ="
-              + encodeAsTerminal(closeTag)
-              + "\n  substitution="
-              + encodeAsTerminal(sub));
-
-      // delete any data between the close and open tags
-      template.delete(temPo, closeTagAt);
-
-      // get the data and insert it into the template
-      String data = sub.substring(tagStart);
-      template.insert(temPo, data);
-      // String2.log("FGDC.substitute substituting data=" + data);
-    }
-
-    // ensure the result is valid XML?
-
-  }
-
-  /**
-   * This removes any comments from the XML document.
-   *
-   * @param document
-   * @throws RuntimeException if trouble
-   */
-  public static void removeComments(StringBuilder document) {
-    int startPo = document.indexOf("<!--");
-    while (startPo >= 0) {
-      int endPo = document.indexOf("-->", startPo + 4);
-      document.delete(startPo, endPo + 3);
-      startPo = document.indexOf("<!--", startPo);
-    }
-  }
-
-  /**
    * Parse an XML file and return a DOM Document. If validating is true, the XML is validated
    * against the DTD specified by DOCTYPE in the file.
    *
@@ -792,9 +586,17 @@ public class XML {
    * @return a DOM Document
    * @throws Exception if trouble
    */
-  public static Document parseXml(String fileName, boolean validating) throws Exception {
-    BufferedReader reader = File2.getDecompressedBufferedFileReader(fileName, File2.UTF_8);
-    return parseXml(new InputSource(reader), validating);
+  public static Document parseXml(String fileName, boolean validating, boolean withEnvSubstitutions)
+      throws Exception {
+    try (BufferedReader reader = File2.getDecompressedBufferedFileReader(fileName, File2.UTF_8)) {
+      InputSource source;
+      if (withEnvSubstitutions) {
+        source = new InputSource(new StringSubstitutorReader(reader, new StringSubstitutor()));
+      } else {
+        source = new InputSource(reader);
+      }
+      return parseXml(source, validating);
+    }
   }
 
   /**
@@ -807,9 +609,10 @@ public class XML {
    * @throws Exception if trouble
    */
   public static Document parseXml(URL resourceFile, boolean validating) throws Exception {
-    InputStream decompressedStream = File2.getDecompressedBufferedInputStream(resourceFile);
-    InputStreamReader reader = new InputStreamReader(decompressedStream, StandardCharsets.UTF_8);
-    return parseXml(new InputSource(new BufferedReader(reader)), validating);
+    try (InputStream decompressedStream = File2.getDecompressedBufferedInputStream(resourceFile)) {
+      InputStreamReader reader = new InputStreamReader(decompressedStream, StandardCharsets.UTF_8);
+      return parseXml(new InputSource(new BufferedReader(reader)), validating);
+    }
   }
 
   /**
@@ -918,124 +721,5 @@ public class XML {
     int lastValid = length - 1;
     while (lastValid > firstValid && String2.isWhite(s.charAt(lastValid))) lastValid--;
     return s.substring(firstValid, lastValid + 1);
-  }
-
-  /**
-   * This returns the text content for the first node matching an XPath query.
-   *
-   * @param item usually a Document from parseXml() above, but may be a NodeList or a Node.
-   * @param xPath from getXPath()
-   * @param xPathQuery e.g., "/testr/level1". See XPath documentation: https://www.w3.org/TR/xpath
-   * @return the text content (or "" if no matching node or no content).
-   */
-  public static String getTextContent1(Object item, XPath xPath, String xPathQuery)
-      throws Exception {
-    return getTextContent(getFirstNode(item, xPath, xPathQuery));
-  }
-
-  /**
-   * This reformats an xml file to have newlines and nice indentation. This throws RuntimeException
-   * if trouble.
-   */
-  public static void prettyXml(String inFileName, String outFileName) {
-    String2.log("prettyXml\n in=" + inFileName + "\nout=" + outFileName);
-    if (inFileName.equals(outFileName))
-      throw new RuntimeException("Error: inFileName equals outFileName!");
-    String in[] = File2.readFromFile(inFileName, File2.UTF_8);
-    if (in[0].length() > 0)
-      throw new RuntimeException("Error while reading " + inFileName + "\n" + in[0]);
-    String xml = in[1];
-    int xmlLength = xml.length();
-    StringBuilder sb = new StringBuilder();
-    // start and end of a tag, and start of next tag
-    int start, end, nextStart = xml.indexOf('<');
-    int indent =
-        -2; // first tag should be <?xml version="1.0" encoding="UTF-8"?> and no closing tag
-    boolean lastHadContent = false;
-    while (nextStart >= 0 && nextStart < xmlLength) {
-      /*
-      <?xml version="1.0" encoding="UTF-8"?>
-
-        <gmd:axisDimensionProperties>
-          <gmd:MD_Dimension>
-            <gmd:dimensionName>
-              <gmd:MD_DimensionNameTypeCode codeList="https://www.ngdc.noaa.gov/metadata/published/xsd/schema/resources/Codelist/gmxCodelists.xml#gmd:MD_DimensionNameTypeCode" codeListValue="column">column</gmd:MD_DimensionNameTypeCode>
-            </gmd:dimensionName>
-            <gmd:dimensionSize gco:nilReason="unknown"/>
-            <gmd:resolution>
-              <gco:Measure uom="degrees_east">1.0</gco:Measure>
-            </gmd:resolution>
-          </gmd:MD_Dimension>
-        </gmd:axisDimensionProperties> */
-      start = nextStart;
-
-      // deal with comment: <!--  -->
-      if (xml.substring(start, start + 4).equals("<!--")) {
-        end = xml.indexOf("-->", start + 4);
-        if (end < 0) throw new RuntimeException("No end '-->' for last comment.");
-        nextStart = xml.indexOf('<', end + 3);
-        if (nextStart < 0) nextStart = xmlLength;
-        // trim() because xml content begin/end whitespace is not significant
-        String content = xml.substring(end + 3, nextStart).trim();
-
-        // write indent
-        if (start > 0) sb.append('\n');
-        for (int i = 0; i < indent; i++) {
-          sb.append(' ');
-        }
-        // write tag
-        sb.append(xml.substring(start, end + 3));
-        // write content
-        sb.append(content);
-        lastHadContent = false;
-        continue;
-      }
-
-      // deal with CDATA: <![CDATA[     ]]>
-      if (xml.substring(start, start + 9).equals("<![CDATA[")) {
-        end = xml.indexOf("]]>", start + 9);
-        if (end < 0) throw new RuntimeException("No end ']]>' for last <![CDATA[.");
-        nextStart = xml.indexOf('<', end + 3);
-        if (nextStart < 0) nextStart = xmlLength;
-        // trim() because xml content begin/end whitespace is not significant
-        String content = xml.substring(end + 3, nextStart).trim();
-
-        // write tag
-        sb.append(xml.substring(start, end + 3));
-        // write content
-        sb.append(content);
-        lastHadContent = true;
-        continue;
-      }
-
-      // deal with regular tag
-      end = xml.indexOf('>', start + 1);
-      if (end < 0) throw new RuntimeException("No '>' for last tag.");
-      nextStart = xml.indexOf('<', end + 1);
-      if (nextStart < 0) nextStart = xmlLength;
-      // trim() because xml content begin/end whitespace is not significant
-      String content = xml.substring(end + 1, nextStart).trim();
-
-      // write the tag and content
-      if (xml.charAt(start + 1) == '/') indent -= 2;
-      if (!lastHadContent) {
-        // write indent
-        if (start > 0) sb.append('\n');
-        for (int i = 0; i < indent; i++) {
-          sb.append(' ');
-        }
-      }
-      sb.append(xml.substring(start, end + 1));
-      sb.append(content);
-      lastHadContent = content.length() > 0;
-
-      if (xml.charAt(end - 1) == '/' || xml.charAt(start + 1) == '/') {
-        // indent unchanged
-      } else {
-        indent += 2;
-      }
-    }
-    // String2.log(sb.toString());
-    File2.writeToFileUtf8(outFileName, sb.toString());
   }
 }

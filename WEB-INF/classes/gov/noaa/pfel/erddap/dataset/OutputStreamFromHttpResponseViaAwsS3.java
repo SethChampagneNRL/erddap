@@ -24,16 +24,16 @@ public class OutputStreamFromHttpResponseViaAwsS3 implements OutputStreamSource 
    */
   public static boolean verbose = false;
 
-  HttpServletRequest request;
-  HttpServletResponse response;
-  String localDir;
+  final HttpServletRequest request;
+  final HttpServletResponse response;
+  final String localDir;
   String fileName;
-  String fileType;
-  String extension;
+  final String fileType;
+  final String extension;
 
   protected String usingCompression = ""; // see usingCompression() below
   protected OutputStream outputStream;
-  protected boolean hasRangeRequest;
+  protected final boolean hasRangeRequest;
 
   /**
    * The constructor.
@@ -110,10 +110,13 @@ public class OutputStreamFromHttpResponseViaAwsS3 implements OutputStreamSource 
   @Override
   public OutputStream outputStream(String characterEncoding, long tLength) throws Throwable {
 
-    if (outputStream != null) return outputStream;
+    if (outputStream != null) {
+      return outputStream;
+    }
 
     // make an OutpuStreamViaAwsS3 which has special close() method
-    return outputStream = new OutputStreamViaAwsS3(this, characterEncoding);
+    outputStream = new OutputStreamViaAwsS3(this);
+    return outputStream;
   }
 
   /**

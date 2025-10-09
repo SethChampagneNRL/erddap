@@ -7,6 +7,7 @@ import com.cohort.util.File2;
 import com.cohort.util.Math2;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
+import com.cohort.util.TestUtil;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
 import java.io.BufferedReader;
 import java.io.StringReader;
@@ -29,7 +30,7 @@ class FileVisitorDNLSTests {
     // reallyVerbose = true;
 
     if (true)
-      Test.knownProblem(
+      TestUtil.knownProblem(
           "2020-10-22 FileVisitorDNLS.testThredds is not run now because the sourceUrl often stalls: https://data.nodc.noaa.gov/thredds");
 
     // String url =
@@ -139,7 +140,6 @@ class FileVisitorDNLSTests {
     String tPathRegex = null;
     Table table;
     long time;
-    int n;
     String results, expected;
     String testDir =
         Path.of(FileVisitorDNLSTests.class.getResource("/data/fileNames").toURI())
@@ -285,8 +285,6 @@ class FileVisitorDNLSTests {
     Test.ensureEqual(results, expected, "results=\n" + results);
 
     // *** huge dir
-    String unexpected =
-        "\nUnexpected FileVisitorDNLS error (but /data/gtspp/temp dir has variable nFiles):\n";
 
     if (doBigTest) {
       for (int attempt = 0; attempt < 2; attempt++) {
@@ -358,8 +356,6 @@ class FileVisitorDNLSTests {
 
     // verbose = true;
     Table table;
-    long time;
-    int n;
     String results, expected;
     // this works in browser: http://nasanex.s3.us-west-2.amazonaws.com
     // the full parent here doesn't work in a browser.
@@ -540,8 +536,6 @@ class FileVisitorDNLSTests {
     // verbose = true;
     // debugMode = true;
     Table table;
-    long time;
-    int n;
     String results, expected;
     // this works in browser: http://nasanex.s3.us-west-2.amazonaws.com
     // the full parent here doesn't work in a browser.
@@ -550,7 +544,6 @@ class FileVisitorDNLSTests {
     // See https://docs.aws.amazon.com/AmazonS3/latest/dev/ListingKeysHierarchy.html
     String parent =
         "https://nasanex.s3.us-west-2.amazonaws.com/NEX-DCP30/BCSD/rcp26/mon/atmos/tasmin/r1i1p1/v1.0/";
-    String child = "CONUS/";
     String pathRegex = null;
     String fullResults = null;
 
@@ -611,8 +604,6 @@ class FileVisitorDNLSTests {
 
     // verbose = true;
     Table table;
-    long time;
-    int n;
     String results, expected;
     // 2021-04-16 created a bucket:
     // log into AWS console as root (or IAM?)
@@ -953,8 +944,6 @@ class FileVisitorDNLSTests {
     boolean recursive = true;
     String pathRegex = ".*/v4\\.1/2018/(|01./)"; // for test, just get 01x dirs/files. Read regex:
     // "(|2018/(|/[0-9]{3}/))";
-    boolean dirsToo = false;
-    StringArray childUrls = new StringArray();
 
     // test via oneStep -- no dirs
     Table table = FileVisitorDNLS.oneStep(url, fileNameRegex, recursive, pathRegex, false);
@@ -1305,11 +1294,6 @@ class FileVisitorDNLSTests {
     String2.log("\n*** FileVisitorDNLS.testInteractiveErddapFilesWAF()\n");
     // test with trailing /
     // This also tests redirect to https!
-    String url = "https://coastwatch.pfeg.noaa.gov/erddap/files/fedCalLandings/";
-    String tFileNameRegex = "194\\d\\.nc";
-    boolean tRecursive = true;
-    String tPathRegex = ".*/(3|4)/.*";
-    boolean tDirsToo = true;
     Table table = FileVisitorDNLS.makeEmptyTable();
     StringArray dirs = (StringArray) table.getColumn(0);
     StringArray names = (StringArray) table.getColumn(1);
@@ -1455,7 +1439,7 @@ class FileVisitorDNLSTests {
             + "/testMakeTgz.tar.gz";
     // try {
     FileVisitorDNLS.makeTgz(dataDir, ".*", true, ".*", tgzName);
-    // Test.displayInBrowser("file://" + tgzName); //works with .tar.gz, not .tgz
+    // TestUtil.displayInBrowser("file://" + tgzName); //works with .tar.gz, not .tgz
     // String2.pressEnterToContinue("Are the contents of the .tar.gz file okay?");
     // } catch (Throwable t) {
     // String2.pressEnterToContinue(MustBe.throwableToString(t));

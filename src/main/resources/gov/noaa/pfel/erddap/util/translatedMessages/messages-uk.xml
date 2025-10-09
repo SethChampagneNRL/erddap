@@ -63,7 +63,6 @@ HTML чи ні?
 <acronyms>Акроніми</acronyms>
 <addConstraints>Ви можете додати обмеження, подібні до tabledap, до запитів до цієї веб-сторінки,
 наприклад,</addConstraints>
-<addVarWhereAttName>Необов’язково: укажіть назву атрибута.</addVarWhereAttName>
 <addVarWhereAttValue>Необов’язково: укажіть значення атрибута.</addVarWhereAttValue>
 <addVarWhere><![CDATA[
 
@@ -95,11 +94,11 @@ HTML чи ні?
 <advl_institution>Заклад</advl_institution>
 <advc_dataStructure>ERDDAP розглядає кожен набір даних як «сітку» або «таблицю».</advc_dataStructure>
 <advl_dataStructure>Структура даних</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>Загальний тип моделі даних</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>Клас ERDDAP</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>Назва</advl_title>
 <advl_minLongitude>Мінімальна довгота</advl_minLongitude>
 <advl_maxLongitude>Максимальна довгота</advl_maxLongitude>
@@ -144,7 +143,7 @@ HTML чи ні?
 <advn_outOfDate><![CDATA[
 
 Очевидно, жодні набори даних не мають атрибута
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> .
 Можливо, у цьому ERDDAP немає наборів даних майже в реальному часі.
 
@@ -296,9 +295,6 @@ HTML чи ні?
 <categorySearchHtml><![CDATA[
 Виберіть <kbd>{0}</kbd>
 ]]></categorySearchHtml>
-<categorySearchDifferentHtml><![CDATA[
-Пошук наборів даних з іншою <kbd>&category;</kbd>
-]]></categorySearchDifferentHtml>
 <categoryClickHtml>Натисніть категорію (значення атрибута), щоб переглянути список відповідних наборів даних.</categoryClickHtml>
 <categoryNotAnOption>Коли атрибут=&quot;{0}&quot;, значення=&quot;{1}&quot; не є варіантом.</categoryNotAnOption>
 <caughtInterrupted>спіймано currentThread().isInterrupted().</caughtInterrupted>
@@ -361,6 +357,8 @@ CTD, якщо вони не пов’язані з <kbd>TimeSeries</kbd> або 
 <a rel="help" href="#computerProgram">пропустіть цю веб-сторінку</a> та виконайте перетворення з комп’ютерної програми, сценарію чи веб-сторінки.
 
 ]]></convertBypass>
+<convertCOLORs>Колір</convertCOLORs>
+<convertCOLORsMessage>Перетворення значення в колір з кольоромбарвлення</convertCOLORsMessage>
 <convertToAFullName><![CDATA[
 <strong>Перетворити з {0} на повне ім’я.</strong>
 ]]></convertToAFullName>
@@ -1802,9 +1800,6 @@ UDUNITS =degC%20meter-1</a>
 
 ]]></dafTableTooltip>
 <dasTitle>Структура атрибутів набору даних (.das) для цього набору даних</dasTitle>
-
-<!--  Повідомлення, яке відображатиметься, якщо дані неможливо завантажити (наприклад, SeaWiFS &lt;=14 днів тому).  -->
-<dataAccessNotAllowed>[Вибачте. Ці дані не можна завантажити.]</dataAccessNotAllowed>
 <databaseUnableToConnect>Не вдалося підключитися до бази даних.</databaseUnableToConnect>
 <dataProviderForm>Форма постачальника даних</dataProviderForm>
 <dataProviderFormP1>Форма постачальника даних - Частина 1</dataProviderFormP1>
@@ -1919,7 +1914,7 @@ ERDDAP працює з набором даних одним із двох спо
 <ul>
 <li><a class="selfLink" id="databases" href="#databases" rel="bookmark">Дані</a>, які наразі зберігаються в реляційній базі даних.
 <br>Будь ласка, прочитайте інформацію про тип набору даних
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> в ERDDAP, особливо перші ~2 екрани інформації, які говорять про необхідність створення деноралізованої таблиці.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> в ERDDAP, особливо перші ~2 екрани інформації, які говорять про необхідність створення деноралізованої таблиці.
 Це може здатися божевільним.
 Будь ласка, достатньо довіряйте, щоб прочитати обґрунтування цього.
 <br>&nbsp;
@@ -2131,10 +2126,6 @@ y_wind</DEFAULT_commonStandardNames>
 <br>Будь ласка, виправте ці проблеми, а потім знову надішліть цю частину форми.
 
 ]]></dpf_fixProblem>
-<dpf_yourName>Твоє ім&#39;я</dpf_yourName>
-<dpf_emailAddress>Адреса електронної пошти</dpf_emailAddress>
-<dpf_Timestamp>Мітка часу</dpf_Timestamp>
-<dpf_frequency>Частота</dpf_frequency>
 <dpf_title>назва</dpf_title>
 <dpf_titleTooltip><![CDATA[
 
@@ -2212,12 +2203,6 @@ y_wind</DEFAULT_commonStandardNames>
 <br><kbd>
 
 ]]></dpf_licenseTooltip>
-<dpf_howYouStoreData><![CDATA[
-
-<br>• Помилка:
-укажіть (нижче), як зберігаються ваші сіточні або табличні дані.
-
-]]></dpf_howYouStoreData>
 <dpf_provideIfAvailable>Надайте інформацію, якщо вона доступна для вашого набору даних.</dpf_provideIfAvailable>
 <dpf_acknowledgement>підтвердження</dpf_acknowledgement>
 <dpf_acknowledgementTooltip><![CDATA[
@@ -2518,10 +2503,8 @@ ERDDAP перетворить їх на байти, 1 або 0.
 <dtWMS>Клацніть, щоб дізнатися про створення карт із цими даними за допомогою служби веб-карт цього набору даних.</dtWMS>
 <EasierAccessToScientificData>Простіший доступ до наукових даних</EasierAccessToScientificData>
 
-<!--  Повідомлення EDD відображаються у формах доступу до даних tabledap і griddap.  -->
-<EDDClickOnSubmitHtml><![CDATA[
-Натисніть <kbd>Submit</kbd> .
-]]></EDDClickOnSubmitHtml>
+<!--Повідомлення EDD відображаються наtabledapСтатус на сервери
+-->
 <EDDDatasetID>ID набору даних</EDDDatasetID>
 <EDDFgdc>FGDC</EDDFgdc>
 <EDDFgdcMetadata>FGDC-STD-001-1998 Метадані</EDDFgdcMetadata>
@@ -2534,9 +2517,7 @@ ERDDAP перетворить їх на байти, 1 або 0.
 <EDDInformation>Інформація</EDDInformation>
 <EDDSummary>Резюме</EDDSummary>
 <EDDDatasetTitle>Назва набору даних</EDDDatasetTitle>
-<EDDDownloadData>Завантажити дані</EDDDownloadData>
 <EDDMakeAGraph>Складіть графік</EDDMakeAGraph>
-<EDDMakeAMap>Складіть карту</EDDMakeAMap>
 <EDDMinimum>мінімум</EDDMinimum>
 <EDDMaximum>Максимум</EDDMaximum>
 <EDDFileType>Тип файлу:</EDDFileType>
@@ -2604,8 +2585,6 @@ griddap використовує
 ]]></EDDGridDownloadDataTooltip>
 <EDDGridDimension>Розміри</EDDGridDimension>
 <EDDGridDimensionRanges>Розміри</EDDGridDimensionRanges>
-<EDDGridFirst>Перший</EDDGridFirst>
-<EDDGridLast>Останній</EDDGridLast>
 <EDDGridStart>старт</EDDGridStart>
 <EDDGridStop>СТІЙ</EDDGridStop>
 <EDDGridStartStopTooltip><![CDATA[
@@ -2649,14 +2628,6 @@ griddap використовує
 Трохи дивний, нерівномірний інтервал часто вказує на те, що один або кілька файлів відсутні або погані в іншому абсолютно рівномірному наборі даних.
 
 ]]></EDDGridSpacingTooltip>
-<EDDGridDimensionFirstTooltip><![CDATA[
-Для вашої інформації:
-це перше значення розміру.
-]]></EDDGridDimensionFirstTooltip>
-<EDDGridDimensionLastTooltip><![CDATA[
-Для вашої інформації:
-це останнє значення розміру.
-]]></EDDGridDimensionLastTooltip>
 <EDDGridDownloadTooltip><![CDATA[
 Виберіть змінні, які ви хочете завантажити:
 <br>* Щоб завантажити лише дані розмірів:
@@ -2930,10 +2901,6 @@ ERDDAP — це сервер даних, який дає вам простий �
 
 <!--  Ці повідомлення відображаються, коли відображається повідомлення про помилку.  -->
 <errorTitle>Помилка</errorTitle>
-<errorRequestUrl>URL вашого запиту:</errorRequestUrl>
-<errorRequestQuery>Ваш запит запиту:</errorRequestQuery>
-<errorTheError>Помилка:</errorTheError>
-<errorCopyFrom>Неможливо скопіювати з {0}.</errorCopyFrom>
 <errorFileNotFound>Файл не знайдено: {0}.</errorFileNotFound>
 <errorFileNotFoundImage>Файл не знайдено в кеші. Відтворіть зображення та повторіть спробу.</errorFileNotFoundImage>
 <errorInternal>Внутрішня помилка:</errorInternal>
@@ -2955,6 +2922,7 @@ ERDDAP — це сервер даних, який дає вам простий �
 <externalLink>(зовнішнє посилання)</externalLink>
 <externalWebSite>Це посилання на зовнішній веб-сайт не є схваленням.</externalWebSite>
 <fileHelp_asc>Перегляд тексту, розділеного комами, у стилі OPeNDAP ISO-8859-1.</fileHelp_asc>
+<fileHelp_croissant>Завантажити данісет круасан шма.</fileHelp_croissant>
 <fileHelp_csv>Завантажте текстову таблицю ISO-8859-1, розділену комами (рядок 1: імена; рядок 2: одиниці; ISO 8601 раз).</fileHelp_csv>
 <fileHelp_csvp>Завантажте файл ISO-8859-1 .csv із рядком 1: назва (одиниці). Часи – це рядки ISO 8601.</fileHelp_csvp>
 <fileHelp_csv0>Завантажте файл .csv ISO-8859-1 без імен стовпців або одиниць. Часи – це рядки ISO 8601.</fileHelp_csv0>
@@ -2966,12 +2934,18 @@ ERDDAP — це сервер даних, який дає вам простий �
 <fileHelpTable_esriCsv>Завантажте файл ISO_8859_1 .csv для ESRI ArcGIS 9.x і нижче (окремі стовпці дати та часу).</fileHelpTable_esriCsv>
 <fileHelp_fgdc>Перегляньте метадані UTF-8 FGDC .xml набору даних.</fileHelp_fgdc>
 <fileHelp_geoJson>Завантажте дані довготи, широти, інших стовпців як файл GeoJSON .json UTF-8.</fileHelp_geoJson>
-<fileHelp_graph>Перегляньте веб-сторінку Make A Graph.</fileHelp_graph>
 <fileHelpGrid_help>Перегляньте веб-сторінку з описом griddap.</fileHelpGrid_help>
 <fileHelpTable_help>Переглянути веб-сторінку з описом tabledap.</fileHelpTable_help>
 <fileHelp_html>Перегляньте HTML-форму доступу до даних у стилі OPeNDAP.</fileHelp_html>
 <fileHelp_htmlTable>Перегляньте веб-сторінку UTF-8 .html із даними в таблиці. Часи – це рядки ISO 8601.</fileHelp_htmlTable>
-<fileHelp_iso19115>Перегляньте метадані .xml набору даних ISO 19115-2/19139 UTF-8.</fileHelp_iso19115>
+<fileHelp_iso19115>Перегляд данихISO 19115/19139Метадані UTF-8 .xml з використанням параметра за замовчуванням для цього сервера.
+</fileHelp_iso19115>
+<fileHelp_iso19115_2>Перегляд данихISO 19115-2/19139метаданих UTF-8 .xml.
+</fileHelp_iso19115_2>
+<fileHelp_iso191392007>Перегляд данихISO 19139:2007метаданих UTF-8 .xml.
+</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>Перегляд данихISO 19115-3:2016метаданих UTF-8 .xml.
+</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>Завантажте текстовий файл ISO-8859-1 Igor. Кожна змінна осі та кожна змінна даних стає хвилею.</fileHelp_itxGrid>
 <fileHelp_itxTable>Завантажте текстовий файл ISO-8859-1 Igor. Кожен стовпець відповіді стає хвилею.</fileHelp_itxTable>
 <fileHelp_json>Перегляньте табличний файл JSON UTF-8 (відсутнє значення = &#39;null&#39;; час — рядки ISO 8601).</fileHelp_json>
@@ -2997,7 +2971,6 @@ ERDDAP — це сервер даних, який дає вам простий �
 <fileHelpTable_odvTxt>Завантажте стовпці longitude,latitude,time,otherColumns як загальний файл електронної таблиці ODV ISO-8859-1 (.txt).</fileHelpTable_odvTxt>
 <fileHelp_parquet>Завантажити як файл паркету. Метадані містить імена стовпців (&quot;column_names&quot;) та одиниці (&quot;column_units&quot;).</fileHelp_parquet>
 <fileHelp_parquet_with_meta>Завантажте файл парокету з докладними метаданими.</fileHelp_parquet_with_meta>
-<fileHelp_subset>Перегляньте HTML-форму, яка використовує фасетний пошук для спрощення вибору підмножин даних.</fileHelp_subset>
 <fileHelp_timeGaps>Перегляньте список UTF-8 розривів у значеннях часу, які перевищують середній розрив.</fileHelp_timeGaps>
 <fileHelp_tsv>Завантажте текстову таблицю ISO-8859-1, розділену табуляціями (рядок 1: імена; рядок 2: одиниці; ISO 8601 раз).</fileHelp_tsv>
 <fileHelp_tsvp>Завантажте файл ISO-8859-1 .tsv із рядком 1: назва (одиниці). Часи – це рядки ISO 8601.</fileHelp_tsvp>
@@ -3017,7 +2990,6 @@ ERDDAP — це сервер даних, який дає вам простий �
 
 <!--  Формулювання опису та попередження розпливчасті, щоб дозволити один або багато наборів даних.  -->
 <filesDescription>Система «файлів» ERDDAP дозволяє переглядати віртуальну файлову систему та завантажувати файли вихідних даних.</filesDescription>
-<filesSort>Клацніть заголовок (наприклад, Ім’я, Остання зміна, Розмір), щоб змінити порядок сортування.  &quot;Остання зміна&quot; використовує часовий пояс Зулу.</filesSort>
 <filesWarning><![CDATA[
 
 Метадані набору даних і назви змінних у цих вихідних файлах можуть відрізнятися від інших у ERDDAP ! Натомість ви можете скористатися формою доступу до набору даних.
@@ -3284,7 +3256,7 @@ ERDDAP + curl надзвичайно потужний і дозволяє вик
 <a rel="help" href="https://anaconda.org/eumetsat/ncview">через Conda <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Це посилання на зовнішній веб-сайт не є схваленням."></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, потужний інструмент командного рядка для постійної зміни файлів .nc .
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, потужний інструмент командного рядка для постійної зміни файлів .nc .
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C і NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Це посилання на зовнішній веб-сайт не є схваленням."></a>, основні програмні бібліотеки для C, C++, Fortran або Java для читання та запису файлів .nc .
@@ -3451,12 +3423,6 @@ ERDDAP + curl надзвичайно потужний і дозволяє вик
 Наприклад, orderByMax(&quot;stationID, time/1day&quot;) створить групу для кожного stationID для кожного дня, а також обчислить і поверне суму інших змінних.
 
 ]]></functionOrderByTooltip>
-<functionOrderByExtra><![CDATA[
-
-Для orderByClosest вкажіть тут інтервал (використовуючи формат n[timeUnits], наприклад, 1 година).
-<br>Для orderByLimit вкажіть тут максимальну кількість рядків на групу.
-
-]]></functionOrderByExtra>
 <functionOrderBySort><![CDATA[
 
 Цей слот є важливим слотом orderBy ...
@@ -3469,7 +3435,6 @@ ERDDAP + curl надзвичайно потужний і дозволяє вик
 <functionOrderBySort3>третє найбільше</functionOrderBySort3>
 <functionOrderBySort4>четвертий за кількістю</functionOrderBySort4>
 <functionOrderBySortLeast>найменше</functionOrderBySortLeast>
-<functionOrderBySortRowMax>Буде збережено лише рядок із максимальним значенням.</functionOrderBySortRowMax>
 <generatedAt>Цю веб-сторінку було створено {0}.</generatedAt>
 <geoServicesDescription><![CDATA[
 
@@ -3693,7 +3658,7 @@ href="https://groups.google.com/forum/#!forum/erddap">https://groups.google.com/
 <p>Або, оскільки ERDDAP є програмою з відкритим вихідним кодом, ви також можете налаштувати власну копію ERDDAP на власному сервері (загальнодоступному чи ні) для обслуговування ваших власних даних.
 Ваші програми Java можуть отримувати дані з цієї копії ERDDAP .
 Див.
-<a rel="help" href="https://erddap.github.io/setup.html">Налаштування власного ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">Налаштування власного ERDDAP</a> .
   
 ]]></javaProgramsHTML>
 
@@ -3769,7 +3734,6 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 <!--  наприклад, {0}=WMS або listAll  -->
 <listOfDatasets>Список наборів даних {0}</listOfDatasets>
 <listAll>всі</listAll>
-<LogIn>Увійти</LogIn>
 <login>увійти</login>
 <loginHTML><![CDATA[
 
@@ -3781,7 +3745,7 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 Якщо в ERDDAP увімкнено автентифікацію, будь-хто з обліковим записом електронної пошти, яким керує Google, може увійти, але вони матимуть доступ лише до тих приватних наборів даних, доступ до яких їм явно дозволив адміністратор ERDDAP .
 Інструкції щодо входу в ERDDAP із браузера або за допомогою сценарію див.
 у
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">розділі Доступ до приватних наборів даних у ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">розділі Доступ до приватних наборів даних у ERDDAP</a> .
   
 ]]></loginHTML>
 <loginAttemptBlocked>ПОМИЛКА: спроби входу до {0} тимчасово блокуються після 3 невдалих спроб.
@@ -3829,22 +3793,15 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 Лише люди, які домовилися з адміністратором цього ERDDAP можуть увійти.
 
 ]]></loginDescribeOpenID>
-<loginErddap>Увійдіть в ERDDAP</loginErddap>
 <loginCanNot>Цей ERDDAP не налаштовано для входу користувачів.</loginCanNot>
 <loginAreNot>Ви не ввійшли в систему.</loginAreNot>
 <loginToLogIn>Щоб увійти</loginToLogIn>
-<loginEmailAddress>адреса електронної пошти</loginEmailAddress>
 <loginYourEmailAddress>Ваша електронна адреса</loginYourEmailAddress>
 <loginUserName>Ім&#39;я користувача</loginUserName>
 <loginPassword>Пароль</loginPassword>
 <loginUserNameAndPassword>Ім&#39;я користувача та пароль</loginUserNameAndPassword>
 <loginGoogleSignIn>Пройдіть автентифікацію за допомогою облікового запису Google.</loginGoogleSignIn>
 <loginOrcidSignIn>Пройдіть автентифікацію за допомогою свого ідентифікатора ORCID.</loginOrcidSignIn>
-<loginOpenID>Увійдіть за допомогою URL-адреси OpenID</loginOpenID>
-<loginOpenIDOr>Або увійдіть у свій існуючий обліковий запис (не OpenID) на сторінці</loginOpenIDOr>
-<loginOpenIDCreate>Або створіть URL-адресу OpenID за адресою</loginOpenIDCreate>
-<loginOpenIDFree>Вони всі безкоштовні!</loginOpenIDFree>
-<loginOpenIDSame>Переконайтеся, що ви ввійшли за допомогою тієї самої URL-адреси OpenID, яку ви надали адміністратору ERDDAP.</loginOpenIDSame>
 <loginAs>Ви ввійшли як {0}.</loginAs>
 <loginPartwayAs>Ви частково ввійшли як {0}.</loginPartwayAs>
 <loginFailed>ПОМИЛКА: Помилка входу</loginFailed>
@@ -3959,7 +3916,6 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 ]]></loginPublicAccess>
 <LogOut>Вийти</LogOut>
 <logout>вийти</logout>
-<logoutOpenID>Вийдіть зі свого постачальника OpenID.</logoutOpenID>
 
 <!--  logoutSuccess востаннє оновлено 2019-12-19  -->
 <logoutSuccess>Ви успішно вийшли. 
@@ -4260,10 +4216,6 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 Краще повернути порожній файл? Але .nc та інші не дозволяють дані довжини 0.
  -->
 <MustBeThereIsNoData>Ваш запит не дав відповідних результатів.</MustBeThereIsNoData>
-
-<!--  Багато типів файлів обмежують обсяг даних, який може зберігатися у файлі (наприклад, 2 ГБ).  -->
-<MustBeNotNull>{0} не має бути нульовим.</MustBeNotNull>
-<MustBeNotEmpty>{0} не має бути порожнім рядком.</MustBeNotEmpty>
 <MustBeInternalError>Внутрішня помилка</MustBeInternalError>
 <MustBeOutOfMemoryError>Помилка «Нестача пам’яті».</MustBeOutOfMemoryError>
 
@@ -4304,11 +4256,9 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 <noXxxNoLonIn180>немає значень довготи в межах від -180 до 360</noXxxNoLonIn180>
 <noXxxNoNonString>немає нерядкових змінних</noXxxNoNonString>
 <noXxxNo2NonString>немає принаймні двох не рядкових змінних</noXxxNo2NonString>
-<noXxxNoStation>cdmDataType={0} не є &quot;TimeSeries&quot;</noXxxNoStation>
 <noXxxNoStationID>немає змінної, подібної до stationID</noXxxNoStationID>
 <noXxxNoSubsetVariables>subsetVariables не вказано</noXxxNoSubsetVariables>
 <noXxxNoOLLSubsetVariables>subsetVariables не має змінних пропозиції, довготи та широти</noXxxNoOLLSubsetVariables>
-<noXxxNoMinMax>сервер вихідних даних не надає мінімальних і максимальних значень</noXxxNoMinMax>
 <noXxxItsGridded>це набір даних у сітці</noXxxItsGridded>
 <noXxxItsTabular>це табличний набір даних</noXxxItsTabular>
 <oneRequestAtATime>Будь ласка, робіть лише один запит за раз.</oneRequestAtATime>
@@ -4335,7 +4285,6 @@ URL-адреса, яку ви бачите тут, — це URL-адреса, з
 <options>Опції</options>
 <orAListOfValues>або список значень</orAListOfValues>
 <orRefineSearchWith>Або уточніть цей пошук за допомогою</orRefineSearchWith>
-<orSearchWith>Або виконайте пошук наборів даних за допомогою</orSearchWith>
 <orComma>Або</orComma>
 <otherFeatures>Інші особливості</otherFeatures>
 <outOfDateDatasets>Застарілі набори даних</outOfDateDatasets>
@@ -4394,7 +4343,6 @@ KT_speed, KT_tempo, KT_thermal, KT_turbid, EK80</palettes>
     title="Це посилання на зовнішній веб-сайт не є схваленням."></a> .
 
 ]]></percentEncode>
-<pickADataset>Виберіть набір даних</pickADataset>
 
 <!--  Повідомлення, пов’язані з пошуком у наборі даних на основі протоколу.  -->
 <protocolSearchHtml>Пошук наборів даних за протоколом</protocolSearchHtml>
@@ -4411,7 +4359,6 @@ KT_speed, KT_tempo, KT_thermal, KT_turbid, EK80</palettes>
 <queryError1Var>Формат {0} може обробляти лише одну змінну даних.</queryError1Var>
 <queryError2Var>Запити для формату {0} мають містити принаймні дві числові змінні (для осей X і Y).</queryError2Var>
 <queryErrorActualRange>{0} знаходиться за межами фактичного_діапазону змінної: від {1} до {2}</queryErrorActualRange>
-<queryErrorAscending>Для запитів {0} значення довготи та широти мають бути за зростанням.</queryErrorAscending>
 <queryErrorAdjusted>Для запитів {0} скориговані значення довготи (від {1} до {2}) мають бути між -180 та 180.</queryErrorAdjusted>
 <queryErrorConstraintNaN>Обмеження value=&quot;{0}&quot; обчислюється як NaN.  Якщо ви дійсно хочете NaN, пишіть це як NaN.</queryErrorConstraintNaN>
 <queryErrorEqualSpacing>Для запитів {0} інтервал довготи ({1}) має дорівнювати інтервалу широти ({2}).</queryErrorEqualSpacing>
@@ -4443,7 +4390,6 @@ KT_speed, KT_tempo, KT_thermal, KT_turbid, EK80</palettes>
 <queryErrorGridNoAxisVar>Запит змінної даних Griddap не може містити змінну осі ({0}).</queryErrorGridNoAxisVar>
 <queryErrorGridNoDataVar>Запит змінної осі Griddap не може містити змінну даних ({0}).</queryErrorGridNoDataVar>
 <queryErrorGridNotIdentical>Обмеження {0} для змінної={1} не збігається з обмеженням {2} для змінної={2}.  Якщо вам потрібні різні підмножини, робіть окремі запити.</queryErrorGridNotIdentical>
-<queryErrorGridSLessS>StartIndex={0} більше, ніж StopIndex={1}.</queryErrorGridSLessS>
 <queryErrorLastEndP>{0} починається з &quot;(&quot;, але не закінчується на &quot;)&quot;.</queryErrorLastEndP>
 <queryErrorLastExpected>&quot;останній&quot; очікувався на початку {0}.</queryErrorLastExpected>
 <queryErrorLastUnexpected>Неочікуваний символ після &quot;останнього&quot; в {0}.</queryErrorLastUnexpected>
@@ -4475,7 +4421,7 @@ ERDDAP є одночасно:
 В ERDDAP є багато функцій, які можуть використовувати комп’ютерні програми або сценарії, які ви пишете.
 Ви можете використовувати їх для створення інших веб-додатків або веб-сервісів поверх ERDDAP, завдяки чому ERDDAP виконує більшу частину роботи! Отже, якщо у вас є ідея кращого інтерфейсу для даних, які обслуговує ERDDAP, або веб-сторінки, яка потребує легкого доступу до даних, ми радимо вам створити власну веб-програму, веб-службу чи веб-сторінку та використовувати ERDDAP як основа.
 Ваша система може отримувати дані, графіки та іншу інформацію з ERDDAP ERD або з інших установок ERDDAP, або ви можете<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">налаштуйте свій власний сервер ERDDAP</a>, який може бути загальнодоступним або просто приватним.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">налаштуйте свій власний сервер ERDDAP</a>, який може бути загальнодоступним або просто приватним.
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">Запити RESTful URL</a></h3>
 Запити на інформацію про інтерфейс користувача з ERDDAP (наприклад, результати пошуку) використовують універсальний веб-стандарт для запитів:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URL-адреси &externalLinkHtml;</a> надіслано через
@@ -4535,7 +4481,7 @@ ERDDAP може повертати результати інтерфейсу к�
 <li>.nc – плоский бінарний файл NetCDF -3, подібний до таблиці.
 (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">більше&nbsp;інформація &externalLinkHtml;</a>)
 <li>.nccsv – плоский, табличний, NetCDF -подібний файл ASCII CSV.
-(<a rel="help" href="https://erddap.github.io/NCCSV.html">більше&nbsp;інформація &externalLinkHtml;</a>)
+(<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">більше&nbsp;інформація &externalLinkHtml;</a>)
 <li>.tsv – текстова таблиця ASCII, розділена табуляцією.
 (<a rel="help" href="https://jkorpela.fi/TSV.html">більше&nbsp;інформація &externalLinkHtml;</a>)
 <li>.xhtml - файл XHTML (XML) з даними в таблиці.
@@ -4684,7 +4630,6 @@ ERDDAP має ці URL-точки доступу для комп’ютерни�
 <SOSDocumentation>Документація SOS ERDDAP</SOSDocumentation>
 <WCSDocumentation>Документація WCS ERDDAP</WCSDocumentation>
 <WMSDocumentation>Документація WMS ERDDAP</WMSDocumentation>
-<findOutChange>щоб ваша комп’ютерна програма могла дізнатися, чи змінився набір даних.</findOutChange>
 <requestFormatExamplesHtml><![CDATA[
 
 (наприклад,
@@ -5135,13 +5080,6 @@ ERDDAP негайно виявить, коли цей набір даних зн
 
 ]]></subscriptionRemoveSuccess>
 <subscriptionRSS>Підпишіться на RSS для цього набору даних...</subscriptionRSS>
-<subscriptionsNotAvailable><![CDATA[
-
-<p><strong>вибач Система підписки електронної пошти/URL-адреси недоступна в цій установці ERDDAP .</strong>
-<br>Натомість подумайте про використання служби підписки
-<a rel="help" href="{0}/information.html#subscriptions">RSS</a> .
-
-]]></subscriptionsNotAvailable>
 <subscriptionUrlHtml><![CDATA[
 
 <kbd>URL/action</kbd> – це необов’язкова URL-адреса, з якою ERDDAP зв’яжеться замість того, щоб надсилати вам електронний лист.
@@ -5246,7 +5184,7 @@ ERDDAP завжди використовує часовий пояс Zulu (UTC, 
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>Дізнайтеся більше про ERDDAP .</strong></a>
 <p><strong>Постачальники даних:
 ви можете
-<a rel="help" href="https://erddap.github.io/setup.html">налаштувати власний сервер ERDDAP</a> і обслуговувати власні дані.</strong> ERDDAP є безкоштовним і відкритим кодом.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">налаштувати власний сервер ERDDAP</a> і обслуговувати власні дані.</strong> ERDDAP є безкоштовним і відкритим кодом.
 Він використовує ліцензії, подібні до Apache, тому ви можете робити з ним усе, що завгодно.
 Зовнішній вигляд ERDDAP можна налаштувати, тому ваш ERDDAP відображатиме вашу установу, а не NOAA .
 Невеликі зусилля з налаштування ERDDAP приносять багато переваг.
@@ -5405,13 +5343,6 @@ favicon.ico — це зображення, яке браузери асоцію�
 <!--  Наступному тегу передує 1 із 2 попередніх тегів. 
   {0} – це subsetViewSelectDistintCombos або subsetViewSelectRelatedCounts.  -->
 <subsetWhenCounts>{0} для {1} значень &quot;{2}&quot; є:</subsetWhenCounts>
-<subsetComboClickSelect><![CDATA[
-
-Щоб переглянути кількість різних комбінацій перелічених вище змінних,
-<br>перевірте <kbd>{0} :
-{1}</kbd> вище та виберіть значення для однієї зі змінних вище.
-
-]]></subsetComboClickSelect>
 <subsetNVariableCombos>Загалом існує {0} рядків різних комбінацій перелічених вище змінних.</subsetNVariableCombos>
 <subsetShowingAllRows>Усі рядки показані вище.</subsetShowingAllRows>
 <subsetShowingNRows>Перші {0} рядків показано вище.  Решта {1} рядків не відображаються.</subsetShowingNRows>
@@ -5604,7 +5535,7 @@ URL-адреса визначає весь запит.
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP може отримувати дані з локальних (на жорсткому диску сервера) і віддалених (доступ через Інтернет) джерел даних.</a></strong>
 <br>Перегляньте
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">список типів джерел даних</a>, до яких може отримати доступ ERDDAP .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">список типів джерел даних</a>, до яких може отримати доступ ERDDAP .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP може обслуговувати багато типів наукових даних, а не лише дані океанографії.</a></strong>
 <br>ERDDAP — це сервер даних, написаний у
@@ -5757,8 +5688,8 @@ ERDDAP структуровано для цих доповнень, і, здає
       title="Це посилання на зовнішній веб-сайт не є схваленням."></a>), що описує дані.
 ERDDAP дозволяє (і заохочує) адміністратора описувати метадані, які будуть додані до наборів даних та їхніх змінних на льоту.
 Див.
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">розділ addAttributes</a>
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">інструкцій для адміністраторів</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">розділ addAttributes</a>
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">інструкцій для адміністраторів</a> .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP дозволяє запитувати файли зображень .png і .pdf із графіками та картами</a></strong>
@@ -5908,7 +5839,7 @@ ERDDAP має вбудовані методи аутентифікації (вх
 Користувачі повинні використовувати https:
 (рівень захищених сокетів), щоб увійти в систему та отримати доступ до приватних наборів даних.
 Набори даних можна налаштувати так, щоб графіки та карти були загальнодоступними, але дані були доступні лише авторизованим користувачам.
-(<a rel="help" href="https://erddap.github.io/setup.html#security">більше інформації</a>)
+(<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">більше інформації</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP обробляє дані порціями.</a></strong>
 <br>Щоб заощадити пам’ять (велика проблема) і швидше почати відповіді, ERDDAP обробляє запити на дані порціями — неодноразово отримує частину даних із джерела, очищаючи їх (наприклад, додаючи
@@ -5931,15 +5862,15 @@ ERDDAP має вбудовані методи аутентифікації (вх
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Це посилання на зовнішній веб-сайт не є схваленням."></a> :
 Але ERDDAP також має можливість активно отримувати всі доступні дані з віддаленого джерела даних і
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">зберігати локальну копію даних</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">зберігати локальну копію даних</a> .
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Технологія Push <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Це посилання на зовнішній веб-сайт не є схваленням."></a> :
 Використовуючи
 <a href="#subscriptions">послуги передплати</a> ERDDAP, інші сервери даних можуть отримувати сповіщення, щойно з’являться нові дані, щоб вони могли запитувати дані (шляхом отримання даних).
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> і
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> ERDDAP використовують послуги підписки ERDDAP і
-<a rel="help" href="https://erddap.github.io/setup.html#flag">систему позначок</a>, щоб вони отримували сповіщення негайно, коли доступні нові дані.
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> і
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> ERDDAP використовують послуги підписки ERDDAP і
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">систему позначок</a>, щоб вони отримували сповіщення негайно, коли доступні нові дані.
 Ви можете об’єднати їх для досягнення великого ефекту:
 якщо обернути EDDGrid Copy навколо набору даних EDDGrid FromErddap (або обернути EDDTableCopy навколо набору даних EDDTableFromErddap), ERDDAP автоматично створить і підтримуватиме локальну копію іншого набору даних ERDDAP .
 Оскільки послуги підписки працюють, щойно з’являються нові дані, технологія Push розповсюджує дані дуже швидко (протягом секунд).
@@ -6029,9 +5960,9 @@ ERDDAP, як сервер даних загального призначення
 (Я думаю, можна показати, що ERDDAP заощадив більше часу вчених NOAA, ніж я витратив на розробку ERDDAP .
 Час=Гроші.) Але побічною перевагою є те, що будь-яка інша організація може
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">завантажити, встановити та використовувати ERDDAP</a> <strong>безкоштовно</strong> для розповсюдження своїх наукові дані.
+href="https://erddap.github.io/docs/server-admin/deploy-install">завантажити, встановити та використовувати ERDDAP</a> <strong>безкоштовно</strong> для розповсюдження своїх наукові дані.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >Понад 90 організацій принаймні в 14 країнах використовують ERDDAP</a> .
 Можливо, є таке поняття, як безкоштовний обід.
 <p>ERDDAP — програма Java .
@@ -6152,14 +6083,14 @@ NOAA / NMFS / SWFSC / ERD .</kbd>
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">тут</a> .
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">Ви можете</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>налаштувати власний сервер ERDDAP</strong></a> і обслуговувати власні дані.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>налаштувати власний сервер ERDDAP</strong></a> і обслуговувати власні дані.
 <ul>
 <li>Невеликі зусилля з налаштування ERDDAP приносять багато переваг.
 <li>Якщо у вас уже є веб-служба для розповсюдження ваших даних, ви можете налаштувати ERDDAP для доступу до ваших даних через наявну службу або через вихідні файли чи базу даних.
 Тоді люди матимуть інший спосіб доступу до ваших даних і зможуть завантажувати дані в додаткових форматах файлів або у вигляді графіків чи карт.
 <li>Якщо у вас є набори даних, які користуються великим попитом, ви можете встановити
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >кілька ERDDAP, які працюватимуть разом,</a> щоб збільшити масштаб і задовольнити потреби великого центру розподілу даних.
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">Зв&#39;яжіться з нами</a></h2>
@@ -6174,7 +6105,6 @@ href="https://groups.google.com/forum/#!forum/erddap">https://groups.google.com/
 Думки на цій веб-сторінці є особистими думками Боба Саймонса і не обов’язково відображають позицію уряду чи National Oceanic and Atmospheric Administration .
 
 ]]></theLongDescriptionHtml>
-<Then>Потім</Then>
 <twoClickMapDefaultTooltip>Укажіть прямокутник, клацнувши на двох діагональних кутах.  Зробіть це ще раз, якщо потрібно.</twoClickMapDefaultTooltip>
 
 <!--  Це спосіб замінити конвертер Standardize UDUnits ERDDAP
@@ -7458,7 +7388,6 @@ https://www.usgin.org
 ніколи не бути назвою атрибута.  -->
 <updateUrlsSkipAttributes>sourceUrl</updateUrlsSkipAttributes>
 <variableNames>Імена змінних</variableNames>
-<viewAllDatasetsHtml>Переглянути список усіх наборів даних</viewAllDatasetsHtml>
 <waitThenTryAgain>Виникла (тимчасова?) проблема.  Зачекайте хвилину, потім спробуйте ще раз.  (У браузері натисніть кнопку Перезавантажити.)</waitThenTryAgain>
 <warning>УВАГА!</warning>
 <units>одиниці</units>
@@ -7784,7 +7713,7 @@ yyyy-MM-ddTHH:mm:ssZ .
 <li>Змінна даних ПОВИННА мати змінні осі довготи та широти.
 (Інші змінні осі є НЕОБОВ’ЯЗКОВИМИ.)
 <li>ПОВИННІ бути деякі значення довготи між -180 і 180.
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">Атрибути colorBarMinimum і colorBarMaximum</a> ПОВИННІ бути визначені.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">Атрибути colorBarMinimum і colorBarMaximum</a> ПОВИННІ бути визначені.
 (Інші атрибути кольорової панелі є НЕОБОВ’ЯЗКОВИМИ.)
 </ul>
 <li><strong>Рівні даних сітки:</strong> у WMS ERDDAP усі змінні даних у наборах даних сітки, які використовують розміри довготи та широти, доступні через WMS .

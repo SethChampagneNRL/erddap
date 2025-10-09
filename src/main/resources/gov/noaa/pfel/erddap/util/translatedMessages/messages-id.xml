@@ -63,7 +63,6 @@ Meminta kompresi bersifat opsional, namun respons terkompresi seringkali 3-10 ka
 <acronyms>Akronim</acronyms>
 <addConstraints>Anda dapat menambahkan batasan seperti tabledap ke permintaan ke halaman web ini,
 Misalnya,</addConstraints>
-<addVarWhereAttName>Opsional: Tentukan nama atribut.</addVarWhereAttName>
 <addVarWhereAttValue>Opsional: Tentukan nilai atribut.</addVarWhereAttValue>
 <addVarWhere><![CDATA[
 
@@ -95,11 +94,11 @@ Kemudian, ERDDAP akan menambahkan semuanya
 <advl_institution>Lembaga</advl_institution>
 <advc_dataStructure>ERDDAP memperlakukan setiap kumpulan data sebagai kumpulan data &#39;kisi&#39; atau &#39;tabel&#39;.</advc_dataStructure>
 <advl_dataStructure>Struktur data</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>Tipe Model Data Umum</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>Kelas ERDDAP</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>Judul</advl_title>
 <advl_minLongitude>Bujur Minimum</advl_minLongitude>
 <advl_maxLongitude>Bujur Maksimum</advl_maxLongitude>
@@ -144,7 +143,7 @@ Kemudian, ERDDAP akan menambahkan semuanya
 <advn_outOfDate><![CDATA[
 
 Tampaknya, tidak ada kumpulan data yang memiliki atribut
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> .
 Mungkin tidak ada kumpulan data yang hampir real-time di ERDDAP ini.
 
@@ -296,9 +295,6 @@ Kemudian, Anda dapat mengklik kategori untuk melihat daftar kumpulan data yang r
 <categorySearchHtml><![CDATA[
 Pilih a(n) <kbd>{0}</kbd>
 ]]></categorySearchHtml>
-<categorySearchDifferentHtml><![CDATA[
-Cari Dataset dengan <kbd>&category;</kbd>
-]]></categorySearchDifferentHtml>
 <categoryClickHtml>Klik pada kategori (nilai atribut) untuk melihat daftar kumpulan data yang relevan.</categoryClickHtml>
 <categoryNotAnOption>Ketika atribut=&quot;{0}&quot;, value=&quot;{1}&quot; bukan merupakan opsi.</categoryNotAnOption>
 <caughtInterrupted>tertangkap CurrentThread().isInterrupted().</caughtInterrupted>
@@ -361,6 +357,8 @@ Atau,
 <a rel="help" href="#computerProgram">lewati halaman web ini</a> dan lakukan konversi dari dalam program komputer, skrip, atau halaman web.
 
 ]]></convertBypass>
+<convertCOLORs>Login</convertCOLORs>
+<convertCOLORsMessage>Mengkonversi nilai warna dari bilah warna</convertCOLORsMessage>
 <convertToAFullName><![CDATA[
 <strong>Ubah dari {0} menjadi nama lengkap.</strong>
 ]]></convertToAFullName>
@@ -1775,9 +1773,6 @@ Setiap baris mewakili sampel data yang berbeda (misalnya, dari waktu atau lokasi
 
 ]]></dafTableTooltip>
 <dasTitle>Struktur Atribut Kumpulan Data (.das) untuk Kumpulan Data ini</dasTitle>
-
-<!--  Pesan yang akan ditampilkan jika data tidak dapat diunduh (misalnya, SeaWiFS &lt;=14 hari).  -->
-<dataAccessNotAllowed>[Maaf. Data tersebut tidak dapat diunduh.]</dataAccessNotAllowed>
 <databaseUnableToConnect>Tidak dapat terhubung ke database.</databaseUnableToConnect>
 <dataProviderForm>Formulir Penyedia Data</dataProviderForm>
 <dataProviderFormP1>Formulir Penyedia Data - Bagian 1</dataProviderFormP1>
@@ -1892,7 +1887,7 @@ Ini termasuk:
 <ul>
 <li><a class="selfLink" id="databases" href="#databases" rel="bookmark">Data</a> yang saat ini disimpan dalam database relasional.
 <br>Silakan baca informasi tentang tipe dataset
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> di ERDDAP, terutama ~2 layar informasi awal yang membahas tentang perlunya membuat tabel yang didenormalisasi.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> di ERDDAP, terutama ~2 layar informasi awal yang membahas tentang perlunya membuat tabel yang didenormalisasi.
 Ini mungkin terdengar gila.
 Harap cukup percaya untuk membaca alasannya.
 <br>&nbsp;
@@ -2103,10 +2098,6 @@ Klik &widgetSubmitButton; untuk mengirimkan informasi ini ke administrator ERDDA
 <br>Harap perbaiki masalah ini, lalu &#39;Kirimkan&#39; lagi bagian formulir ini.
 
 ]]></dpf_fixProblem>
-<dpf_yourName>Namamu</dpf_yourName>
-<dpf_emailAddress>Alamat email</dpf_emailAddress>
-<dpf_Timestamp>Stempel waktu</dpf_Timestamp>
-<dpf_frequency>Frekuensi</dpf_frequency>
 <dpf_title>judul</dpf_title>
 <dpf_titleTooltip><![CDATA[
 
@@ -2184,12 +2175,6 @@ Ini adalah lisensi dan penafian untuk penggunaan data ini.
 <br><kbd>
 
 ]]></dpf_licenseTooltip>
-<dpf_howYouStoreData><![CDATA[
-
-<br>• Kesalahan:
-Silakan tentukan (di bawah) bagaimana data grid atau tabel Anda disimpan.
-
-]]></dpf_howYouStoreData>
 <dpf_provideIfAvailable>Harap berikan informasi jika tersedia untuk kumpulan data Anda.</dpf_provideIfAvailable>
 <dpf_acknowledgement>pengakuan</dpf_acknowledgement>
 <dpf_acknowledgementTooltip><![CDATA[
@@ -2491,10 +2476,8 @@ Stempel waktu pengiriman kumpulan data ini adalah &tTimestamp; .
 <dtWMS>Klik untuk mengetahui cara membuat peta data ini melalui Layanan Peta Web kumpulan data ini.</dtWMS>
 <EasierAccessToScientificData>Akses yang lebih mudah terhadap data ilmiah</EasierAccessToScientificData>
 
-<!--  Pesan EDD ditampilkan pada Formulir Akses Data tabledap dan griddap.  -->
-<EDDClickOnSubmitHtml><![CDATA[
-Klik <kbd>Submit</kbd> .
-]]></EDDClickOnSubmitHtml>
+<!--Pesan EDD ditampilkan ditabledapdan Formulir Akses Data griddap.
+-->
 <EDDDatasetID>ID kumpulan data</EDDDatasetID>
 <EDDFgdc>FGDC</EDDFgdc>
 <EDDFgdcMetadata>Metadata FGDC-STD-001-1998</EDDFgdcMetadata>
@@ -2507,9 +2490,7 @@ Klik <kbd>Submit</kbd> .
 <EDDInformation>Informasi</EDDInformation>
 <EDDSummary>Ringkasan</EDDSummary>
 <EDDDatasetTitle>Judul Kumpulan Data</EDDDatasetTitle>
-<EDDDownloadData>Unduh datanya</EDDDownloadData>
 <EDDMakeAGraph>Buatlah grafik</EDDMakeAGraph>
-<EDDMakeAMap>Buatlah peta</EDDMakeAMap>
 <EDDMinimum>Minimum</EDDMinimum>
 <EDDMaximum>Maksimum</EDDMaximum>
 <EDDFileType>Jenis berkas:</EDDFileType>
@@ -2577,8 +2558,6 @@ Itu membuat URL untuk Anda.
 ]]></EDDGridDownloadDataTooltip>
 <EDDGridDimension>Ukuran</EDDGridDimension>
 <EDDGridDimensionRanges>Ukuran</EDDGridDimensionRanges>
-<EDDGridFirst>Pertama</EDDGridFirst>
-<EDDGridLast>Terakhir</EDDGridLast>
 <EDDGridStart>Awal</EDDGridStart>
 <EDDGridStop>Berhenti</EDDGridStop>
 <EDDGridStartStopTooltip><![CDATA[
@@ -2622,14 +2601,6 @@ ini adalah jarak rata-rata antara nilai suatu dimensi (dalam satuan dimensi) dan
 Jarak yang sedikit aneh dan tidak rata sering kali menunjukkan bahwa satu atau beberapa file hilang atau buruk dalam kumpulan data yang jaraknya sama sempurna.
 
 ]]></EDDGridSpacingTooltip>
-<EDDGridDimensionFirstTooltip><![CDATA[
-Sekadar informasi:
-ini adalah nilai pertama dari sebuah dimensi.
-]]></EDDGridDimensionFirstTooltip>
-<EDDGridDimensionLastTooltip><![CDATA[
-Sekadar informasi:
-ini adalah nilai terakhir dari suatu dimensi.
-]]></EDDGridDimensionLastTooltip>
 <EDDGridDownloadTooltip><![CDATA[
 Pilih variabel yang ingin Anda unduh:
 <br>* Untuk mengunduh data dimensi saja:
@@ -2903,10 +2874,6 @@ Misalnya:
 
 <!--  Pesan-pesan ini ditampilkan ketika pesan kesalahan ditampilkan.  -->
 <errorTitle>Kesalahan</errorTitle>
-<errorRequestUrl>URL permintaan Anda:</errorRequestUrl>
-<errorRequestQuery>Permintaan permintaan Anda:</errorRequestQuery>
-<errorTheError>Kesalahannya:</errorTheError>
-<errorCopyFrom>Tidak dapat menyalin dari {0}.</errorCopyFrom>
 <errorFileNotFound>Berkas tidak ditemukan: {0} .</errorFileNotFound>
 <errorFileNotFoundImage>File tidak ditemukan di cache. Buat ulang gambar dan coba lagi.</errorFileNotFoundImage>
 <errorInternal>Kesalahan internal:</errorInternal>
@@ -2928,6 +2895,7 @@ Misalnya:
 <externalLink>(tautan eksternal)</externalLink>
 <externalWebSite>Tautan ke situs web eksternal ini bukan merupakan suatu dukungan.</externalWebSite>
 <fileHelp_asc>Lihat teks yang dipisahkan koma ISO-8859-1 gaya OPeNDAP.</fileHelp_asc>
+<fileHelp_croissant>Download dataset croissant schema.</fileHelp_croissant>
 <fileHelp_csv>Unduh tabel teks ISO-8859-1 yang dipisahkan koma (baris 1: nama; baris 2: unit; ISO 8601 kali).</fileHelp_csv>
 <fileHelp_csvp>Unduh file ISO-8859-1 .csv dengan baris 1: nama (unit). Waktu adalah string ISO 8601.</fileHelp_csvp>
 <fileHelp_csv0>Unduh file .csv ISO-8859-1 tanpa nama kolom atau unit. Waktu adalah string ISO 8601.</fileHelp_csv0>
@@ -2939,12 +2907,18 @@ Misalnya:
 <fileHelpTable_esriCsv>Unduh file ISO_8859_1 .csv untuk ArcGIS 9.x ESRI dan yang lebih lama (pisahkan kolom tanggal dan waktu).</fileHelpTable_esriCsv>
 <fileHelp_fgdc>Lihat metadata .xml UTF-8 FGDC kumpulan data.</fileHelp_fgdc>
 <fileHelp_geoJson>Unduh data bujur, lintang, kolom lain sebagai file UTF-8 GeoJSON .json.</fileHelp_geoJson>
-<fileHelp_graph>Lihat halaman web Make A Graph.</fileHelp_graph>
 <fileHelpGrid_help>Lihat halaman web dengan deskripsi griddap.</fileHelpGrid_help>
 <fileHelpTable_help>Lihat halaman web dengan deskripsi tabledap.</fileHelpTable_help>
 <fileHelp_html>Lihat Formulir Akses Data HTML bergaya OPeNDAP.</fileHelp_html>
 <fileHelp_htmlTable>Lihat halaman web UTF-8 .html dengan data dalam tabel. Waktu adalah string ISO 8601.</fileHelp_htmlTable>
-<fileHelp_iso19115>Lihat metadata .xml ISO 19115-2/19139 UTF-8 .xml kumpulan data.</fileHelp_iso19115>
+<fileHelp_iso19115>Lihat datasetISO 19115/19139UTF-8 .xml metadata menggunakan versi default untuk server ini.
+</fileHelp_iso19115>
+<fileHelp_iso19115_2>Lihat datasetISO 19115-2/19139UTF-8 .xml metadata.
+</fileHelp_iso19115_2>
+<fileHelp_iso191392007>Lihat datasetISO 19139:2007UTF-8 .xml metadata.
+</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>Lihat datasetISO 19115-3:2016UTF-8 .xml metadata.
+</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>Unduh File Teks Igor ISO-8859-1. Setiap variabel sumbu dan setiap variabel data menjadi gelombang.</fileHelp_itxGrid>
 <fileHelp_itxTable>Unduh File Teks Igor ISO-8859-1. Setiap kolom respons menjadi gelombang.</fileHelp_itxTable>
 <fileHelp_json>Lihat file JSON UTF-8 seperti tabel (nilai hilang = &#39;null&#39;; waktunya adalah string ISO 8601).</fileHelp_json>
@@ -2970,7 +2944,6 @@ Misalnya:
 <fileHelpTable_odvTxt>Unduh bujur, lintang, waktu, kolom lain sebagai File Spreadsheet Generik ODV ISO-8859-1 (.txt).</fileHelpTable_odvTxt>
 <fileHelp_parquet>Unduh sebagai file parket. Metadata mengandung nama kolom (&quot;column_names&quot;) dan unit (&quot;kolumn_units&quot;).</fileHelp_parquet>
 <fileHelp_parquet_with_meta>Unduh sebagai file parket dengan metadata rinci.</fileHelp_parquet_with_meta>
-<fileHelp_subset>Lihat formulir HTML yang menggunakan penelusuran tersaring untuk menyederhanakan pemilihan subkumpulan data.</fileHelp_subset>
 <fileHelp_timeGaps>Lihat daftar kesenjangan UTF-8 dalam nilai waktu yang lebih besar dari kesenjangan median.</fileHelp_timeGaps>
 <fileHelp_tsv>Unduh tabel teks yang dipisahkan tab ISO-8859-1 (baris 1: nama; baris 2: unit; ISO 8601 kali).</fileHelp_tsv>
 <fileHelp_tsvp>Unduh file ISO-8859-1 .tsv dengan baris 1: nama (unit). Waktu adalah string ISO 8601.</fileHelp_tsvp>
@@ -2990,7 +2963,6 @@ Misalnya:
 
 <!--  Kata-kata Deskripsi dan Peringatan tidak jelas untuk memungkinkan satu atau beberapa kumpulan data.  -->
 <filesDescription>Sistem &quot;file&quot; ERDDAP memungkinkan Anda menelusuri sistem file virtual dan mengunduh file data sumber.</filesDescription>
-<filesSort>Klik pada judul (misalnya, Nama, Terakhir diubah, Ukuran) untuk mengubah urutannya.  &quot;Terakhir diubah&quot; menggunakan zona waktu Zulu.</filesSort>
 <filesWarning><![CDATA[
 
 Metadata kumpulan data dan nama variabel dalam file sumber ini mungkin berbeda dengan di tempat lain di ERDDAP ! Anda mungkin lebih memilih menggunakan Formulir Akses Data kumpulan data.
@@ -3258,7 +3230,7 @@ File kedua versi memiliki ekstensi .nc dan dapat dibaca oleh program yang membac
 <a rel="help" href="https://anaconda.org/eumetsat/ncview">melalui Conda <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Tautan ke situs web eksternal ini bukan merupakan suatu dukungan."></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, alat baris perintah yang kuat untuk memodifikasi file .nc secara permanen.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, alat baris perintah yang kuat untuk memodifikasi file .nc secara permanen.
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C dan NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Tautan ke situs web eksternal ini bukan merupakan suatu dukungan."></a>, pustaka perangkat lunak utama untuk C, C++, Fortran, atau Java untuk membaca dan menulis file .nc .
@@ -3428,12 +3400,6 @@ Baris tersebut akan berisi jumlah dari masing-masing variabel lainnya.
 Misalnya, orderByMax(&quot;stationID, time/1day&quot;) akan membuat grup untuk setiap stationID setiap hari, dan akan menghitung serta mengembalikan jumlah variabel lainnya.
 
 ]]></functionOrderByTooltip>
-<functionOrderByExtra><![CDATA[
-
-Untuk orderByClosest, tentukan intervalnya (menggunakan format n[timeUnits], misalnya 1 jam) di sini.
-<br>Untuk orderByLimit, tentukan jumlah maksimum baris per grup di sini.
-
-]]></functionOrderByExtra>
 <functionOrderBySort><![CDATA[
 
 Slot ini adalah slot {0} orderBy ...
@@ -3446,7 +3412,6 @@ yang penting.
 <functionOrderBySort3>terbanyak ketiga</functionOrderBySort3>
 <functionOrderBySort4>terbanyak keempat</functionOrderBySort4>
 <functionOrderBySortLeast>paling sedikit</functionOrderBySortLeast>
-<functionOrderBySortRowMax>Hanya baris dengan nilai maksimum yang akan dipertahankan.</functionOrderBySortRowMax>
 <generatedAt>Laman web ini dibuat pada {0} .</generatedAt>
 <geoServicesDescription><![CDATA[
 
@@ -3670,7 +3635,7 @@ Seperti dijelaskan di atas, karena program Java dapat mengakses data yang tersed
 <p>Atau, karena ERDDAP adalah program sumber terbuka, Anda juga dapat mengatur salinan ERDDAP Anda sendiri di server Anda sendiri (dapat diakses publik atau tidak) untuk menyajikan data Anda sendiri.
 Program Java Anda bisa mendapatkan data dari salinan ERDDAP tersebut.
 Lihat
-<a rel="help" href="https://erddap.github.io/setup.html">Mengatur ERDDAP Anda Sendiri</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">Mengatur ERDDAP Anda Sendiri</a> .
   
 ]]></javaProgramsHTML>
 
@@ -3746,7 +3711,6 @@ Defaultnya adalah tidak ada apa-apa (tidak terpakai).
 <!--  misalnya, {0}=WMS atau listAll  -->
 <listOfDatasets>Daftar {0} Kumpulan Data</listOfDatasets>
 <listAll>Semua</listAll>
-<LogIn>Gabung</LogIn>
 <login>Gabung</login>
 <loginHTML><![CDATA[
 
@@ -3757,7 +3721,7 @@ Banyak penginstalan ERDDAP yang tidak mengaktifkan autentikasi sehingga tidak me
 Saat ini, ERDDAP hanya mendukung autentikasi melalui akun email yang dikelola Google, yang mencakup akun email di NOAA dan banyak universitas.
 Jika autentikasi ERDDAP diaktifkan, siapa pun yang memiliki akun email yang dikelola Google dapat masuk, namun mereka hanya akan memiliki akses ke kumpulan data pribadi yang secara eksplisit telah diizinkan oleh administrator ERDDAP untuk diakses.
 Untuk instruksi masuk ke ERDDAP dari browser atau melalui skrip, lihat
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">Akses ke Kumpulan Data Pribadi di ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">Akses ke Kumpulan Data Pribadi di ERDDAP</a> .
   
 ]]></loginHTML>
 <loginAttemptBlocked>GALAT: Upaya masuk untuk {0} diblokir sementara setelah 3 kali gagal.
@@ -3805,22 +3769,15 @@ Siapa pun yang memiliki akun email Google atau ORCID iD dapat masuk tetapi admin
 Hanya orang yang telah membuat perjanjian dengan administrator ERDDAP ini yang dapat login.
 
 ]]></loginDescribeOpenID>
-<loginErddap>Masuk ke ERDDAP</loginErddap>
 <loginCanNot>ERDDAP ini tidak dikonfigurasi untuk mengizinkan pengguna masuk.</loginCanNot>
 <loginAreNot>Anda belum masuk.</loginAreNot>
 <loginToLogIn>Untuk masuk</loginToLogIn>
-<loginEmailAddress>alamat email</loginEmailAddress>
 <loginYourEmailAddress>Alamat email anda</loginYourEmailAddress>
 <loginUserName>Nama belakang</loginUserName>
 <loginPassword>Kata sandi</loginPassword>
 <loginUserNameAndPassword>Nama pengguna dan kata sandi</loginUserNameAndPassword>
 <loginGoogleSignIn>Otentikasi dengan akun Google Anda.</loginGoogleSignIn>
 <loginOrcidSignIn>Otentikasi dengan iD ORCID Anda.</loginOrcidSignIn>
-<loginOpenID>Masuk dengan URL OpenID Anda</loginOpenID>
-<loginOpenIDOr>Atau masuk ke akun Anda yang ada (non-OpenID) di</loginOpenIDOr>
-<loginOpenIDCreate>Atau buat URL OpenID di</loginOpenIDCreate>
-<loginOpenIDFree>Semuanya gratis!</loginOpenIDFree>
-<loginOpenIDSame>Pastikan Anda masuk dengan URL OpenID yang sama persis dengan yang Anda berikan kepada administrator ERDDAP.</loginOpenIDSame>
 <loginAs>Anda masuk sebagai {0} .</loginAs>
 <loginPartwayAs>Anda masuk sebagian sebagai {0} .</loginPartwayAs>
 <loginFailed>KESALAHAN: Gagal masuk</loginFailed>
@@ -3935,7 +3892,6 @@ Ada kemungkinan beberapa kumpulan data saat ini tidak tersedia atau Anda tidak m
 ]]></loginPublicAccess>
 <LogOut>Keluar</LogOut>
 <logout>keluar</logout>
-<logoutOpenID>Keluar dari penyedia OpenID Anda.</logoutOpenID>
 
 <!--  logoutSuccess terakhir diperbarui 2019-12-19  -->
 <logoutSuccess>Anda telah berhasil logout. 
@@ -4236,10 +4192,6 @@ Namun dods.dap.DODSException tidak memiliki pengecualian yang relevan.
 Lebih baik mengembalikan file kosong? Namun .nc dan lainnya tidak mengizinkan data dengan panjang 0.
  -->
 <MustBeThereIsNoData>Kueri Anda tidak memberikan hasil yang cocok.</MustBeThereIsNoData>
-
-<!--  Banyak jenis file yang membatasi jumlah data yang dapat ditampung suatu file (misalnya, 2 GB).  -->
-<MustBeNotNull>{0} tidak boleh nol.</MustBeNotNull>
-<MustBeNotEmpty>{0} tidak boleh berupa string kosong.</MustBeNotEmpty>
 <MustBeInternalError>Kesalahan internal</MustBeInternalError>
 <MustBeOutOfMemoryError>Kesalahan Kehabisan Memori</MustBeOutOfMemoryError>
 
@@ -4280,11 +4232,9 @@ Lebih baik mengembalikan file kosong? Namun .nc dan lainnya tidak mengizinkan da
 <noXxxNoLonIn180>tidak ada nilai garis bujur dalam -180 hingga 360</noXxxNoLonIn180>
 <noXxxNoNonString>tidak ada variabel non-String</noXxxNoNonString>
 <noXxxNo2NonString>setidaknya tidak ada dua variabel non-String</noXxxNo2NonString>
-<noXxxNoStation>cdmDataType={0} bukan &quot;TimeSeries&quot;</noXxxNoStation>
 <noXxxNoStationID>tidak ada variabel seperti stationID</noXxxNoStationID>
 <noXxxNoSubsetVariables>subsetVariables tidak ditentukan</noXxxNoSubsetVariables>
 <noXxxNoOLLSubsetVariables>subsetVariables tidak memiliki variabel penawaran, garis bujur, dan garis lintang</noXxxNoOLLSubsetVariables>
-<noXxxNoMinMax>server data sumber tidak memberikan nilai minimum dan maksimum</noXxxNoMinMax>
 <noXxxItsGridded>ini adalah kumpulan data grid</noXxxItsGridded>
 <noXxxItsTabular>ini adalah kumpulan data tabel</noXxxItsTabular>
 <oneRequestAtATime>Harap buat satu permintaan saja dalam satu waktu.</oneRequestAtATime>
@@ -4311,7 +4261,6 @@ Pengembang program komputer dan halaman web Java Script dapat mengakses opsi pen
 <options>Pilihan</options>
 <orAListOfValues>atau Daftar Nilai</orAListOfValues>
 <orRefineSearchWith>Atau, persempit penelusuran ini dengan</orRefineSearchWith>
-<orSearchWith>Atau, cari kumpulan data dengan</orSearchWith>
 <orComma>Atau,</orComma>
 <otherFeatures>Fitur lainnya</otherFeatures>
 <outOfDateDatasets>Kumpulan Data Kedaluwarsa</outOfDateDatasets>
@@ -4372,7 +4321,6 @@ Ada
     title="Tautan ke situs web eksternal ini bukan merupakan suatu dukungan."></a> .
 
 ]]></percentEncode>
-<pickADataset>Pilih Kumpulan Data</pickADataset>
 
 <!--  Pesan terkait pencarian kumpulan data berbasis protokol.  -->
 <protocolSearchHtml>Cari Kumpulan Data berdasarkan Protokol</protocolSearchHtml>
@@ -4389,7 +4337,6 @@ Protokol yang berbeda sesuai untuk tipe data yang berbeda dan untuk aplikasi kli
 <queryError1Var>Format {0} hanya dapat menangani satu variabel data.</queryError1Var>
 <queryError2Var>Permintaan untuk format {0} harus menyertakan setidaknya dua variabel numerik (untuk sumbu X dan Y).</queryError2Var>
 <queryErrorActualRange>{0} berada di luar rentang_aktual variabel: {1} hingga {2}</queryErrorActualRange>
-<queryErrorAscending>Untuk permintaan {0}, nilai garis bujur dan nilai garis lintang harus menaik.</queryErrorAscending>
 <queryErrorAdjusted>Untuk permintaan {0}, nilai garis bujur yang disesuaikan ({1} hingga {2}) harus antara -180 dan 180.</queryErrorAdjusted>
 <queryErrorConstraintNaN>Batasan value=&quot;{0}&quot; dievaluasi menjadi NaN.  Jika Anda benar-benar menginginkan NaN, tulislah sebagai NaN.</queryErrorConstraintNaN>
 <queryErrorEqualSpacing>Untuk permintaan {0}, jarak garis bujur ({1}) harus sama dengan jarak garis lintang ({2}).</queryErrorEqualSpacing>
@@ -4421,7 +4368,6 @@ Protokol yang berbeda sesuai untuk tipe data yang berbeda dan untuk aplikasi kli
 <queryErrorGridNoAxisVar>Kueri variabel data griddap tidak boleh menyertakan variabel sumbu ({0}).</queryErrorGridNoAxisVar>
 <queryErrorGridNoDataVar>Kueri variabel sumbu griddap tidak boleh menyertakan variabel data ({0}).</queryErrorGridNoDataVar>
 <queryErrorGridNotIdentical>Batasan {0} untuk variabel={1} tidak sama dengan batasan {2} untuk variabel={2}.  Jika Anda memerlukan subset yang berbeda, buat permintaan terpisah.</queryErrorGridNotIdentical>
-<queryErrorGridSLessS>StartIndex={0} lebih besar dari StopIndex={1}.</queryErrorGridSLessS>
 <queryErrorLastEndP>{0} dimulai dengan &quot;(&quot;, tetapi tidak diakhiri dengan &quot;)&quot;.</queryErrorLastEndP>
 <queryErrorLastExpected>&quot;terakhir&quot; diharapkan pada awal {0}.</queryErrorLastExpected>
 <queryErrorLastUnexpected>Karakter tak terduga setelah &quot;terakhir&quot; di {0}.</queryErrorLastUnexpected>
@@ -4453,7 +4399,7 @@ Misalnya, manusia dapat menggunakan URL ini untuk melakukan Pencarian Teks Lengk
 Ada banyak fitur di ERDDAP yang dapat digunakan oleh program komputer atau script yang Anda tulis.
 Anda dapat menggunakannya untuk membangun aplikasi web atau layanan web lain di atas ERDDAP, sehingga ERDDAP melakukan sebagian besar pekerjaan! Jadi jika Anda mempunyai ide untuk antarmuka yang lebih baik terhadap data yang disajikan ERDDAP atau halaman web yang memerlukan cara mudah untuk mengakses data, kami mendorong Anda untuk membangun aplikasi web, layanan web, atau halaman web Anda sendiri dan menggunakan ERDDAP sebagai dasar.
 Sistem Anda dapat memperoleh data, grafik, dan informasi lainnya dari ERDDAP ERD atau dari instalasi ERDDAP lainnya, atau Anda dapat<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">siapkan server ERDDAP Anda sendiri</a>, yang dapat diakses publik atau hanya dapat diakses secara pribadi.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">siapkan server ERDDAP Anda sendiri</a>, yang dapat diakses publik atau hanya dapat diakses secara pribadi.
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">Permintaan URL RESTful</a></h3>
 Permintaan informasi antarmuka pengguna dari ERDDAP (misalnya, hasil pencarian) menggunakan standar universal web untuk permintaan:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URL &externalLinkHtml;</a> dikirim melalui
@@ -4513,7 +4459,7 @@ ERDDAP dapat mengembalikan hasil antarmuka pengguna sebagai tabel data dalam tip
 <li>.nc - file biner NetCDF -3 yang datar, seperti tabel.
 (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">lagi&nbsp;informasi &externalLinkHtml;</a>)
 <li>.nccsv - file CSV ASCII yang datar, seperti tabel, seperti NetCDF .
-(<a rel="help" href="https://erddap.github.io/NCCSV.html">lagi&nbsp;informasi &externalLinkHtml;</a>)
+(<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">lagi&nbsp;informasi &externalLinkHtml;</a>)
 <li>.tsv - tabel teks ASCII yang dipisahkan tab.
 (<a rel="help" href="https://jkorpela.fi/TSV.html">lagi&nbsp;informasi &externalLinkHtml;</a>)
 <li>.xhtml - file XHTML (XML) dengan data dalam tabel.
@@ -4662,7 +4608,6 @@ Melihat
 <SOSDocumentation>Dokumentasi SOS ERDDAP</SOSDocumentation>
 <WCSDocumentation>Dokumentasi WCS ERDDAP</WCSDocumentation>
 <WMSDocumentation>Dokumentasi WMS ERDDAP</WMSDocumentation>
-<findOutChange>sehingga program komputer Anda dapat mengetahui apakah suatu dataset telah berubah.</findOutChange>
 <requestFormatExamplesHtml><![CDATA[
 
 (misalnya,
@@ -5112,14 +5057,6 @@ Sebagai gantinya, mintalah email berisi
 
 ]]></subscriptionRemoveSuccess>
 <subscriptionRSS>Berlangganan umpan RSS untuk kumpulan data ini...</subscriptionRSS>
-<subscriptionsNotAvailable><![CDATA[
-
-<p><strong>Maaf.
-Sistem berlangganan email/URL tidak tersedia pada instalasi ERDDAP ini.</strong>
-<br>Pertimbangkan untuk menggunakan layanan berlangganan
-<a rel="help" href="{0}/information.html#subscriptions">RSS</a> .
-
-]]></subscriptionsNotAvailable>
 <subscriptionUrlHtml><![CDATA[
 
 <kbd>URL/action</kbd> adalah URL opsional yang akan dihubungi ERDDAP alih-alih mengirimi Anda email.
@@ -5224,7 +5161,7 @@ Ini tersirat.)
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>Cari tahu lebih lanjut tentang ERDDAP .</strong></a>
 <p><strong>Penyedia Data:
 Anda dapat
-<a rel="help" href="https://erddap.github.io/setup.html">mengatur server ERDDAP Anda sendiri</a> dan menyajikan data Anda sendiri.</strong> ERDDAP gratis dan sumber terbuka.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">mengatur server ERDDAP Anda sendiri</a> dan menyajikan data Anda sendiri.</strong> ERDDAP gratis dan sumber terbuka.
 Ia menggunakan lisensi mirip Apache, sehingga Anda dapat melakukan apa pun yang Anda inginkan dengannya.
 Tampilan ERDDAP dapat disesuaikan, sehingga ERDDAP Anda akan mencerminkan institusi Anda, bukan NOAA .
 Upaya kecil untuk mendirikan ERDDAP membawa banyak manfaat.
@@ -5383,13 +5320,6 @@ Untuk melihat {0},
 <!--  Tag berikut didahului oleh 1 dari 2 tag sebelumnya. 
   {0} adalah subsetViewSelectDstintCombos atau subsetViewSelectRelatedCounts.  -->
 <subsetWhenCounts>{0} untuk nilai {1} dari &quot;{2}&quot; adalah:</subsetWhenCounts>
-<subsetComboClickSelect><![CDATA[
-
-Untuk melihat jumlah kombinasi berbeda dari variabel-variabel yang tercantum di atas,
-<br>centang <kbd>{0} :
-{1}</kbd> di atas dan pilih nilai untuk salah satu variabel di atas.
-
-]]></subsetComboClickSelect>
 <subsetNVariableCombos>Secara total, ada {0} baris kombinasi berbeda dari variabel-variabel yang tercantum di atas.</subsetNVariableCombos>
 <subsetShowingAllRows>Semua baris ditampilkan di atas.</subsetShowingAllRows>
 <subsetShowingNRows>{0} baris pertama ditampilkan di atas.  {1} baris sisanya tidak ditampilkan.</subsetShowingNRows>
@@ -5582,7 +5512,7 @@ Ini tersirat.)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP bisa mendapatkan data dari sumber data lokal (di hard drive server) dan jarak jauh (diakses melalui web).</a></strong>
 <br>Lihat
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">daftar tipe sumber data</a> yang dapat diakses ERDDAP .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">daftar tipe sumber data</a> yang dapat diakses ERDDAP .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP dapat menyajikan banyak jenis data ilmiah, tidak hanya data oseanografi saja.</a></strong>
 <br>ERDDAP adalah server data yang ditulis di
@@ -5736,8 +5666,8 @@ Saat Anda meminta data atau grafik dari
       title="Tautan ke situs web eksternal ini bukan merupakan suatu dukungan."></a>) mendeskripsikan data.
 ERDDAP memungkinkan (dan mendorong) administrator untuk mendeskripsikan metadata yang akan ditambahkan ke kumpulan data dan variabelnya saat itu juga.
 Lihat
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">bagian addAttributes</a> pada
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">petunjuk untuk administrator</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">bagian addAttributes</a> pada
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">petunjuk untuk administrator</a> .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP memungkinkan Anda meminta file gambar .png dan .pdf dengan grafik dan peta</a></strong>
@@ -5887,7 +5817,7 @@ Pengguna yang telah login dapat mengakses kumpulan data publik dan kumpulan data
 Pengguna harus menggunakan https:
 (Secure Sockets Layer) untuk masuk dan mengakses kumpulan data pribadi.
 Kumpulan data dapat dikonfigurasi agar grafik dan peta dapat diakses publik, namun data hanya dapat diakses oleh pengguna yang berwenang.
-(<a rel="help" href="https://erddap.github.io/setup.html#security">informasi lebih lanjut</a>)
+(<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">informasi lebih lanjut</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP memproses data dalam beberapa bagian.</a></strong>
 <br>Untuk menghemat memori (masalah besar) dan membuat respons dimulai lebih cepat, ERDDAP memproses permintaan data dalam beberapa bagian — berulang kali mengambil sebagian data dari sumber, membersihkannya (misalnya, menambahkan
@@ -5909,15 +5839,15 @@ ia menerima permintaan dari pengguna; mendapatkan data dari sumber data jarak ja
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Tautan ke situs web eksternal ini bukan merupakan suatu dukungan."></a> :
 Namun ERDDAP juga memiliki kemampuan untuk secara aktif mendapatkan semua data yang tersedia dari sumber data jarak jauh dan
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">menyimpan salinan data lokal</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">menyimpan salinan data lokal</a> .
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Teknologi Push <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Tautan ke situs web eksternal ini bukan merupakan suatu dukungan."></a> :
 Dengan menggunakan
 <a href="#subscriptions">layanan berlangganan</a> ERDDAP, server data lain dapat diberitahu segera setelah data baru tersedia sehingga mereka dapat meminta data tersebut (dengan menarik data tersebut).
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> dan
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> ERDDAP menggunakan layanan berlangganan dan
-<a rel="help" href="https://erddap.github.io/setup.html#flag">sistem flag</a> ERDDAP sehingga mereka akan segera diberitahu ketika data baru tersedia.
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> dan
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> ERDDAP menggunakan layanan berlangganan dan
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">sistem flag</a> ERDDAP sehingga mereka akan segera diberitahu ketika data baru tersedia.
 Anda dapat mengombinasikan hal ini dengan efek yang luar biasa:
 jika Anda membungkus EDDGrid Copy di sekitar kumpulan data EDDGrid FromErddap (atau membungkus EDDTableCopy di sekitar kumpulan data EDDTableFromErddap), ERDDAP akan secara otomatis membuat dan memelihara salinan lokal dari kumpulan data ERDDAP yang lain.
 Karena layanan berlangganan bekerja segera setelah data baru tersedia, teknologi push menyebarkan data dengan sangat cepat (dalam hitungan detik).
@@ -6007,10 +5937,10 @@ Alasan tersebut saja yang membenarkan biaya pengembangan ERDDAP .
 (Saya rasa dapat ditunjukkan bahwa ERDDAP telah menghemat lebih banyak waktu ilmuwan NOAA daripada yang saya habiskan untuk mengembangkan ERDDAP .
 Waktu=Uang.) Namun manfaat sampingnya adalah organisasi lain dapat
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">mengunduh, menginstal, dan menggunakan ERDDAP</a> <strong>secara gratis</strong> untuk mendistribusikan produk mereka.
+href="https://erddap.github.io/docs/server-admin/deploy-install">mengunduh, menginstal, dan menggunakan ERDDAP</a> <strong>secara gratis</strong> untuk mendistribusikan produk mereka.
 data ilmiah.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >Lebih dari 90 organisasi di setidaknya 14 negara menggunakan ERDDAP</a> .
 Mungkin ada yang namanya makan siang gratis.
 <p>ERDDAP adalah program Java .
@@ -6124,14 +6054,14 @@ Sekarang, tolong anggap saja itu sebagai nama, bukan akronim.
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">di sini</a> .
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">Anda dapat</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>Mengatur Server ERDDAP Anda Sendiri</strong></a> dan menyajikan data Anda sendiri.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>Mengatur Server ERDDAP Anda Sendiri</strong></a> dan menyajikan data Anda sendiri.
 <ul>
 <li>Upaya kecil untuk mendirikan ERDDAP membawa banyak manfaat.
 <li>Jika Anda sudah memiliki layanan web untuk mendistribusikan data Anda, Anda dapat mengatur ERDDAP untuk mengakses data Anda melalui layanan yang ada atau melalui file sumber atau database.
 Kemudian, orang-orang akan memiliki cara lain untuk mengakses data Anda dan akan dapat mengunduh data tersebut dalam format file tambahan atau dalam bentuk grafik atau peta.
 <li>Jika Anda memiliki kumpulan data yang banyak diminati, Anda dapat menginstal
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >beberapa ERDDAP yang bekerja sama</a> untuk meningkatkan dan memenuhi kebutuhan pusat distribusi data yang besar.
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">Hubungi kami</a></h2>
@@ -6146,7 +6076,6 @@ Setelah Anda menjadi anggota, Anda dapat memposting pertanyaan Anda di sana atau
 Pendapat di halaman web ini adalah pendapat pribadi Bob Simons dan tidak mencerminkan posisi Pemerintah atau National Oceanic and Atmospheric Administration .
 
 ]]></theLongDescriptionHtml>
-<Then>Kemudian</Then>
 <twoClickMapDefaultTooltip>Tentukan persegi panjang dengan mengklik dua sudut diagonal.  Lakukan lagi jika diperlukan.</twoClickMapDefaultTooltip>
 
 <!--  Ini adalah cara untuk mengganti konverter Standardize UDUnits ERDDAP
@@ -7430,7 +7359,6 @@ Ini tidak mungkin apa-apa. Jadi jika Anda tidak menginginkan apa pun, masukkan k
 tidak pernah menjadi nama atribut.  -->
 <updateUrlsSkipAttributes>sumberUrl</updateUrlsSkipAttributes>
 <variableNames>Nama Variabel</variableNames>
-<viewAllDatasetsHtml>Lihat Daftar Semua Kumpulan Data</viewAllDatasetsHtml>
 <waitThenTryAgain>Ada masalah (sementara?).  Tunggu sebentar, lalu coba lagi.  (Di browser, klik tombol Muat Ulang.)</waitThenTryAgain>
 <warning>PERINGATAN!</warning>
 <units>Satuan</units>
@@ -7757,7 +7685,7 @@ Ada
 <li>Variabel data WAJIB mempunyai variabel sumbu bujur dan lintang.
 (Variabel sumbu lainnya bersifat OPSIONAL.)
 <li>HARUS ada beberapa nilai garis bujur antara -180 dan 180.
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">Atribut colorBarMinimum dan colorBarMaximum</a> HARUS ditentukan.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">Atribut colorBarMinimum dan colorBarMaximum</a> HARUS ditentukan.
 (Atribut bilah warna lainnya bersifat OPSIONAL.)
 </ul>
 <li><strong>Lapisan data kisi:</strong> Dalam WMS ERDDAP, semua variabel data dalam kumpulan data kisi yang menggunakan dimensi bujur dan lintang tersedia melalui WMS .

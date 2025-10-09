@@ -4,15 +4,10 @@
  */
 package gov.noaa.pfel.coastwatch.griddata;
 
-import com.cohort.array.*;
 import com.cohort.util.Calendar2;
 import com.cohort.util.Math2;
-import com.cohort.util.String2;
 import com.cohort.util.Test;
-import dods.dap.*;
-import ucar.ma2.*;
-import ucar.nc2.*;
-import ucar.nc2.util.*;
+import com.google.common.collect.ImmutableList;
 
 /**
  * This class has some static convenience methods related to the other Data classes.
@@ -32,56 +27,39 @@ public class DataHelper {
   /**
    * The string for no units. There doesn't seem to be a udUnits standard. But LAS uses "unitless".
    */
-  public static String UNITLESS = "unitless";
+  public static final String UNITLESS = "unitless";
 
   /** The creatorEmail for CoastWatch */
-  public static String CW_CREATOR_EMAIL = "erd.data@noaa.gov";
+  public static final String CW_CREATOR_EMAIL = "erd.data@noaa.gov";
 
   /** The creatorName for CoastWatch */
-  public static String CW_CREATOR_NAME = "NOAA CoastWatch, West Coast Node";
+  public static final String CW_CREATOR_NAME = "NOAA CoastWatch, West Coast Node";
 
   /** The creatorUrl for CoastWatch */
-  public static String CW_CREATOR_URL = "https://coastwatch.pfeg.noaa.gov";
+  public static final String CW_CREATOR_URL = "https://coastwatch.pfeg.noaa.gov";
 
   /** The project for CoastWatch */
-  public static String CW_PROJECT = "CoastWatch (https://coastwatch.noaa.gov/)";
+  public static final String CW_PROJECT = "CoastWatch (https://coastwatch.noaa.gov/)";
 
   /** The creatorEmail for ERD */
-  public static String ERD_CREATOR_EMAIL = "erd.data@noaa.gov";
+  public static final String ERD_CREATOR_EMAIL = "erd.data@noaa.gov";
 
   /** The creatorName for ERD */
-  public static String ERD_CREATOR_NAME = "NOAA NMFS SWFSC ERD";
+  public static final String ERD_CREATOR_NAME = "NOAA NMFS SWFSC ERD";
 
   /** The creatorUrl for ERD */
-  public static String ERD_CREATOR_URL = "https://www.pfeg.noaa.gov";
+  public static final String ERD_CREATOR_URL = "https://www.pfeg.noaa.gov";
 
   /** The project for ERD */
-  public static String ERD_PROJECT = "NOAA NMFS SWFSC ERD (https://www.pfeg.noaa.gov/)";
+  public static final String ERD_PROJECT = "NOAA NMFS SWFSC ERD (https://www.pfeg.noaa.gov/)";
 
   /**
    * The standard variable names of the first 5 columns in the TableDataSet.makeSubset and
    * PointDataSet.makeSubset results table: {"LON", "LAT", "DEPTH", "TIME", "ID"}. Dapper and DChart
    * like these exact names.
    */
-  public static final String[] TABLE_VARIABLE_NAMES = {"LON", "LAT", "DEPTH", "TIME", "ID"};
-
-  /**
-   * The standard long names of the first 5 columns in the TableDataSet.makeSubset and
-   * PointDataSet.makeSubset results table: {"Longitude", "Latitude", "Depth", "Time",
-   * "Identifier"}. Dapper and DChart like these exact names.
-   */
-  public static final String[] TABLE_LONG_NAMES = {
-    "Longitude", "Latitude", "Depth", "Time", "Identifier"
-  };
-
-  /**
-   * The standard UD units for the first 5 columns in the TableDataSet.makeSubset and
-   * PointDataSet.makeSubset results table, e.g., "degrees_east". Dapper and DChart like these exact
-   * names.
-   */
-  public static final String[] TABLE_UNITS = {
-    "degrees_east", "degrees_north", "m", Calendar2.SECONDS_SINCE_1970, UNITLESS
-  };
+  public static final ImmutableList<String> TABLE_VARIABLE_NAMES =
+      ImmutableList.of("LON", "LAT", "DEPTH", "TIME", "ID");
 
   /**
    * The returns a new, revised, history attribute. This avoids adding a second entries for today
@@ -207,25 +185,6 @@ public class DataHelper {
   }
 
   /**
-   * Given an ascending sorted double[], this finds the index of the closest value.
-   *
-   * @param dar the double array
-   * @param d If d is NaN, this returns -1.
-   * @return the index of the closest value, 0 .. dar.length-1. If d < dar[0]-spacing/2 or d >
-   *     dar[dar.length-1]+spacing/2, this returns -1. If nDar=1, spacing is assumed to be 1. If
-   *     nDar = 0, this returns -1;
-   */
-  public static int binaryFindClosestIndex(double dar[], double d) {
-    int nDar = dar.length;
-    if (Double.isNaN(d) || nDar == 0) return -1;
-    if (d < dar[0] || d > dar[nDar - 1]) {
-      double spacing = nDar == 1 ? 1 : dar[1] - dar[0];
-      if (d < dar[0] - spacing / 2 || d > dar[nDar - 1] + spacing / 2) return -1;
-    }
-    return Math2.binaryFindClosest(dar, d);
-  }
-
-  /**
    * Adjust nPointsNeeded if axis range has changed. E.g., If axis range available is smaller, you
    * don't need so many points.
    *
@@ -324,45 +283,6 @@ public class DataHelper {
   }
 
   /**
-   * This adds '^' in appropriate places to a units string and replaces '_' with ' '.
-   *
-   * @param udunits
-   * @return units string with '^' in appropriate places
-   */
-  public static String makeUdUnitsReadable(String udunits) {
-    StringBuilder sb = new StringBuilder(udunits);
-
-    // replace '_' with ' '
-    String2.replaceAll(sb, "_", " ");
-
-    // replace <letter>-<digit> with <letter>^-<digit>
-    int po = sb.indexOf("-");
-    while (po >= 0) {
-      if (po > 0
-          && String2.isLetter(sb.charAt(po - 1))
-          && // preceded by letter
-          po < sb.length() - 1
-          && String2.isDigit(sb.charAt(po + 1))) // followed by digit
-      sb.insert(po++, '^');
-      po = sb.indexOf("-", po + 1);
-    }
-
-    // replace <letter><digit> with <letter>^<digit>
-    po = 0;
-    // find next digit   (sb.length() must be checked dynamically)
-    while (po < sb.length() && !String2.isDigit(sb.charAt(po))) po++;
-    while (po < sb.length()) {
-      if (po > 0 && String2.isLetter(sb.charAt(po - 1))) // preceded by letter
-      sb.insert(po++, '^');
-      po++;
-      // find next digit
-      while (po < sb.length() && !String2.isDigit(sb.charAt(po))) po++;
-    }
-
-    return sb.toString();
-  }
-
-  /**
    * This returns true if min/MaxX specify a range that needs to be pm180. A given min/MaxX may need
    * to be PM180, or 0,360, or neither (but not both).
    *
@@ -384,43 +304,6 @@ public class DataHelper {
    */
   public static boolean lonNeedsToBe0360(double minX, double maxX) {
     return maxX > 180;
-  }
-
-  /**
-   * Given a start day and end day (for a composite) this calculates the centered time to the
-   * nearest second. Don't give an hday time to this routine!
-   *
-   * @param isoStartDate e.g., 2006-02-14
-   * @param isoEndDate the Dave-style last date in the composite. Inclusive! e.g., 2006-02-16 (for a
-   *     3 day composite)
-   * @return the iso centered time (to nearest second, with ' ' as connector).
-   * @throws Exception if trouble (dates are null, invalid, or hh:mm:ss!=0).
-   */
-  public static String centerOfStartDateAndInclusiveEndDate(
-      String isoStartDate, String isoEndDate) {
-
-    double startSeconds =
-        Calendar2.isoStringToEpochSeconds(isoStartDate); // throws exception if trouble
-    double endSeconds =
-        Calendar2.isoStringToEpochSeconds(isoEndDate); // throws exception if trouble
-    if (startSeconds % Calendar2.SECONDS_PER_DAY != 0)
-      Test.error(
-          String2.ERROR
-              + " in DataHelper.centerOfStartDateAndInclusiveEndDate:\n"
-              + "isoStartDate="
-              + isoStartDate
-              + " has non-zero hh:mm:ss info!");
-    if (endSeconds % Calendar2.SECONDS_PER_DAY != 0)
-      Test.error(
-          String2.ERROR
-              + " in DataHelper.centerOfStartDateAndInclusiveEndDate:\n"
-              + "isoEndDate="
-              + isoEndDate
-              + " has non-zero hh:mm:ss info!");
-    double centerSeconds = (startSeconds + (endSeconds + Calendar2.SECONDS_PER_DAY)) / 2;
-    String s = Calendar2.epochSecondsToIsoStringT(centerSeconds);
-    s = String2.replaceAll(s, 'T', ' ');
-    return s;
   }
 
   /**

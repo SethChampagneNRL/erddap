@@ -16,20 +16,38 @@ import com.cohort.util.MustBe;
 import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import com.cohort.util.XML;
-import dods.dap.*;
+import dods.dap.AttributeTable;
+import dods.dap.BaseType;
+import dods.dap.DAS;
+import dods.dap.DConnect;
+import dods.dap.DConstructor;
+import dods.dap.DDS;
+import dods.dap.DSequence;
+import dods.dap.DVector;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.coastwatch.griddata.OpendapHelper;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.coastwatch.util.SSR;
 import gov.noaa.pfel.coastwatch.util.SimpleXMLReader;
 import gov.noaa.pfel.erddap.Erddap;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
 import gov.noaa.pfel.erddap.handlers.EDDTableFromDapSequenceHandler;
 import gov.noaa.pfel.erddap.handlers.SaxHandlerClass;
+import gov.noaa.pfel.erddap.util.EDMessages;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.*;
+import gov.noaa.pfel.erddap.variable.DataVariableInfo;
+import gov.noaa.pfel.erddap.variable.EDV;
+import gov.noaa.pfel.erddap.variable.EDVAlt;
+import gov.noaa.pfel.erddap.variable.EDVDepth;
+import gov.noaa.pfel.erddap.variable.EDVLat;
+import gov.noaa.pfel.erddap.variable.EDVLon;
+import gov.noaa.pfel.erddap.variable.EDVTime;
+import gov.noaa.pfel.erddap.variable.EDVTimeStamp;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class represents a table of data from an opendap sequence source.
@@ -39,17 +57,18 @@ import java.util.Enumeration;
 @SaxHandlerClass(EDDTableFromDapSequenceHandler.class)
 public class EDDTableFromDapSequence extends EDDTable {
 
-  protected String outerSequenceName, innerSequenceName;
-  protected boolean sourceCanConstrainStringEQNE,
-      sourceCanConstrainStringGTLT,
-      skipDapperSpacerRows;
+  protected final String outerSequenceName;
+  protected final String innerSequenceName;
+  protected final boolean sourceCanConstrainStringEQNE;
+  protected final boolean sourceCanConstrainStringGTLT;
+  protected final boolean skipDapperSpacerRows;
   protected boolean isOuterVar[];
 
   /**
    * Indicates if data can be transmitted in a compressed form. It is unlikely anyone would want to
    * change this.
    */
-  public static boolean acceptDeflate = true;
+  public static final boolean acceptDeflate = true;
 
   /**
    * This constructs an EDDTableFromDapSequence based on the information in an .xml file.
@@ -68,8 +87,8 @@ public class EDDTableFromDapSequence extends EDDTable {
     // data to be obtained (or not)
     if (verbose) String2.log("\n*** constructing EDDTableFromDapSequence(xmlReader)...");
     String tDatasetID = xmlReader.attributeValue("datasetID");
-    Attributes tGlobalAttributes = null;
-    ArrayList tDataVariables = new ArrayList();
+    LocalizedAttributes tGlobalAttributes = null;
+    ArrayList<DataVariableInfo> tDataVariables = new ArrayList<>();
     int tReloadEveryNMinutes = Integer.MAX_VALUE;
     String tAccessibleTo = null;
     String tGraphsAccessibleTo = null;
@@ -102,59 +121,53 @@ public class EDDTableFromDapSequence extends EDDTable {
       String localTags = tags.substring(startOfTagsLength);
 
       // try to make the tag names as consistent, descriptive and readable as possible
-      if (localTags.equals("<addAttributes>")) tGlobalAttributes = getAttributesFromXml(xmlReader);
-      else if (localTags.equals("<altitudeMetersPerSourceUnit>"))
-        throw new SimpleException(EDVAlt.stopUsingAltitudeMetersPerSourceUnit);
-      else if (localTags.equals("<dataVariable>"))
-        tDataVariables.add(getSDADVariableFromXml(xmlReader));
-      else if (localTags.equals("<accessibleTo>")) {
-      } else if (localTags.equals("</accessibleTo>")) tAccessibleTo = content;
-      else if (localTags.equals("<graphsAccessibleTo>")) {
-      } else if (localTags.equals("</graphsAccessibleTo>")) tGraphsAccessibleTo = content;
-      else if (localTags.equals("<reloadEveryNMinutes>")) {
-      } else if (localTags.equals("</reloadEveryNMinutes>"))
-        tReloadEveryNMinutes = String2.parseInt(content);
-      else if (localTags.equals("<sourceUrl>")) {
-      } else if (localTags.equals("</sourceUrl>")) tLocalSourceUrl = content;
-      else if (localTags.equals("<outerSequenceName>")) {
-      } else if (localTags.equals("</outerSequenceName>")) tOuterSequenceName = content;
-      else if (localTags.equals("<innerSequenceName>")) {
-      } else if (localTags.equals("</innerSequenceName>")) tInnerSequenceName = content;
-      else if (localTags.equals("<sourceNeedsExpandedFP_EQ>")) {
-      } else if (localTags.equals("</sourceNeedsExpandedFP_EQ>"))
-        tSourceNeedsExpandedFP_EQ = String2.parseBoolean(content);
-      else if (localTags.equals("<sourceCanConstrainStringEQNE>")) {
-      } else if (localTags.equals("</sourceCanConstrainStringEQNE>"))
-        tSourceCanConstrainStringEQNE = String2.parseBoolean(content);
-      else if (localTags.equals("<sourceCanConstrainStringGTLT>")) {
-      } else if (localTags.equals("</sourceCanConstrainStringGTLT>"))
-        tSourceCanConstrainStringGTLT = String2.parseBoolean(content);
-      else if (localTags.equals("<sourceCanConstrainStringRegex>")) {
-      } else if (localTags.equals("</sourceCanConstrainStringRegex>"))
-        tSourceCanConstrainStringRegex = content;
-      else if (localTags.equals("<skipDapperSpacerRows>")) {
-      } else if (localTags.equals("</skipDapperSpacerRows>"))
-        tSkipDapperSpacerRows = String2.parseBoolean(content);
-      else if (localTags.equals("<onChange>")) {
-      } else if (localTags.equals("</onChange>")) tOnChange.add(content);
-      else if (localTags.equals("<fgdcFile>")) {
-      } else if (localTags.equals("</fgdcFile>")) tFgdcFile = content;
-      else if (localTags.equals("<iso19115File>")) {
-      } else if (localTags.equals("</iso19115File>")) tIso19115File = content;
-      else if (localTags.equals("<sosOfferingPrefix>")) {
-      } else if (localTags.equals("</sosOfferingPrefix>")) tSosOfferingPrefix = content;
-      else if (localTags.equals("<defaultDataQuery>")) {
-      } else if (localTags.equals("</defaultDataQuery>")) tDefaultDataQuery = content;
-      else if (localTags.equals("<defaultGraphQuery>")) {
-      } else if (localTags.equals("</defaultGraphQuery>")) tDefaultGraphQuery = content;
-      else if (localTags.equals("<addVariablesWhere>")) {
-      } else if (localTags.equals("</addVariablesWhere>")) tAddVariablesWhere = content;
-      else xmlReader.unexpectedTagException();
+      switch (localTags) {
+        case "<addAttributes>" -> tGlobalAttributes = getAttributesFromXml(xmlReader);
+        case "<altitudeMetersPerSourceUnit>" ->
+            throw new SimpleException(EDVAlt.stopUsingAltitudeMetersPerSourceUnit);
+        case "<dataVariable>" -> tDataVariables.add(getSDADVariableFromXml(xmlReader));
+        case "<accessibleTo>",
+            "<addVariablesWhere>",
+            "<defaultGraphQuery>",
+            "<defaultDataQuery>",
+            "<sosOfferingPrefix>",
+            "<iso19115File>",
+            "<fgdcFile>",
+            "<onChange>",
+            "<skipDapperSpacerRows>",
+            "<sourceCanConstrainStringRegex>",
+            "<sourceCanConstrainStringGTLT>",
+            "<sourceCanConstrainStringEQNE>",
+            "<sourceNeedsExpandedFP_EQ>",
+            "<innerSequenceName>",
+            "<outerSequenceName>",
+            "<sourceUrl>",
+            "<reloadEveryNMinutes>",
+            "<graphsAccessibleTo>" -> {}
+        case "</accessibleTo>" -> tAccessibleTo = content;
+        case "</graphsAccessibleTo>" -> tGraphsAccessibleTo = content;
+        case "</reloadEveryNMinutes>" -> tReloadEveryNMinutes = String2.parseInt(content);
+        case "</sourceUrl>" -> tLocalSourceUrl = content;
+        case "</outerSequenceName>" -> tOuterSequenceName = content;
+        case "</innerSequenceName>" -> tInnerSequenceName = content;
+        case "</sourceNeedsExpandedFP_EQ>" ->
+            tSourceNeedsExpandedFP_EQ = String2.parseBoolean(content);
+        case "</sourceCanConstrainStringEQNE>" ->
+            tSourceCanConstrainStringEQNE = String2.parseBoolean(content);
+        case "</sourceCanConstrainStringGTLT>" ->
+            tSourceCanConstrainStringGTLT = String2.parseBoolean(content);
+        case "</sourceCanConstrainStringRegex>" -> tSourceCanConstrainStringRegex = content;
+        case "</skipDapperSpacerRows>" -> tSkipDapperSpacerRows = String2.parseBoolean(content);
+        case "</onChange>" -> tOnChange.add(content);
+        case "</fgdcFile>" -> tFgdcFile = content;
+        case "</iso19115File>" -> tIso19115File = content;
+        case "</sosOfferingPrefix>" -> tSosOfferingPrefix = content;
+        case "</defaultDataQuery>" -> tDefaultDataQuery = content;
+        case "</defaultGraphQuery>" -> tDefaultGraphQuery = content;
+        case "</addVariablesWhere>" -> tAddVariablesWhere = content;
+        default -> xmlReader.unexpectedTagException();
+      }
     }
-    int ndv = tDataVariables.size();
-    Object ttDataVariables[][] = new Object[ndv][];
-    for (int i = 0; i < tDataVariables.size(); i++)
-      ttDataVariables[i] = (Object[]) tDataVariables.get(i);
 
     return new EDDTableFromDapSequence(
         tDatasetID,
@@ -168,7 +181,7 @@ public class EDDTableFromDapSequence extends EDDTable {
         tDefaultGraphQuery,
         tAddVariablesWhere,
         tGlobalAttributes,
-        ttDataVariables,
+        tDataVariables,
         tReloadEveryNMinutes,
         tLocalSourceUrl,
         tOuterSequenceName,
@@ -223,7 +236,7 @@ public class EDDTableFromDapSequence extends EDDTable {
    *     </ul>
    *     Special case: value="null" causes that item to be removed from combinedGlobalAttributes.
    *     Special case: if combinedGlobalAttributes name="license", any instance of
-   *     value="[standard]" will be converted to the EDStatic.standardLicense.
+   *     value="[standard]" will be converted to the EDStatic.messages.standardLicense.
    * @param tDataVariables is an Object[nDataVariables][3]: <br>
    *     [0]=String sourceName (the name of the data variable in the dataset source, without the
    *     outer or inner sequence name), <br>
@@ -273,8 +286,8 @@ public class EDDTableFromDapSequence extends EDDTable {
       String tDefaultDataQuery,
       String tDefaultGraphQuery,
       String tAddVariablesWhere,
-      Attributes tAddGlobalAttributes,
-      Object[][] tDataVariables,
+      LocalizedAttributes tAddGlobalAttributes,
+      List<DataVariableInfo> tDataVariables,
       int tReloadEveryNMinutes,
       String tLocalSourceUrl,
       String tOuterSequenceName,
@@ -287,6 +300,7 @@ public class EDDTableFromDapSequence extends EDDTable {
       throws Throwable {
 
     if (verbose) String2.log("\n*** constructing EDDTableFromDapSequence " + tDatasetID);
+    int language = EDMessages.DEFAULT_LANGUAGE;
     long constructionStartMillis = System.currentTimeMillis();
     String errorInMethod = "Error in EDDTableFromDapSequence(" + tDatasetID + ") constructor:\n";
 
@@ -301,9 +315,9 @@ public class EDDTableFromDapSequence extends EDDTable {
     sosOfferingPrefix = tSosOfferingPrefix;
     defaultDataQuery = tDefaultDataQuery;
     defaultGraphQuery = tDefaultGraphQuery;
-    if (tAddGlobalAttributes == null) tAddGlobalAttributes = new Attributes();
+    if (tAddGlobalAttributes == null) tAddGlobalAttributes = new LocalizedAttributes();
     addGlobalAttributes = tAddGlobalAttributes;
-    addGlobalAttributes.set("sourceUrl", convertToPublicSourceUrl(tLocalSourceUrl));
+    addGlobalAttributes.set(language, "sourceUrl", convertToPublicSourceUrl(tLocalSourceUrl));
     localSourceUrl = tLocalSourceUrl;
     setReloadEveryNMinutes(tReloadEveryNMinutes);
     outerSequenceName = tOuterSequenceName;
@@ -329,7 +343,7 @@ public class EDDTableFromDapSequence extends EDDTable {
 
     // quickRestart
     Attributes quickRestartAttributes = null;
-    if (EDStatic.quickRestart
+    if (EDStatic.config.quickRestart
         && EDStatic.initialLoadDatasets()
         && File2.isFile(quickRestartFullFileName())) {
       // try to do quick initialLoadDatasets()
@@ -369,48 +383,49 @@ public class EDDTableFromDapSequence extends EDDTable {
     sourceGlobalAttributes = new Attributes();
     OpendapHelper.getAttributes(das, "GLOBAL", sourceGlobalAttributes);
     combinedGlobalAttributes =
-        new Attributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
-    String tLicense = combinedGlobalAttributes.getString("license");
+        new LocalizedAttributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
+    String tLicense = combinedGlobalAttributes.getString(language, "license");
     if (tLicense != null)
       combinedGlobalAttributes.set(
-          "license", String2.replaceAll(tLicense, "[standard]", EDStatic.standardLicense));
+          language,
+          "license",
+          String2.replaceAll(tLicense, "[standard]", EDStatic.messages.standardLicense));
     combinedGlobalAttributes.removeValue("\"null\"");
 
     // create structures to hold the sourceAttributes temporarily
-    int ndv = tDataVariables.length;
+    int ndv = tDataVariables.size();
     Attributes tDataSourceAttributes[] = new Attributes[ndv];
     String tDataSourceTypes[] = new String[ndv];
     String tDataSourceNames[] = new String[ndv];
     isOuterVar = new boolean[ndv]; // default is all false
     for (int dv = 0; dv < ndv; dv++) {
-      tDataSourceNames[dv] = (String) tDataVariables[dv][0];
+      tDataSourceNames[dv] = tDataVariables.get(dv).sourceName();
     }
 
     // delve into the outerSequence
-    BaseType outerVariable = (BaseType) dds.getVariable(outerSequenceName);
-    if (!(outerVariable instanceof DSequence))
+    BaseType outerVariable = dds.getVariable(outerSequenceName);
+    if (!(outerVariable instanceof DSequence outerSequence))
       throw new RuntimeException(
           errorInMethod
               + "outerVariable not a DSequence: name="
               + outerVariable.getName()
               + " type="
               + outerVariable.getTypeName());
-    DSequence outerSequence = (DSequence) outerVariable;
     int nOuterColumns = outerSequence.elementCount();
     AttributeTable outerAttributeTable = das.getAttributeTable(outerSequenceName);
     for (int outerCol = 0; outerCol < nOuterColumns; outerCol++) {
 
       // look at the variables in the outer sequence
-      BaseType obt = (BaseType) outerSequence.getVar(outerCol);
+      BaseType obt = outerSequence.getVar(outerCol);
       String oName = obt.getName();
       if (innerSequenceName != null && oName.equals(innerSequenceName)) {
 
         // look at the variables in the inner sequence
         DSequence innerSequence = (DSequence) obt;
         AttributeTable innerAttributeTable = das.getAttributeTable(innerSequence.getName());
-        Enumeration ien = innerSequence.getVariables();
-        while (ien.hasMoreElements()) {
-          BaseType ibt = (BaseType) ien.nextElement();
+        Iterator<BaseType> ien = innerSequence.getVariables();
+        while (ien.hasNext()) {
+          BaseType ibt = ien.next();
           String iName = ibt.getName();
 
           // is iName in tDataVariableNames?  i.e., are we interested in this variable?
@@ -506,19 +521,19 @@ public class EDDTableFromDapSequence extends EDDTable {
     // create dataVariables[]
     dataVariables = new EDV[ndv];
     for (int dv = 0; dv < ndv; dv++) {
-      String tSourceName = (String) tDataVariables[dv][0];
-      String tDestName = (String) tDataVariables[dv][1];
+      String tSourceName = tDataVariables.get(dv).sourceName();
+      String tDestName = tDataVariables.get(dv).destinationName();
       if (tDestName == null || tDestName.trim().length() == 0) tDestName = tSourceName;
       Attributes tSourceAtt = tDataSourceAttributes[dv];
-      Attributes tAddAtt = (Attributes) tDataVariables[dv][2];
+      LocalizedAttributes tAddAtt = tDataVariables.get(dv).attributes();
       String tSourceType = tDataSourceTypes[dv];
       // if (reallyVerbose) String2.log("  dv=" + dv + " sourceName=" + tSourceName + " sourceType="
       // + tSourceType);
 
       // if _Unsigned=true or false, change tSourceType
       if (tSourceAtt == null) tSourceAtt = new Attributes();
-      if (tAddAtt == null) tAddAtt = new Attributes();
-      tSourceType = Attributes.adjustSourceType(tSourceType, tSourceAtt, tAddAtt);
+      if (tAddAtt == null) tAddAtt = new LocalizedAttributes();
+      tSourceType = tAddAtt.adjustSourceType(tSourceType, tSourceAtt);
 
       // ensure the variable was found
       if (tSourceName.startsWith("=")) {
@@ -587,7 +602,7 @@ public class EDDTableFromDapSequence extends EDDTable {
                 tAddAtt,
                 tSourceType); // this constructor gets source / sets destination actual_range
         timeIndex = dv;
-      } else if (EDVTimeStamp.hasTimeUnits(tSourceAtt, tAddAtt)) {
+      } else if (EDVTimeStamp.hasTimeUnits(language, tSourceAtt, tAddAtt)) {
         dataVariables[dv] =
             new EDVTimeStamp(
                 datasetID,
@@ -605,7 +620,7 @@ public class EDDTableFromDapSequence extends EDDTable {
                 tSourceAtt,
                 tAddAtt,
                 tSourceType); // the constructor that reads actual_range
-        dataVariables[dv].setActualRangeFromDestinationMinMax();
+        dataVariables[dv].setActualRangeFromDestinationMinMax(language);
       }
     }
 
@@ -633,7 +648,7 @@ public class EDDTableFromDapSequence extends EDDTable {
     long cTime = System.currentTimeMillis() - constructionStartMillis;
     if (verbose)
       String2.log(
-          (debugMode ? "\n" + toString() : "")
+          (debugMode ? "\n" + this : "")
               + "\n*** EDDTableFromDapSequence "
               + datasetID
               + " constructor finished. TIME="
@@ -661,7 +676,7 @@ public class EDDTableFromDapSequence extends EDDTable {
    *
    * @param language the index of the selected language
    * @param loggedInAs the user's login name if logged in (or null if not logged in).
-   * @param requestUrl the part of the user's request, after EDStatic.baseUrl, before '?'.
+   * @param requestUrl the part of the user's request, after EDStatic.config.baseUrl, before '?'.
    * @param userDapQuery the part of the user's request after the '?', still percentEncoded, may be
    *     null.
    * @param tableWriter
@@ -719,7 +734,7 @@ public class EDDTableFromDapSequence extends EDDTable {
         }
 
         // remove GTLT constraints
-        if (!sourceCanConstrainStringGTLT && String2.indexOf(GTLT_OPERATORS, op) >= 0) {
+        if (!sourceCanConstrainStringGTLT && GTLT_OPERATORS.indexOf(op) >= 0) {
           constraintVariables.remove(c);
           constraintOps.remove(c);
           constraintValues.remove(c);
@@ -792,9 +807,9 @@ public class EDDTableFromDapSequence extends EDDTable {
       throw t instanceof WaitThenTryAgainException
           ? t
           : new WaitThenTryAgainException(
-              EDStatic.simpleBilingual(language, EDStatic.waitThenTryAgainAr)
+              EDStatic.simpleBilingual(language, Message.WAIT_THEN_TRY_AGAIN)
                   + "\n("
-                  + EDStatic.errorFromDataSource
+                  + EDMessages.errorFromDataSource
                   + tToString
                   + ")",
               t);
@@ -866,11 +881,11 @@ public class EDDTableFromDapSequence extends EDDTable {
     // get all of the vars
     String outerSequenceName = null;
     String innerSequenceName = null;
-    Enumeration datasetVars = dds.getVariables();
+    Iterator<BaseType> datasetVars = dds.getVariables();
     int nOuterVars = 0; // so outerVars are first in dataAddTable
     Attributes gridMappingAtts = null;
-    while (datasetVars.hasMoreElements()) {
-      BaseType datasetVar = (BaseType) datasetVars.nextElement();
+    while (datasetVars.hasNext()) {
+      BaseType datasetVar = datasetVars.next();
 
       // is this the pseudo-data grid_mapping variable?
       if (gridMappingAtts == null) {
@@ -883,18 +898,18 @@ public class EDDTableFromDapSequence extends EDDTable {
         outerSequenceName = outerSequence.getName();
 
         // get list of outerSequence variables
-        Enumeration outerVars = outerSequence.getVariables();
-        while (outerVars.hasMoreElements()) {
-          BaseType outerVar = (BaseType) outerVars.nextElement();
+        Iterator<BaseType> outerVars = outerSequence.getVariables();
+        while (outerVars.hasNext()) {
+          BaseType outerVar = outerVars.next();
 
           // catch innerSequence
           if (outerVar instanceof DSequence innerSequence) {
             if (innerSequenceName == null) {
               innerSequenceName = outerVar.getName();
-              Enumeration innerVars = innerSequence.getVariables();
-              while (innerVars.hasMoreElements()) {
+              Iterator<BaseType> innerVars = innerSequence.getVariables();
+              while (innerVars.hasNext()) {
                 // inner variable
-                BaseType innerVar = (BaseType) innerVars.nextElement();
+                BaseType innerVar = innerVars.next();
                 if (innerVar instanceof DConstructor || innerVar instanceof DVector) {
                 } else {
                   String varName = innerVar.getName();
@@ -1000,8 +1015,8 @@ public class EDDTableFromDapSequence extends EDDTable {
 
     // write the information
     boolean isDapper = tLocalSourceUrl.indexOf("dapper") > 0;
-    StringBuilder sb = new StringBuilder();
-    sb.append(
+
+    String sb =
         "<dataset type=\"EDDTableFromDapSequence\" datasetID=\""
             + suggestDatasetID(tPublicSourceUrl)
             + "\" active=\"true\">\n"
@@ -1031,17 +1046,21 @@ public class EDDTableFromDapSequence extends EDDTable {
             + // was ~=, now ""; see notes.txt for 2009-01-16
             "    <reloadEveryNMinutes>"
             + tReloadEveryNMinutes
-            + "</reloadEveryNMinutes>\n");
-    sb.append(writeAttsForDatasetsXml(false, dataSourceTable.globalAttributes(), "    "));
-    sb.append(cdmSuggestion());
-    sb.append(writeAttsForDatasetsXml(true, dataAddTable.globalAttributes(), "    "));
+            + "</reloadEveryNMinutes>\n"
+            + writeAttsForDatasetsXml(false, dataSourceTable.globalAttributes(), "    ")
+            + cdmSuggestion()
+            + writeAttsForDatasetsXml(true, dataAddTable.globalAttributes(), "    ")
+            +
 
-    // last 2 params: includeDataType, questionDestinationName
-    sb.append(
-        writeVariablesForDatasetsXml(dataSourceTable, dataAddTable, "dataVariable", false, false));
-    sb.append("</dataset>\n" + "\n");
+            // last 2 params: includeDataType, questionDestinationName
+            writeVariablesForDatasetsXml(
+                dataSourceTable, dataAddTable, "dataVariable", false, false)
+            + """
+                      </dataset>
+
+                      """;
 
     String2.log("\n\n*** generateDatasetsXml finished successfully.\n\n");
-    return sb.toString();
+    return sb;
   }
 }

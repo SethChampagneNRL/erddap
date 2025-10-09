@@ -12,7 +12,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDGridFromFilesHandler extends BaseGridHandler {
-  private String datasetType;
+  private final String datasetType;
 
   public EDDGridFromFilesHandler(
       SaxHandler saxHandler, String datasetID, State completeState, String datasetType) {
@@ -26,7 +26,7 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
   private String tFileNameRegex = ".*";
   private boolean tRecursive = false;
   private String tPathRegex = ".*";
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
   private String tMetadataFrom = MF_LAST;
   private int tMatchAxisNDigits = DEFAULT_MATCH_AXIS_N_DIGITS;
   private String tCacheFromUrl = null;
@@ -72,11 +72,10 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
     return true;
   }
 
-  private EDD getDataset(Object[][] ttAxisVariables, Object[][] ttDataVariables) throws Throwable {
-    EDD dataset;
+  private EDD getDataset() throws Throwable {
 
-    if (datasetType.equals("EDDGridFromAudioFiles")) {
-      dataset =
+    return switch (datasetType) {
+      case "EDDGridFromAudioFiles" ->
           new EDDGridFromAudioFiles(
               datasetID,
               tAccessibleTo,
@@ -88,8 +87,8 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tDefaultDataQuery,
               tDefaultGraphQuery,
               tGlobalAttributes,
-              ttAxisVariables,
-              ttDataVariables,
+              tAxisVariables,
+              tDataVariables,
               tReloadEveryNMinutes,
               tUpdateEveryNMillis,
               tFileDir,
@@ -105,8 +104,7 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tCacheFromUrl,
               tCacheSizeGB,
               tCachePartialPathRegex);
-    } else if (datasetType.equals("EDDGridFromNcFiles")) {
-      dataset =
+      case "EDDGridFromNcFiles" ->
           new EDDGridFromNcFiles(
               datasetID,
               tAccessibleTo,
@@ -118,8 +116,8 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tDefaultDataQuery,
               tDefaultGraphQuery,
               tGlobalAttributes,
-              ttAxisVariables,
-              ttDataVariables,
+              tAxisVariables,
+              tDataVariables,
               tReloadEveryNMinutes,
               tUpdateEveryNMillis,
               tFileDir,
@@ -135,8 +133,7 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tCacheFromUrl,
               tCacheSizeGB,
               tCachePartialPathRegex);
-    } else if (datasetType.equals("EDDGridFromNcFilesUnpacked")) {
-      dataset =
+      case "EDDGridFromNcFilesUnpacked" ->
           new EDDGridFromNcFilesUnpacked(
               datasetID,
               tAccessibleTo,
@@ -148,8 +145,8 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tDefaultDataQuery,
               tDefaultGraphQuery,
               tGlobalAttributes,
-              ttAxisVariables,
-              ttDataVariables,
+              tAxisVariables,
+              tDataVariables,
               tReloadEveryNMinutes,
               tUpdateEveryNMillis,
               tFileDir,
@@ -165,8 +162,7 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tCacheFromUrl,
               tCacheSizeGB,
               tCachePartialPathRegex);
-    } else if (datasetType.equals("EDDGridFromMergeIRFiles")) {
-      dataset =
+      case "EDDGridFromMergeIRFiles" ->
           new EDDGridFromMergeIRFiles(
               datasetID,
               tAccessibleTo,
@@ -178,8 +174,8 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tDefaultDataQuery,
               tDefaultGraphQuery,
               tGlobalAttributes,
-              ttAxisVariables,
-              ttDataVariables,
+              tAxisVariables,
+              tDataVariables,
               tReloadEveryNMinutes,
               tUpdateEveryNMillis,
               tFileDir,
@@ -195,17 +191,14 @@ public class EDDGridFromFilesHandler extends BaseGridHandler {
               tCacheFromUrl,
               tCacheSizeGB,
               tCachePartialPathRegex);
-    } else {
-      throw new Exception(
-          "type=\"" + datasetType + "\" needs to be added to EDDGridFromFiles.fromXml at end.");
-    }
-    return dataset;
+      default ->
+          throw new Exception(
+              "type=\"" + datasetType + "\" needs to be added to EDDGridFromFiles.fromXml at end.");
+    };
   }
 
   @Override
   protected EDD buildDataset() throws Throwable {
-    Object[][] ttAxisVariables = convertAxisVariablesToArray();
-    Object[][] ttDataVariables = convertDataVariablesToArray();
-    return getDataset(ttAxisVariables, ttDataVariables);
+    return getDataset();
   }
 }

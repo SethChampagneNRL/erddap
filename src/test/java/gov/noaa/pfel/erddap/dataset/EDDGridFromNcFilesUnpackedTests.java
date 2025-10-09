@@ -10,25 +10,32 @@ import com.cohort.util.Test;
 import com.cohort.util.Units2;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.erddap.GenerateDatasetsXml;
+import gov.noaa.pfel.erddap.util.EDMessages;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.EDV;
 import java.nio.file.Path;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import tags.TagImageComparison;
-import tags.TagIncompleteTest;
 import testDataset.EDDTestDataset;
 import testDataset.Initialization;
-import ucar.ma2.Array;
 import ucar.ma2.Section;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 class EDDGridFromNcFilesUnpackedTests {
+  static boolean initialCroissantSetting = false;
+
   @BeforeAll
   static void init() {
     Initialization.edStatic();
+    initialCroissantSetting = EDStatic.config.generateCroissantSchema;
+  }
+
+  @AfterEach
+  void cleanup() {
+    EDStatic.config.generateCroissantSchema = initialCroissantSetting;
   }
 
   /**
@@ -37,9 +44,8 @@ class EDDGridFromNcFilesUnpackedTests {
    * @throws Throwable if touble
    */
   @org.junit.jupiter.api.Test
-  @TagIncompleteTest
   void testGenerateDatasetsXml() throws Throwable {
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // String2.log("\n*** EDDGridFromNcFilesUnpacked.testGenerateDatasetsXml");
 
     String sampleDir =
@@ -353,10 +359,484 @@ class EDDGridFromNcFilesUnpackedTests {
     EDD.deleteCachedDatasetInfo(tDatasetID);
     EDD edd = EDDGridFromNcFilesUnpacked.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), tDatasetID, "");
-    Test.ensureEqual(edd.title(), "Daily MUR SST, Interim near-real-time (nrt) product", "");
+    Test.ensureEqual(
+        edd.title(language), "Daily MUR SST, Interim near-real-time (nrt) product", "");
     Test.ensureEqual(String2.toCSSVString(edd.dataVariableDestinationNames()), "analysed_sst", "");
 
     String2.log("\nEDDGridFromNcFilesUnpacked.testGenerateDatasetsXml passed the test.");
+  }
+
+  /**
+   * @throws Throwable if trouble
+   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void testSchema(boolean generateCroissantSchema) throws Throwable {
+    EDStatic.config.generateCroissantSchema = generateCroissantSchema;
+    int language = 0;
+    String tName, results, tResults, expected;
+
+    EDDGrid eddGrid = (EDDGrid) EDDTestDataset.gettestEDDGridFromNcFilesUnpacked();
+    tName =
+        eddGrid.makeNewFileForDapQuery(
+            language,
+            null,
+            null,
+            "",
+            EDStatic.config.fullTestCacheDirectory,
+            eddGrid.className(),
+            ".croissant");
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
+    expected =
+        "{\n"
+            + "  \"@context\":  {\n"
+            + "    \"@language\": \"en\",\n"
+            + "    \"@vocab\": \"https://schema.org/\",\n"
+            + "    \"sc\": \"https://schema.org/\",\n"
+            + "    \"cr\": \"http://mlcommons.org/croissant/\",\n"
+            + "    \"rai\": \"http://mlcommons.org/croissant/RAI/\",\n"
+            + "    \"dct\": \"http://purl.org/dc/terms/\",\n"
+            + "    \"citeAs\": \"cr:citeAs\",\n"
+            + "    \"column\": \"cr:column\",\n"
+            + "    \"conformsTo\": \"dct:conformsTo\",\n"
+            + "    \"data\": {\n"
+            + "      \"@id\": \"cr:data\",\n"
+            + "      \"@type\": \"@json\"\n"
+            + "    },\n"
+            + "    \"dataType\": {\n"
+            + "      \"@id\": \"cr:dataType\",\n"
+            + "      \"@type\": \"@vocab\"\n"
+            + "    },\n"
+            + "    \"examples\": {\n"
+            + "      \"@id\": \"cr:examples\",\n"
+            + "      \"@type\": \"@json\"\n"
+            + "    },\n"
+            + "    \"extract\": \"cr:extract\",\n"
+            + "    \"field\": \"cr:field\",\n"
+            + "    \"fileProperty\": \"cr:fileProperty\",\n"
+            + "    \"fileObject\": \"cr:fileObject\",\n"
+            + "    \"fileSet\": \"cr:fileSet\",\n"
+            + "    \"format\": \"cr:format\",\n"
+            + "    \"includes\": \"cr:includes\",\n"
+            + "    \"isLiveDataset\": \"cr:isLiveDataset\",\n"
+            + "    \"jsonPath\": \"cr:jsonPath\",\n"
+            + "    \"key\": \"cr:key\",\n"
+            + "    \"md5\": \"cr:md5\",\n"
+            + "    \"parentField\": \"cr:parentField\",\n"
+            + "    \"path\": \"cr:path\",\n"
+            + "    \"recordSet\": \"cr:recordSet\",\n"
+            + "    \"references\": \"cr:references\",\n"
+            + "    \"regex\": \"cr:regex\",\n"
+            + "    \"repeated\": \"cr:repeated\",\n"
+            + "    \"replace\": \"cr:replace\",\n"
+            + "    \"separator\": \"cr:separator\",\n"
+            + "    \"source\": \"cr:source\",\n"
+            + "    \"subField\": \"cr:subField\",\n"
+            + "    \"transform\": \"cr:transform\"  },\n"
+            + "  \"@type\": \"sc:Dataset\",\n"
+            + "  \"conformsTo\": \"http://mlcommons.org/croissant/1.0\",\n"
+            + "  \"name\": \"Daily MUR SST, Interim near-real-time (nrt) product\",\n"
+            + "  \"headline\": \"testEDDGridFromNcFilesUnpacked\",\n"
+            + "  \"isLiveDataset\": true,\n"
+            + "  \"distribution\": [\n"
+            + "  {\n"
+            + "    \"@type\": \"cr:FileObject\",\n"
+            + "    \"@id\": \"scale_factor.nc\",\n"
+            + "    \"contentSize\": \"3220 B\",\n"
+            + "    \"contentUrl\": \"http://localhost:8080/erddap/files/testEDDGridFromNcFilesUnpacked/scale_factor.nc\",\n"
+            + "    \"encodingFormat\": \"application/x-netcdf\"\n"
+            + "  },\n"
+            + "  {\n"
+            + "    \"@type\": \"cr:FileSet\",\n"
+            + "    \"@id\": \"testEDDGridFromNcFilesUnpackedFiles\",\n"
+            + "    \"description\": \"Files that contain the data.\",\n"
+            + "    \"encodingFormat\": \"application/json\",\n"
+            + "    \"includes\": \"http://localhost:8080/erddap/files/testEDDGridFromNcFilesUnpacked/*.*\"\n"
+            + "  }\n"
+            + "  ],\n"
+            + "  \"recordSet\": [\n"
+            + "    {\n"
+            + "      \"@type\": \"cr:RecordSet\",\n"
+            + "      \"@id\": \"dataRecordSet\",\n"
+            + "      \"field\": [\n"
+            + "        {\n"
+            + "          \"@type\": \"cr:Field\",\n"
+            + "          \"@id\": \"dataRecordSet/time\",\n"
+            + "          \"description\": \"reference time of sst field\",\n"
+            + "          \"dataType\": \"cr:Float64\",\n"
+            + "          \"source\": {\n"
+            + "            \"fileSet\": {\n"
+            + "              \"@id\": \"testEDDGridFromNcFilesUnpackedFiles\"\n"
+            + "            },\n"
+            + "            \"extract\": {\n"
+            + "              \"column\": \"time\"\n"
+            + "            }\n"
+            + "          }\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"cr:Field\",\n"
+            + "          \"@id\": \"dataRecordSet/latitude\",\n"
+            + "          \"description\": \"Latitude\",\n"
+            + "          \"dataType\": \"cr:Float32\",\n"
+            + "          \"source\": {\n"
+            + "            \"fileSet\": {\n"
+            + "              \"@id\": \"testEDDGridFromNcFilesUnpackedFiles\"\n"
+            + "            },\n"
+            + "            \"extract\": {\n"
+            + "              \"column\": \"latitude\"\n"
+            + "            }\n"
+            + "          }\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"cr:Field\",\n"
+            + "          \"@id\": \"dataRecordSet/longitude\",\n"
+            + "          \"description\": \"Longitude\",\n"
+            + "          \"dataType\": \"cr:Float32\",\n"
+            + "          \"source\": {\n"
+            + "            \"fileSet\": {\n"
+            + "              \"@id\": \"testEDDGridFromNcFilesUnpackedFiles\"\n"
+            + "            },\n"
+            + "            \"extract\": {\n"
+            + "              \"column\": \"longitude\"\n"
+            + "            }\n"
+            + "          }\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"cr:Field\",\n"
+            + "          \"@id\": \"dataRecordSet/analysed_sst\",\n"
+            + "          \"description\": \"analysed sea surface temperature\",\n"
+            + "          \"dataType\": \"cr:Float64\",\n"
+            + "          \"source\": {\n"
+            + "            \"fileSet\": {\n"
+            + "              \"@id\": \"testEDDGridFromNcFilesUnpackedFiles\"\n"
+            + "            },\n"
+            + "            \"extract\": {\n"
+            + "              \"column\": \"analysed_sst\"\n"
+            + "            }\n"
+            + "          }\n"
+            + "        }\n"
+            + "      ]\n"
+            + "    }\n"
+            + "  ],\n"
+            + "  \"description\": \"Interim-Multi-scale Ultra-high Resolution (MUR)(nrt) will be replaced by MUR-Final in about 3 days; MUR = \\\"Multi-scale Ultra-high Resolution\\\"; produced under NASA Making Earth System Data Records for Use in Research Environments (MEaSUREs) program.\\n"
+            + "cdm_data_type=Grid\\n"
+            + "comment=Interim-MUR(nrt) will be replaced by MUR-Final in about 3 days; MUR = \\\"Multi-scale Ultra-high Resolution\\\"; produced under NASA MEaSUREs program.\\n"
+            + "contact=ghrsst@podaac.jpl.nasa.gov\\n"
+            + "Conventions=CF-1.6, COARDS, ACDD-1.3\\n"
+            + "creation_date=2015-10-06\\n"
+            + "DSD_entry_id=JPL-L4UHfnd-GLOB-MUR\\n"
+            + "Easternmost_Easting=-134.896\\n"
+            + "file_quality_index=0\\n"
+            + "GDS_version_id=GDS-v1.0-rev1.6\\n"
+            + "geospatial_lat_max=20.0995\\n"
+            + "geospatial_lat_min=20.0006\\n"
+            + "geospatial_lat_units=degrees_north\\n"
+            + "geospatial_lon_max=-134.896\\n"
+            + "geospatial_lon_min=-134.995\\n"
+            + "geospatial_lon_resolution=0.011000000000001996\\n"
+            + "geospatial_lon_units=degrees_east\\n"
+            + "history=Interim near-real-time (nrt) version created at nominal 1-day latency.\\n"
+            + "infoUrl=https://podaac.jpl.nasa.gov/\\n"
+            + "institution=Jet Propulsion Laboratory\\n"
+            + "keywords_vocabulary=GCMD Science Keywords\\n"
+            + "netcdf_version_id=3.5\\n"
+            + "Northernmost_Northing=20.0995\\n"
+            + "references=ftp://mariana.jpl.nasa.gov/mur_sst/tmchin/docs/ATBD/\\n"
+            + "source_data=AVHRR19_G-NAVO, AVHRR_METOP_A-EUMETSAT, MODIS_A-JPL, MODIS_T-JPL, WSAT-REMSS, iQUAM-NOAA/NESDIS, Ice_Conc-OSISAF\\n"
+            + "sourceUrl=(local files)\\n"
+            + "Southernmost_Northing=20.0006\\n"
+            + "spatial_resolution=0.011 degrees\\n"
+            + "standard_name_vocabulary=CF Standard Name Table v70\\n"
+            + "time_coverage_end=2015-10-06T09:00:00Z\\n"
+            + "time_coverage_start=2015-10-05T09:00:00Z\\n"
+            + "Westernmost_Easting=-134.995\",\n"
+            + "  \"url\": \"http://localhost:8080/erddap/griddap/testEDDGridFromNcFilesUnpacked.html\",\n"
+            + "  \"includedInDataCatalog\": {\n"
+            + "    \"@type\": \"DataCatalog\",\n"
+            + "    \"name\": \"ERDDAP Data Server at ERDDAP Jetty Install\",\n"
+            + "    \"sameAs\": \"http://localhost:8080/erddap\"\n"
+            + "  },\n"
+            + "  \"keywords\": [\n"
+            + "    \"analysed\",\n"
+            + "    \"analysed_sst\",\n"
+            + "    \"daily\",\n"
+            + "    \"data\",\n"
+            + "    \"day\",\n"
+            + "    \"earth\",\n"
+            + "    \"Earth Science > Oceans > Ocean Temperature > Sea Surface Temperature\",\n"
+            + "    \"environments\",\n"
+            + "    \"foundation\",\n"
+            + "    \"high\",\n"
+            + "    \"interim\",\n"
+            + "    \"jet\",\n"
+            + "    \"laboratory\",\n"
+            + "    \"making\",\n"
+            + "    \"measures\",\n"
+            + "    \"multi\",\n"
+            + "    \"multi-scale\",\n"
+            + "    \"mur\",\n"
+            + "    \"near\",\n"
+            + "    \"near real time\",\n"
+            + "    \"near-real-time\",\n"
+            + "    \"nrt\",\n"
+            + "    \"ocean\",\n"
+            + "    \"oceans\",\n"
+            + "    \"product\",\n"
+            + "    \"propulsion\",\n"
+            + "    \"real\",\n"
+            + "    \"records\",\n"
+            + "    \"research\",\n"
+            + "    \"resolution\",\n"
+            + "    \"scale\",\n"
+            + "    \"sea\",\n"
+            + "    \"sea_surface_foundation_temperature\",\n"
+            + "    \"sst\",\n"
+            + "    \"surface\",\n"
+            + "    \"system\",\n"
+            + "    \"temperature\",\n"
+            + "    \"time\",\n"
+            + "    \"ultra\",\n"
+            + "    \"ultra-high\",\n"
+            + "    \"use\"\n"
+            + "  ],\n"
+            + "  \"license\": \"The data may be used and redistributed for free but is not intended\\n"
+            + "for legal use, since it may contain inaccuracies. Neither the data\\n"
+            + "Contributor, ERD, NOAA, nor the United States Government, nor any\\n"
+            + "of their employees or contractors, makes any warranty, express or\\n"
+            + "implied, including warranties of merchantability and fitness for a\\n"
+            + "particular purpose, or assumes any legal liability for the accuracy,\\n"
+            + "completeness, or usefulness, of this information.\",\n"
+            + "  \"variableMeasured\": [\n"
+            + "    {\n"
+            + "      \"@type\": \"PropertyValue\",\n"
+            + "      \"name\": \"time\",\n"
+            + "      \"alternateName\": \"reference time of sst field\",\n"
+            + "      \"description\": \"reference time of sst field\",\n"
+            + "      \"valueReference\": [\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axisOrDataVariable\",\n"
+            + "          \"value\": \"axis\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"_CoordinateAxisType\",\n"
+            + "          \"value\": \"Time\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axis\",\n"
+            + "          \"value\": \"T\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"ioos_category\",\n"
+            + "          \"value\": \"Time\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"long_name\",\n"
+            + "          \"value\": \"reference time of sst field\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"standard_name\",\n"
+            + "          \"value\": \"time\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"time_origin\",\n"
+            + "          \"value\": \"01-JAN-1970 00:00:00\"\n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"maxValue\": \"2015-10-06T09:00:00Z\",\n"
+            + "      \"minValue\": \"2015-10-05T09:00:00Z\",\n"
+            + "      \"propertyID\": \"time\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"@type\": \"PropertyValue\",\n"
+            + "      \"name\": \"latitude\",\n"
+            + "      \"alternateName\": \"Latitude\",\n"
+            + "      \"description\": \"Latitude\",\n"
+            + "      \"valueReference\": [\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axisOrDataVariable\",\n"
+            + "          \"value\": \"axis\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"_CoordinateAxisType\",\n"
+            + "          \"value\": \"Lat\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axis\",\n"
+            + "          \"value\": \"Y\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"ioos_category\",\n"
+            + "          \"value\": \"Location\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"long_name\",\n"
+            + "          \"value\": \"Latitude\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"standard_name\",\n"
+            + "          \"value\": \"latitude\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"valid_max\",\n"
+            + "          \"value\": 90\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"valid_min\",\n"
+            + "          \"value\": -90\n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"maxValue\": 20.0995,\n"
+            + "      \"minValue\": 20.0006,\n"
+            + "      \"propertyID\": \"latitude\",\n"
+            + "      \"unitText\": \"degrees_north\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"@type\": \"PropertyValue\",\n"
+            + "      \"name\": \"longitude\",\n"
+            + "      \"alternateName\": \"Longitude\",\n"
+            + "      \"description\": \"Longitude\",\n"
+            + "      \"valueReference\": [\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axisOrDataVariable\",\n"
+            + "          \"value\": \"axis\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"_CoordinateAxisType\",\n"
+            + "          \"value\": \"Lon\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axis\",\n"
+            + "          \"value\": \"X\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"ioos_category\",\n"
+            + "          \"value\": \"Location\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"long_name\",\n"
+            + "          \"value\": \"Longitude\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"standard_name\",\n"
+            + "          \"value\": \"longitude\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"valid_max\",\n"
+            + "          \"value\": 180\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"valid_min\",\n"
+            + "          \"value\": -180\n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"maxValue\": -134.896,\n"
+            + "      \"minValue\": -134.995,\n"
+            + "      \"propertyID\": \"longitude\",\n"
+            + "      \"unitText\": \"degrees_east\"\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"@type\": \"PropertyValue\",\n"
+            + "      \"name\": \"analysed_sst\",\n"
+            + "      \"alternateName\": \"analysed sea surface temperature\",\n"
+            + "      \"description\": \"analysed sea surface temperature\",\n"
+            + "      \"valueReference\": [\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"axisOrDataVariable\",\n"
+            + "          \"value\": \"data\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"_FillValue\",\n"
+            + "          \"value\": null\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"colorBarMaximum\",\n"
+            + "          \"value\": 305\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"colorBarMinimum\",\n"
+            + "          \"value\": 273\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"comment\",\n"
+            + "          \"value\": \"Interim near-real-time (nrt) version; to be replaced by Final version\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"ioos_category\",\n"
+            + "          \"value\": \"Temperature\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"long_name\",\n"
+            + "          \"value\": \"analysed sea surface temperature\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"standard_name\",\n"
+            + "          \"value\": \"sea_surface_foundation_temperature\"\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"valid_max\",\n"
+            + "          \"value\": 330.917\n"
+            + "        },\n"
+            + "        {\n"
+            + "          \"@type\": \"PropertyValue\",\n"
+            + "          \"name\": \"valid_min\",\n"
+            + "          \"value\": 265.383\n"
+            + "        }\n"
+            + "      ],\n"
+            + "      \"propertyID\": \"sea_surface_foundation_temperature\",\n"
+            + "      \"unitText\": \"degree_K\"\n"
+            + "    }\n"
+            + "  ],\n"
+            + "  \"creator\": {\n"
+            + "    \"@type\": \"Organization\",\n"
+            + "    \"name\": \"GHRSST\",\n"
+            + "    \"email\": \"ghrsst@podaac.jpl.nasa.gov\",\n"
+            + "    \"sameAs\": \"https://podaac.jpl.nasa.gov/\"\n"
+            + "  },\n"
+            + "  \"identifier\": \"testEDDGridFromNcFilesUnpacked\",\n"
+            + "  \"version\": \"04nrt\",\n"
+            + "  \"temporalCoverage\": \"2015-10-05T09:00:00Z/2015-10-06T09:00:00Z\",\n"
+            + "  \"spatialCoverage\": {\n"
+            + "    \"@type\": \"Place\",\n"
+            + "    \"geo\": {\n"
+            + "      \"@type\": \"GeoShape\",\n"
+            + "      \"box\": \"20.0006 -134.995 20.0995 -134.896\"\n"
+            + "    }\n"
+            + "  }\n"
+            + "}\n";
+    tResults = results.substring(0, Math.min(results.length(), expected.length()));
+    Test.ensureEqual(tResults, expected, "results=\n" + results);
   }
 
   /**
@@ -368,9 +848,7 @@ class EDDGridFromNcFilesUnpackedTests {
     // String2.log("\n*** EDDGridFromNcFilesUnpacked.testBasic()\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
+    String tName, results, tResults, expected, userDapQuery;
     String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
 
     // generateDatasetsXml
@@ -382,8 +860,14 @@ class EDDGridFromNcFilesUnpackedTests {
     String2.log("\n*** test das dds for entire dataset\n");
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "", EDStatic.fullTestCacheDirectory, eddGrid.className(), ".das");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+            language,
+            null,
+            null,
+            "",
+            EDStatic.config.fullTestCacheDirectory,
+            eddGrid.className(),
+            ".das");
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Attributes {\n"
@@ -496,8 +980,14 @@ class EDDGridFromNcFilesUnpackedTests {
     // *** test getting dds for entire dataset
     tName =
         eddGrid.makeNewFileForDapQuery(
-            language, null, null, "", EDStatic.fullTestCacheDirectory, eddGrid.className(), ".dds");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+            language,
+            null,
+            null,
+            "",
+            EDStatic.config.fullTestCacheDirectory,
+            eddGrid.className(),
+            ".dds");
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "Dataset {\n"
@@ -524,10 +1014,10 @@ class EDDGridFromNcFilesUnpackedTests {
             null,
             null,
             userDapQuery,
-            EDStatic.fullTestCacheDirectory,
+            EDStatic.config.fullTestCacheDirectory,
             eddGrid.className(),
             ".csv");
-    results = File2.directReadFrom88591File(EDStatic.fullTestCacheDirectory + tName);
+    results = File2.directReadFrom88591File(EDStatic.config.fullTestCacheDirectory + tName);
     // String2.log(results);
     expected =
         "time,latitude,longitude,analysed_sst\n"
@@ -567,8 +1057,7 @@ class EDDGridFromNcFilesUnpackedTests {
     // String2.log("\n*** EDDGridFromNcFilesUnpacked.testUInt16File()");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery;
-    String today = Calendar2.getCurrentISODateTimeStringZulu() + "Z";
+    String tName, results, tResults, expected, userDapQuery;
     String fileDir =
         Path.of(EDDGridFromNcFilesUnpackedTests.class.getResource("/data/unsigned/").toURI())
                 .toString()
@@ -578,7 +1067,7 @@ class EDDGridFromNcFilesUnpackedTests {
     NcHelper.debugMode = true;
     boolean oAttDebugMode = Attributes.debugMode;
     Attributes.debugMode = true;
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
 
     // DumpString
     results = NcHelper.ncdump(fileDir + fileName, "-h");
@@ -1173,7 +1662,7 @@ class EDDGridFromNcFilesUnpackedTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             baseName,
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
     NcHelper.debugMode = oNcDebugMode;
@@ -1190,12 +1679,12 @@ class EDDGridFromNcFilesUnpackedTests {
     // String2.log("\n*** EDDGridFromNcFilesUnpacked.testSuperPreciseTimeUnits");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery;
+    String tName, results, expected;
     String fileDir =
         Path.of(EDDGridFromNcFilesUnpackedTests.class.getResource("/largeFiles/nc/").toURI())
                 .toString()
             + "/";
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     boolean oDebugMode = NcHelper.debugMode;
     NcHelper.debugMode = true;
 
@@ -1479,7 +1968,6 @@ class EDDGridFromNcFilesUnpackedTests {
     Test.ensureEqual(results, expected, "\nresults=\n" + results);
 
     // .csv data values
-    userDapQuery = "time";
     tName =
         eddGrid.makeNewFileForDapQuery(
             language, null, null, "time", tDir, eddGrid.className(), ".csv");
@@ -1529,9 +2017,8 @@ class EDDGridFromNcFilesUnpackedTests {
     // String2.log("\n*** EDDGridFromNcFilesUnpacked.testMissingValue");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery;
-    String today = Calendar2.getCurrentISODateTimeStringZulu() + "Z";
-    String tDir = EDStatic.fullTestCacheDirectory;
+    String tName, results, tResults, expected, userDapQuery;
+    String tDir = EDStatic.config.fullTestCacheDirectory;
     String fileDir =
         Path.of(EDDGridFromNcFilesUnpackedTests.class.getResource("/data/unpacked/").toURI())
                 .toString()
@@ -1540,7 +2027,6 @@ class EDDGridFromNcFilesUnpackedTests {
     String fileName2 = "A2016241.L3m_DAY_POC_poc_4km.nc";
     Variable var;
     Attributes atts;
-    Array array;
     PrimitiveArray pa;
     boolean oDebugMode = NcHelper.debugMode;
     NcHelper.debugMode = true;
@@ -2228,7 +2714,7 @@ class EDDGridFromNcFilesUnpackedTests {
             Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR),
             baseName,
             ".png");
-    // Test.displayInBrowser("file://" + tDir + tName);
+    // TestUtil.displayInBrowser("file://" + tDir + tName);
     Image2Tests.testImagesIdentical(tName, baseName + ".png", baseName + "_diff.png");
 
     NcHelper.debugMode = oDebugMode;

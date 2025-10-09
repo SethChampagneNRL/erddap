@@ -4,11 +4,21 @@
  */
 package gov.noaa.pfel.coastwatch.pointdata;
 
-import com.cohort.array.*;
-import com.cohort.util.*;
+import com.cohort.array.DoubleArray;
+import com.cohort.array.IntArray;
+import com.cohort.array.PAType;
+import com.cohort.array.PrimitiveArray;
+import com.cohort.array.StringArray;
+import com.cohort.util.Calendar2;
+import com.cohort.util.Math2;
+import com.cohort.util.MustBe;
+import com.cohort.util.ResourceBundle2;
+import com.cohort.util.String2;
+import com.cohort.util.Test;
+import com.cohort.util.XML;
+import com.google.common.collect.ImmutableList;
 import gov.noaa.pfel.coastwatch.griddata.DataHelper;
 import gov.noaa.pfel.coastwatch.util.SSR;
-import java.io.BufferedReader;
 import java.io.StringReader;
 import javax.xml.xpath.XPath; // requires java 1.5
 import org.w3c.dom.Document;
@@ -54,13 +64,13 @@ public class DigirHelper {
 
   public static boolean reallyVerbose = false;
 
-  public static ResourceBundle2 digirDarwin2Properties =
+  public static final ResourceBundle2 digirDarwin2Properties =
       new ResourceBundle2("gov.noaa.pfel.coastwatch.pointdata.DigirDarwin2");
-  public static ResourceBundle2 digirObisProperties =
+  public static final ResourceBundle2 digirObisProperties =
       new ResourceBundle2("gov.noaa.pfel.coastwatch.pointdata.DigirObis");
-  public static ResourceBundle2 digirBmdeProperties =
+  public static final ResourceBundle2 digirBmdeProperties =
       new ResourceBundle2("gov.noaa.pfel.coastwatch.pointdata.DigirBmde");
-  private static String[] darwin2Variables, obisVariables, darwin2ObisVariables, bmdeVariables;
+  private static String[] darwin2Variables, obisVariables, darwin2ObisVariables;
 
   /**
    * The DIGIR_VERSION is used in the header of digir requests. It is always "1.0" and diveIntoDigir
@@ -84,12 +94,16 @@ public class DigirHelper {
   public static final String DARWIN_PREFIX = "darwin";
   public static final String OBIS_PREFIX = "obis";
   public static final String BMDE_PREFIX = "bmde";
-  public static final String OBIS_PREFIXES[] = {"", DARWIN_PREFIX, OBIS_PREFIX};
-  public static final String OBIS_XMLNSES[] = {DIGIR_XMLNS, DARWIN2_XMLNS, OBIS_XMLNS};
-  public static final String OBIS_XSDES[] = {DIGIR_XSD, DARWIN2_XSD, OBIS_XSD};
-  public static final String BMDE_PREFIXES[] = {"", BMDE_PREFIX};
-  public static final String BMDE_XMLNSES[] = {DIGIR_XMLNS, BMDE_XMLNS};
-  public static final String BMDE_XSDES[] = {DIGIR_XSD, BMDE_XSD};
+  public static final ImmutableList<String> OBIS_PREFIXES =
+      ImmutableList.of("", DARWIN_PREFIX, OBIS_PREFIX);
+  public static final ImmutableList<String> OBIS_XMLNSES =
+      ImmutableList.of(DIGIR_XMLNS, DARWIN2_XMLNS, OBIS_XMLNS);
+  public static final ImmutableList<String> OBIS_XSDES =
+      ImmutableList.of(DIGIR_XSD, DARWIN2_XSD, OBIS_XSD);
+  public static final ImmutableList<String> BMDE_PREFIXES = ImmutableList.of("", BMDE_PREFIX);
+  public static final ImmutableList<String> BMDE_XMLNSES =
+      ImmutableList.of(DIGIR_XMLNS, BMDE_XMLNS);
+  public static final ImmutableList<String> BMDE_XSDES = ImmutableList.of(DIGIR_XSD, BMDE_XSD);
   public static final String RUTGERS_OBIS_URL =
       "http://iobis.marine.rutgers.edu/digir2/DiGIR.php"; // often not working
   public static final String CSIRO_OBIS_URL =
@@ -102,41 +116,43 @@ public class DigirHelper {
       "https://ipt.vliz.be"; // "https://www.vliz.be/digir/DiGIR.php";
   public static final String PRBO_BMDE_URL = "http://digir.prbo.org/digir/DiGIR.php";
 
-  public static final String STRING_COPS[] = {"equals", "notEquals", "like", "in"};
-  public static final String NUMERIC_COPS[] = {
-    "equals",
-    "notEquals",
-    "in", // no "like"
-    "lessThan",
-    "lessThanOrEquals",
-    "greaterThan",
-    "greaterThanOrEquals"
-  };
+  public static final ImmutableList<String> STRING_COPS =
+      ImmutableList.of("equals", "notEquals", "like", "in");
+  public static final ImmutableList<String> NUMERIC_COPS =
+      ImmutableList.of(
+          "equals",
+          "notEquals",
+          "in", // no "like"
+          "lessThan",
+          "lessThanOrEquals",
+          "greaterThan",
+          "greaterThanOrEquals");
 
   /**
    * A list of all comparative operator symbols (for my convenience in parseQuery: 2 letter ops are
    * first).
    */
-  public static final String COP_SYMBOLS[] = {
-    "!=", "~=", "<=", ">=", "=", "<", ">", " in "
-  }; // eeek! handle specially   spaces separate it from variable and value
+  public static final ImmutableList<String> COP_SYMBOLS =
+      ImmutableList.of(
+          "!=", "~=", "<=", ">=", "=", "<", ">",
+          " in "); // eeek! handle specially   spaces separate it from variable and value
 
   /** A list of all comparative operator names (corresponding to the COP_SYMBOLS). */
-  public static final String COP_NAMES[] = {
-    "notEquals",
-    "like",
-    "lessThanOrEquals",
-    "greaterThanOrEquals",
-    "equals",
-    "lessThan",
-    "greaterThan",
-    "in"
-  };
+  public static final ImmutableList<String> COP_NAMES =
+      ImmutableList.of(
+          "notEquals",
+          "like",
+          "lessThanOrEquals",
+          "greaterThanOrEquals",
+          "equals",
+          "lessThan",
+          "greaterThan",
+          "in");
 
   /* SOURCE_IP is the reference ip used for digir requests.
   It isn't actually used for ip addressing.
   "65.219.21.6" is upwell here at pfeg.noaa.gov */
-  public static String SOURCE_IP = "65.219.21.6"; // upwell
+  public static final String SOURCE_IP = "65.219.21.6"; // upwell
 
   // LOP - logical operator
   // how are lops used?  as a tree form of a SQL WHERE clause
@@ -176,20 +192,6 @@ public class DigirHelper {
   }
 
   /**
-   * This returns a list of BMDE variables (with the bmde: prefix).
-   *
-   * @return the a list of BMDE variables (with the bmde: prefix).
-   */
-  public static String[] getBmdeVariables() {
-    if (bmdeVariables == null) {
-      bmdeVariables = digirBmdeProperties.getKeys();
-      for (int i = 0; i < bmdeVariables.length; i++)
-        bmdeVariables[i] = BMDE_PREFIX + ":" + bmdeVariables[i];
-    }
-    return bmdeVariables;
-  }
-
-  /**
    * This returns a list of darwin2 and obis variables (with the darwin: or obis: prefix).
    *
    * @return the a list of darwin2 and obis variables (with the darwin: or obis: prefix).
@@ -209,22 +211,26 @@ public class DigirHelper {
    *
    * @throws Exception if trouble
    */
-  private static String getPreDestinationRequest(
-      String version, String xmlnsPrefix[], String xmlnsNS[], String xmlnsXSD[]) throws Exception {
+  public static String getPreDestinationRequest(
+      String version,
+      ImmutableList<String> xmlnsPrefix,
+      ImmutableList<String> xmlnsNS,
+      ImmutableList<String> xmlnsXSD)
+      throws Exception {
 
     // validate the xml info
     String errorInMethod = String2.ERROR + " in DigirHelper.makePreDestinationRequest: \n";
     Test.ensureNotNull(xmlnsPrefix, errorInMethod + "xmlnsPrefix is null.");
     Test.ensureNotNull(xmlnsNS, errorInMethod + "xmlnsNS is null.");
     Test.ensureNotNull(xmlnsXSD, errorInMethod + "xmlnsXSD is null.");
-    Test.ensureTrue(xmlnsPrefix.length >= 1, errorInMethod + "xmlnsPrefix.length is less than 1.");
+    Test.ensureTrue(xmlnsPrefix.size() >= 1, errorInMethod + "xmlnsPrefix.length is less than 1.");
     Test.ensureEqual(
-        xmlnsPrefix.length,
-        xmlnsNS.length,
+        xmlnsPrefix.size(),
+        xmlnsNS.size(),
         errorInMethod + "xmlnsPrefix.length != xmlnsNS.length.");
     Test.ensureEqual(
-        xmlnsPrefix.length,
-        xmlnsXSD.length,
+        xmlnsPrefix.size(),
+        xmlnsXSD.size(),
         errorInMethod + "xmlnsPrefix.length != xmlnsXSD.length.");
 
     /* example
@@ -253,18 +259,18 @@ public class DigirHelper {
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<request \n"
             + "  xmlns=\""
-            + xmlnsNS[0]
+            + xmlnsNS.getFirst()
             + "\" \n"
             + // default namespace
             "  xmlns:xsd=\"https://www.w3.org/2001/XMLSchema\" \n"
             + "  xmlns:xsi=\"https://www.w3.org/2001/XMLSchema-instance\" \n");
-    for (int i = 1; i < xmlnsNS.length; i++) // 1 because 0=default handled above
-    request.append("  xmlns:" + xmlnsPrefix[i] + "=\"" + xmlnsNS[i] + "\" \n");
+    for (int i = 1; i < xmlnsNS.size(); i++) // 1 because 0=default handled above
+    request.append("  xmlns:" + xmlnsPrefix.get(i) + "=\"" + xmlnsNS.get(i) + "\" \n");
 
     // schema info: pairs of xmlns and xsd
     request.append("  xsi:schemaLocation=\"");
-    for (int i = 0; i < xmlnsNS.length; i++)
-      request.append((i == 0 ? "" : "\n    ") + xmlnsNS[i] + " \n      " + xmlnsXSD[i]);
+    for (int i = 0; i < xmlnsNS.size(); i++)
+      request.append((i == 0 ? "" : "\n    ") + xmlnsNS.get(i) + " \n      " + xmlnsXSD.get(i));
     request.append(
         "\" >\n"
             + "  <header>\n"
@@ -297,11 +303,13 @@ public class DigirHelper {
     String errorInMethod = String2.ERROR + " in DigirHelper.getFilterRequest: \n";
     if (filterVariables == null || filterVariables.length == 0)
       return // a simple filter that is always true
-      "    <filter>\n"
-          + "     <greaterThanOrEquals>\n"
-          + "        <darwin:Latitude>-90</darwin:Latitude>\n"
-          + "      </greaterThanOrEquals>\n"
-          + "    </filter>\n";
+      """
+                          <filter>
+                           <greaterThanOrEquals>
+                              <darwin:Latitude>-90</darwin:Latitude>
+                            </greaterThanOrEquals>
+                          </filter>
+                      """;
     Test.ensureTrue(
         filterCops != null && filterCops.length == filterVariables.length,
         errorInMethod + "filterCops.length != filterVariables.length.");
@@ -326,8 +334,7 @@ public class DigirHelper {
       // I can't check against darwin/obis var lists here, since other schemas may be in play
       if (filterVariables[i] == null || filterVariables[i].length() == 0)
         Test.error(errorInMethod + "filterVariable#" + i + "=" + filterVariables[i]);
-      if (String2.indexOf(NUMERIC_COPS, filterCops[i]) < 0
-          && String2.indexOf(STRING_COPS, filterCops[i]) < 0)
+      if (NUMERIC_COPS.indexOf(filterCops[i]) < 0 && STRING_COPS.indexOf(filterCops[i]) < 0)
         Test.error(errorInMethod + "Invalid filterCOP#" + i + "=" + filterCops[i]);
       if (filterValues[i] == null) // allow ""?
       Test.error(errorInMethod + "filterValue#" + i + "=" + filterValues[i]);
@@ -355,124 +362,6 @@ public class DigirHelper {
   }
 
   /**
-   * This gets a Digir provider/portal's metadata as an XML String. See examples at
-   * http://diveintodigir.ecoforge.net/draft/digirdive.html and
-   * http://digir.net/prov/prov_manual.html . See parameters for searchDigir.
-   *
-   * <p>Informally: it appears that you can get the metadataXml from a provider/portal just by going
-   * to the url (even in a browser). But this may be just an undocumented feature of the standard
-   * portal software.
-   *
-   * @throws Exception if trouble
-   */
-  public static String getMetadataXml(String url, String version) throws Exception {
-
-    /* example from diveintodigir
-    <?xml version="1.0" encoding="UTF-8"?>
-    <request xmlns="http://digir.net/schema/protocol/2003/1.0"
-            xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://digir.net/schema/protocol/2003/1.0
-              http://digir.sourceforge.net/schema/protocol/2003/1.0/digir.xsd">
-      <header>
-        <version>1.0</version>
-        <sendTime>2003-03-09T19:30:04-05:00</sendTime>
-        <source>216.91.87.102</source>
-        <destination>http://digir.net:80/testprov/DiGIR.php</destination>
-        <type>metadata</type>
-      </header>
-    </request>
-    */
-
-    // make the request
-    String errorInMethod = String2.ERROR + " in DigirHelper.getMetadataXml: \n";
-    StringBuilder requestSB = new StringBuilder();
-    requestSB.append(
-        getPreDestinationRequest(
-            version,
-            // only digir (not darwin or obis or ...) namespace and schema is needed
-            new String[] {""},
-            new String[] {DIGIR_XMLNS},
-            new String[] {DIGIR_XSD}));
-    requestSB.append(
-        "    <destination>"
-            + url
-            + "</destination>\n"
-            + "    <type>metadata</type>\n"
-            + "  </header>\n"
-            + "</request>\n");
-    String request = requestSB.toString();
-    long time = System.currentTimeMillis();
-    if (reallyVerbose)
-      String2.log(
-          "\nDigirHelper.getMetadataXml request=\n"
-              + request
-              + "\nGetting the response takes a long time...");
-
-    // get the response
-    // [This is the official way to do it.
-    // In practice, digir servers also return the metadata in response to the url alone.]
-    request =
-        String2.toSVString(
-            String2.split(request, '\n'), // split trims each string
-            " ",
-            true); // (white)space is necessary to separate schemalocation names and locations
-    //        if (reallyVerbose) String2.log("\ncompactRequest=" + request + "\n");
-    String response =
-        SSR.getUrlResponseStringUnchanged(url + "?request=" + SSR.percentEncode(request));
-    if (verbose)
-      String2.log(
-          "DigirHelper.getMetadataXml done. TIME=" + (System.currentTimeMillis() - time) + "ms");
-    if (reallyVerbose)
-      String2.log(
-          "start of response=\n" + response.substring(0, Math.min(response.length(), 3000)));
-    return response;
-  }
-
-  /**
-   * This gets a Digir provider's metadata as a table. See examples at
-   * http://diveintodigir.ecoforge.net/draft/digirdive.html and
-   * http://digir.net/prov/prov_manual.html . See parameters for searchDigir. Note that the xml
-   * contains some information before the resource list -- so that information doesn't make it into
-   * the metadataTable.
-   *
-   * @return a table with a row for each resource. The "code" column has the codes for the resources
-   *     (which are used for inventory and search requests). You can get a String[] of the codes for
-   *     the resources available from this provider via
-   *     <tt>((StringArray)table.findColumn("code")).toArray());</tt>
-   * @throws Exception if trouble
-   */
-  public static Table getMetadataTable(String url, String version) throws Exception {
-
-    // useful info from obis metadata:
-    //   Institute of Marine and Coastal Sciences, Rutgers University</name>
-    //        <name>Phoebe Zhang</name>
-    //        <title>OBIS Portal Manager</title>
-    //        <emailAddress>phoebe@imcs.rutgers.edu</emailAddress>
-    //        <phone>001-732-932-6555 ext. 503</phone>
-
-    // get the metadata xml and StringReader
-    String xml = getMetadataXml(url, version);
-    BufferedReader reader = new BufferedReader(new StringReader(xml));
-    // for testing:
-    // Test.ensureTrue(File2.writeToFileUtf8("c:/temp/ObisMetadata.xml", xml).equals(""),
-    //    "Unable to save c:/temp/Obis.Metadata.xml.");
-    // Reader reader = File2.getDecompressFileReaderUtf8("c:/programs/digir/ObisMetadata.xml");
-    try {
-
-      // read the resource data
-      Table table = new Table();
-      boolean validate = false; // since no .dtd specified by DOCTYPE in the file
-      table.readXml(
-          reader, validate, "/response/content/metadata/provider/resource", null, true); // simplify
-      if (reallyVerbose)
-        String2.log("DigirHelper.getMetadataTable, first 3 rows:\n" + table.toString(3));
-      return table;
-    } finally {
-      reader.close();
-    }
-  }
-
-  /**
    * This gets a Digir provider's inventory as an XML string. "Inventory" is described in the digir
    * schema as "which is to seek a count of all unique occurrences of a single concept." See example
    * at http://diveintodigir.ecoforge.net/draft/digirdive.html#id803800 and
@@ -489,9 +378,9 @@ public class DigirHelper {
    */
   public static String getInventoryXml(
       String version,
-      String xmlnsPrefix[],
-      String xmlnsNS[],
-      String xmlnsXSD[],
+      ImmutableList<String> xmlnsPrefix,
+      ImmutableList<String> xmlnsNS,
+      ImmutableList<String> xmlnsXSD,
       String resource,
       String url,
       String filterVariables[],
@@ -531,10 +420,9 @@ public class DigirHelper {
         filterVariables == null || filterVariables.length == 0
             ? ""
             : getFilterRequest(filterVariables, filterCops, filterValues);
-    StringBuilder requestSB = new StringBuilder();
-    requestSB.append(getPreDestinationRequest(version, xmlnsPrefix, xmlnsNS, xmlnsXSD));
-    requestSB.append(
-        "    <destination resource=\""
+    String request =
+        getPreDestinationRequest(version, xmlnsPrefix, xmlnsNS, xmlnsXSD)
+            + "    <destination resource=\""
             + resource
             + "\">"
             + url
@@ -547,8 +435,7 @@ public class DigirHelper {
             + resultsVariable
             + " />\n"
             + "  </inventory>\n"
-            + "</request>\n");
-    String request = requestSB.toString();
+            + "</request>\n";
     if (reallyVerbose) String2.log("\nDigirHelper.getInventory request=\n" + request);
 
     // get the response
@@ -599,9 +486,9 @@ public class DigirHelper {
    */
   public static Table getInventoryTable(
       String version,
-      String xmlnsPrefix[],
-      String xmlnsNS[],
-      String xmlnsXSD[],
+      ImmutableList<String> xmlnsPrefix,
+      ImmutableList<String> xmlnsNS,
+      ImmutableList<String> xmlnsXSD,
       String resource[],
       String url,
       String filterVariables[],
@@ -635,14 +522,14 @@ public class DigirHelper {
     // get the inventory for each resource
     XPath xPath = XML.getXPath();
     boolean validate = false; // since no .dtd specified by DOCTYPE in the file
-    for (int res = 0; res < resource.length; res++) {
+    for (String s : resource) {
       String xml =
           getInventoryXml(
               version,
               xmlnsPrefix,
               xmlnsNS,
               xmlnsXSD,
-              resource[res],
+              s,
               url,
               filterVariables,
               filterCops,
@@ -666,85 +553,13 @@ public class DigirHelper {
       if (nodeList.getLength() == 0) String2.log("xml=\n" + xml);
       for (int nodeI = 0; nodeI < nodeList.getLength(); nodeI++) {
         Element element = (Element) nodeList.item(nodeI);
-        resourceSA.add(resource[res]);
+        resourceSA.add(s);
         resultsSA.add(element.getTextContent());
         countIA.add(String2.parseInt(element.getAttribute("count")));
       }
     }
-    String2.log("inventoryTable:\n" + table.toString());
+    String2.log("inventoryTable:\n" + table);
     return table;
-  }
-
-  /**
-   * This returns a string with OBIS Genus inventory information.
-   *
-   * @param url
-   * @param code e.g. "GHMP"
-   * @param field e.g., "darwin:Genus"
-   * @return a string with Genus inventory information.
-   * @throws Exception if trouble
-   */
-  public static String getObisInventoryString(String url, String code, String field)
-      throws Exception {
-    // one time things
-    Table table = new Table();
-    table =
-        getInventoryTable(
-            OBIS_VERSION,
-            OBIS_PREFIXES,
-            OBIS_XMLNSES,
-            OBIS_XSDES,
-            new String[] {code}, // GHMP
-            url,
-            new String[] {},
-            new String[] {},
-            new String[] {}, // filter
-            // try goofy restrictions in case something is required
-            // new String[]{"darwin:ScientificName", "darwin:ScientificName"}, //"darwin:Genus"
-            // new String[]{"greaterThan",           "lessThan"             }, //"equals"
-            // new String[]{"A",                     "z"                    }, //"Carcharias"
-            field);
-    StringBuilder sb = new StringBuilder();
-    int nRows = table.nRows();
-    for (int row = 0; row < nRows; row++) {
-      sb.append(table.getStringData(1, row) + " (" + table.getIntData(2, row) + ")");
-      if (row < nRows - 1) sb.append(", ");
-    }
-    return sb.toString();
-  }
-
-  /**
-   * This returns a string with BMDE Genus inventory information.
-   *
-   * @param url
-   * @param code e.g. "prbo05"
-   * @param field e.g., "darwin:Genus"
-   * @return a string with Genus inventory information.
-   * @throws Exception if trouble
-   */
-  public static String getBmdeInventoryString(String url, String code, String field)
-      throws Exception {
-    // one time things
-    Table table = new Table();
-    table =
-        getInventoryTable(
-            BMDE_VERSION,
-            BMDE_PREFIXES,
-            BMDE_XMLNSES,
-            BMDE_XSDES,
-            new String[] {code}, // prbo05
-            url,
-            new String[] {}, // "Genus"
-            new String[] {}, // "="
-            new String[] {}, // spp=carcharias
-            field);
-    StringBuilder sb = new StringBuilder();
-    int nRows = table.nRows();
-    for (int row = 0; row < nRows; row++) {
-      sb.append(table.getStringData(1, row) + " (" + table.getIntData(2, row) + ")");
-      if (row < nRows - 1) sb.append(", ");
-    }
-    return sb.toString();
   }
 
   /**
@@ -789,11 +604,12 @@ public class DigirHelper {
    *     diagnostic severity="fatal" or severity="error" message, an Exception if thrown and that
    *     message is used.
    */
+  @SuppressWarnings("ReferenceEquality") // below yes, simple "!=" is appropriate
   public static void searchDigir(
       String version,
-      String xmlnsPrefix[],
-      String xmlnsNS[],
-      String xmlnsXSD[],
+      ImmutableList<String> xmlnsPrefix,
+      ImmutableList<String> xmlnsNS,
+      ImmutableList<String> xmlnsXSD,
       String resources[],
       String url,
       String filterVariables[],
@@ -910,13 +726,15 @@ public class DigirHelper {
             + "        <xsd:element name=\"record\">\n"
             + "          <xsd:complexType>\n"
             + "            <xsd:sequence>\n");
-    for (int i = 0; i < resultsVariables.length; i++)
-      request2sb.append("              <xsd:element ref=\"" + resultsVariables[i] + "\"/>\n");
+    for (String resultsVariable : resultsVariables)
+      request2sb.append("              <xsd:element ref=\"" + resultsVariable + "\"/>\n");
     request2sb.append(
-        "            </xsd:sequence>\n"
-            + "          </xsd:complexType>\n"
-            + "        </xsd:element>\n"
-            + "      </structure>\n");
+        """
+                                </xsd:sequence>
+                              </xsd:complexType>
+                            </xsd:element>
+                          </structure>
+                    """);
 
     // NO LEADING SPACES, TO SAVE SPACE, TO AVOID HTTP REQUEST-TOO-LONG ERROR
     request2sb.append(
@@ -943,12 +761,12 @@ public class DigirHelper {
 
     // *** get data from each resource
     // apparently, there is no "all" recourse option
-    String diagnosticError = "";
-    for (int resource = 0; resource < resources.length; resource++) {
+    StringBuilder diagnosticError = new StringBuilder();
+    for (String s : resources) {
       try {
         // get the xml for 1 resource from the provider
         long readTime = System.currentTimeMillis();
-        String request = request1 + " resource=\"" + resources[resource] + "\"" + request2;
+        String request = request1 + " resource=\"" + s + "\"" + request2;
 
         // for testing: test that it is well-formed
         // can't validate, because no .dtd specified by DOCTYPE in file
@@ -968,11 +786,10 @@ public class DigirHelper {
         // String response = File2.readFromFile("c:/temp/SearchDigirResponse" + resource +
         // ".xml")[1];
 
-        if (verbose)
-          String2.log(resources[resource] + " readTime=" + (System.currentTimeMillis() - readTime));
+        if (verbose) String2.log(s + " readTime=" + (System.currentTimeMillis() - readTime));
         if (reallyVerbose)
           String2.log(
-              resources[resource]
+              s
                   + " start of response=\n"
                   + response.substring(0, Math.min(5000, response.length())));
 
@@ -987,7 +804,7 @@ public class DigirHelper {
         if (verbose)
           String2.log(
               "After "
-                  + resources[resource]
+                  + s
                   + ", nRows="
                   + tTable.nRows()
                   + " parseTime="
@@ -1003,11 +820,11 @@ public class DigirHelper {
             String tError =
                 String2.ERROR
                     + " message from resource="
-                    + resources[resource]
+                    + s
                     + ":\n"
                     + response.substring(errorPo)
                     + "\n";
-            diagnosticError += tError + "\n";
+            diagnosticError.append(tError).append("\n");
             String2.log(tError);
           }
         }
@@ -1015,11 +832,11 @@ public class DigirHelper {
       } catch (Exception e) {
         String tError =
             "EXCEPTION thrown by request to resource="
-                + resources[resource]
+                + s
                 + ":\n"
                 + MustBe.throwableToString(e)
                 + "\n";
-        diagnosticError += tError + "\n";
+        diagnosticError.append(tError).append("\n");
         if (verbose) String2.log(tError);
       }
 
@@ -1105,6 +922,7 @@ public class DigirHelper {
    * @param table data is appended to table. If table has data, it must have the same includeXYZT
    *     and resultsVariables.
    */
+  @SuppressWarnings("ReferenceEquality") // below a simple "!=" test
   public static void searchObis(
       String resources[],
       String url,
@@ -1120,20 +938,20 @@ public class DigirHelper {
 
     // pre check that filterVariables and resultsVariables are valid darwin or obis variables?
     String validVars[] = getDarwin2ObisVariables();
-    for (int i = 0; i < resultsVariables.length; i++)
-      if (String2.indexOf(validVars, resultsVariables[i]) < 0)
+    for (String resultsVariable : resultsVariables)
+      if (String2.indexOf(validVars, resultsVariable) < 0)
         Test.error(
             errorInMethod
                 + "Unsupported resultsVariable="
-                + resultsVariables[i]
+                + resultsVariable
                 + "\nValid="
                 + String2.toCSSVString(validVars));
-    for (int i = 0; i < filterVariables.length; i++)
-      if (String2.indexOf(validVars, filterVariables[i]) < 0)
+    for (String filterVariable : filterVariables)
+      if (String2.indexOf(validVars, filterVariable) < 0)
         Test.error(
             errorInMethod
                 + "Unsupported filterVariable="
-                + filterVariables[i]
+                + filterVariable
                 + "\nValid="
                 + String2.toCSSVString(validVars));
 
@@ -1152,8 +970,7 @@ public class DigirHelper {
         DARWIN_PREFIX + ":CollectionCode",
         DARWIN_PREFIX + ":CatalogNumber"
       };
-      for (int i = 0; i < needed.length; i++)
-        if (getVariables.indexOf(needed[i]) < 0) getVariables.add(needed[i]);
+      for (String s : needed) if (getVariables.indexOf(s) < 0) getVariables.add(s);
     }
 
     // if table already has data, set that table aside
@@ -1185,20 +1002,20 @@ public class DigirHelper {
       // create and add x,y,z,t,id columns    (numeric cols forced to be doubles)
       tTable.addColumn(
           0,
-          DataHelper.TABLE_VARIABLE_NAMES[0],
+          DataHelper.TABLE_VARIABLE_NAMES.get(0),
           new DoubleArray(tTable.findColumn(DARWIN_PREFIX + ":Longitude")));
       tTable.addColumn(
           1,
-          DataHelper.TABLE_VARIABLE_NAMES[1],
+          DataHelper.TABLE_VARIABLE_NAMES.get(1),
           new DoubleArray(tTable.findColumn(DARWIN_PREFIX + ":Latitude")));
       tTable.addColumn(
           2,
-          DataHelper.TABLE_VARIABLE_NAMES[2],
+          DataHelper.TABLE_VARIABLE_NAMES.get(2),
           new DoubleArray(tTable.findColumn(DARWIN_PREFIX + ":MinimumDepth")));
       DoubleArray tPA = new DoubleArray(nRows, false);
-      tTable.addColumn(3, DataHelper.TABLE_VARIABLE_NAMES[3], tPA);
+      tTable.addColumn(3, DataHelper.TABLE_VARIABLE_NAMES.get(3), tPA);
       StringArray idPA = new StringArray(nRows, false);
-      tTable.addColumn(4, DataHelper.TABLE_VARIABLE_NAMES[4], idPA);
+      tTable.addColumn(4, DataHelper.TABLE_VARIABLE_NAMES.get(4), idPA);
       PrimitiveArray yearPA = tTable.findColumn(DARWIN_PREFIX + ":YearCollected");
       PrimitiveArray monthPA = tTable.findColumn(DARWIN_PREFIX + ":MonthCollected");
       PrimitiveArray dayPA = tTable.findColumn(DARWIN_PREFIX + ":DayCollected");
@@ -1270,14 +1087,13 @@ public class DigirHelper {
 
       // set column metadata
       String metadata[] = String2.split(infoArray[1], '`');
-      for (int i = 0; i < metadata.length; i++) {
-        int eqPo = metadata[i].indexOf('='); // first instance of '='
+      for (String metadatum : metadata) {
+        int eqPo = metadatum.indexOf('='); // first instance of '='
         Test.ensureTrue(
-            eqPo > 0,
-            errorInMethod + "Invalid metadata for colName=" + colName + ": " + metadata[i]);
+            eqPo > 0, errorInMethod + "Invalid metadata for colName=" + colName + ": " + metadatum);
         tTable
             .columnAttributes(col)
-            .set(metadata[i].substring(0, eqPo), metadata[i].substring(eqPo + 1));
+            .set(metadatum.substring(0, eqPo), metadatum.substring(eqPo + 1));
       }
     }
 
@@ -1305,252 +1121,6 @@ public class DigirHelper {
   }
 
   /**
-   * This is like searchDigir, but customized for BMDE (which uses the DiGIR engine and the BMDE XML
-   * schema). Since BMDE is not a superset of Darwin, you can't use this for Darwin-based resources
-   * as well. <br>
-   * This works differently from searchObis -- This doesn't make artificial xyzt variables. <br>
-   * This sets column types and a few attributes, based on info in DigirBmde.properties (in this
-   * directory). <br>
-   * See searchDigir for the parameter descriptions. <br>
-   * Valid variables (for filters and results) are listed in DigirBmde.properties.
-   */
-  public static Table searchBmde(
-      String resources[],
-      String url,
-      String filterVariables[],
-      String filterCops[],
-      String filterValues[],
-      String resultsVariables[])
-      throws Exception {
-
-    if (reallyVerbose)
-      String2.log(
-          "\n*** digirHelper.searchBmde resources="
-              + String2.toCSSVString(resources)
-              + "\n  url="
-              + url
-              + "\n  filterVars="
-              + String2.toCSSVString(filterVariables)
-              + "\n  filterCops="
-              + String2.toCSSVString(filterCops)
-              + "\n  filterVals="
-              + String2.toCSSVString(filterValues)
-              + "\n  resultsVars="
-              + String2.toCSSVString(resultsVariables));
-
-    String errorInMethod = String2.ERROR + " in DigirHelper.searchBmde: ";
-
-    // pre check that filterVariables and resultsVariables are valid bmde variables?
-    String validVars[] = getBmdeVariables();
-    for (int i = 0; i < resultsVariables.length; i++)
-      if (String2.indexOf(validVars, resultsVariables[i]) < 0)
-        Test.error(
-            errorInMethod
-                + "Unsupported resultsVariable="
-                + resultsVariables[i]
-                + "\nValid="
-                + String2.toCSSVString(validVars));
-    for (int i = 0; i < filterVariables.length; i++)
-      if (String2.indexOf(validVars, filterVariables[i]) < 0)
-        Test.error(
-            errorInMethod
-                + "Unsupported filterVariable="
-                + filterVariables[i]
-                + "\nValid="
-                + String2.toCSSVString(validVars));
-
-    // get data from the provider
-    Table table = new Table();
-    searchDigir(
-        BMDE_VERSION,
-        BMDE_PREFIXES,
-        BMDE_XMLNSES,
-        BMDE_XSDES,
-        resources,
-        url,
-        filterVariables,
-        filterCops,
-        filterValues,
-        table,
-        resultsVariables);
-
-    // simplify the columns and add column metadata
-    int nCols = table.nColumns();
-    int nRows = table.nRows();
-    for (int col = 0; col < nCols; col++) {
-      String colName = table.getColumnName(col);
-      String info =
-          colName.startsWith(BMDE_PREFIX + ":")
-              ? digirBmdeProperties.getString(colName.substring(BMDE_PREFIX.length() + 1), null)
-              : null;
-      Test.ensureNotNull(info, errorInMethod + "No info found for variable=" + colName);
-      String infoArray[] = String2.split(info, '\f');
-
-      // change column type from String to ?
-      String type = infoArray[0];
-      if (!type.equals("String") && !type.equals("dateTime")) {
-        // it's a numeric column
-        PrimitiveArray pa = PrimitiveArray.factory(PAType.fromCohortString(type), nRows, false);
-        pa.append(table.getColumn(col));
-        table.setColumn(col, pa);
-
-        // set actual_range?
-      }
-
-      // set column metadata
-      String metadata[] = String2.split(infoArray[1], '`');
-      for (int i = 0; i < metadata.length; i++) {
-        int eqPo = metadata[i].indexOf('='); // first instance of '='
-        Test.ensureTrue(
-            eqPo > 0,
-            errorInMethod + "Invalid metadata for colName=" + colName + ": " + metadata[i]);
-        table
-            .columnAttributes(col)
-            .set(metadata[i].substring(0, eqPo), metadata[i].substring(eqPo + 1));
-      }
-    }
-
-    table
-        .globalAttributes()
-        .set("keywords", "Biological Classification > Animals/Vertebrates > Birds");
-    table.globalAttributes().set("keywords_vocabulary", "GCMD Science Keywords");
-    return table;
-  }
-
-  /**
-   * This is like the other searchObis, but processes an opendap-style query.
-   *
-   * <p>The first 5 columns in the results table are automatically LON, LAT, DEPTH, TIME, and ID
-   *
-   * @param resources see searchDigir's resources parameter
-   * @param url see searchDigir's url parameter
-   * @param query is the opendap-style query, e.g.,
-   *     <tt>var1,var2,var3&amp;var4=value4&amp;var5&amp;gt;=value5</tt> . Note that the query must
-   *     be in its unencoded form, with ampersand, greaterThan and lessThan characters as single
-   *     characters. A more specific example is
-   *     <tt>darwin:Genus,darwin:Species&amp;darwin:Genus=Macrocystis&amp;darwin:Latitude&gt;=53&amp;darwin:Latitude&lt;=54</tt>
-   *     . Note that each constraint's left hand side must be a variable and its right hand side
-   *     must be a value. See searchDigir's parameter descriptions for filterVariables, filterCops,
-   *     and filterValues, except there is currently no support for "in" here. The valid string
-   *     variable COPs are "=", "!=", "~=". The valid numeric variable COPs are "=", "!=", "&lt;",
-   *     "&lt;=", "&gt;", "&gt;="). "~=" (which would normally match a regular expression on the
-   *     right hand side) is translated to "like". "like" supports "%" (a wildcard) at the beginning
-   *     and/or end of the value. Although you can put constraints on any Darwin variable (see
-   *     DigirDarwin.properties) or OBIS variable (see DigirObis.properties), most variables have
-   *     little or no data, so extensive requests will generate few or no results rows.
-   * @param table the results are appended to table (and metadata is updated).
-   */
-  public static void searchObisOpendapStyle(
-      String resources[], String url, String query, Table table) throws Exception {
-
-    StringArray filterVariables = new StringArray();
-    StringArray filterCops = new StringArray();
-    StringArray filterValues = new StringArray();
-    StringArray resultsVariables = new StringArray();
-    parseQuery(query, resultsVariables, filterVariables, filterCops, filterValues);
-
-    searchObis(
-        resources,
-        url,
-        filterVariables.toArray(),
-        filterCops.toArray(),
-        filterValues.toArray(),
-        table,
-        true,
-        resultsVariables.toArray());
-  }
-
-  /**
-   * This parses the query for searchOpendapStyleObis.
-   *
-   * @param query see searchOpendapStyleObis's query
-   * @param resultsVariables to be appended with the results variables
-   * @param filterVariables to be appended with the filter variables
-   * @param filterCops to be appended with the filter comparative operators
-   * @param filterValues to be appended with the filter values
-   * @throws Exception if invalid query (0 resultsVariables is a valid query)
-   */
-  public static void parseQuery(
-      String query,
-      StringArray resultsVariables,
-      StringArray filterVariables,
-      StringArray filterCops,
-      StringArray filterValues) {
-
-    String errorInMethod = String2.ERROR + " in DigirHelper.parseQuery:\n(query=" + query + ")\n";
-    if (query.charAt(query.length() - 1) == '&')
-      Test.error(errorInMethod + "query ends with ampersand.");
-
-    // get the comma-separated vars    before & or end-of-query
-    int ampPo = query.indexOf('&');
-    if (ampPo < 0) ampPo = query.length();
-    int startPo = 0;
-    int stopPo = query.indexOf(',');
-    if (stopPo < 0 || stopPo > ampPo) stopPo = ampPo;
-    while (startPo < ampPo) {
-      if (stopPo == startPo) // catch ",," in query
-      Test.error(errorInMethod + "Missing results variable at startPo=" + startPo + ".");
-      resultsVariables.add(query.substring(startPo, stopPo).trim());
-      startPo = stopPo + 1;
-      stopPo = startPo >= ampPo ? ampPo : query.indexOf(',', startPo);
-      if (stopPo < 0 || stopPo > ampPo) stopPo = ampPo;
-    }
-    // String2.log("resultsVariables=" + resultsVariables);
-
-    // get the constraints
-    // and convert to ("equals", "notEquals", "like", "lessThan", "lessThanOrEquals",
-    //  "greaterThan", "greaterThanOrEquals").
-    ampPo = query.indexOf('&', startPo);
-    if (ampPo < 0) ampPo = query.length();
-    while (startPo < query.length()) {
-      String filter = query.substring(startPo, ampPo);
-      // String2.log("filter=" + filter);
-
-      // find the op
-      int op = 0;
-      int opPo = -1;
-      while (op < COP_SYMBOLS.length && (opPo = filter.indexOf(COP_SYMBOLS[op])) < 0) op++;
-      if (opPo < 0)
-        Test.error(
-            errorInMethod
-                + "No operator found in filter at startPo="
-                + startPo
-                + " filter="
-                + filter
-                + ".");
-      filterVariables.add(filter.substring(0, opPo).trim());
-      filterCops.add(COP_NAMES[op]);
-      filterValues.add(filter.substring(opPo + COP_SYMBOLS[op].length()).trim());
-
-      // remove start/end quotes from filterValues
-      for (int i = 0; i < filterValues.size(); i++) {
-        String fv = filterValues.get(i);
-        if (fv.startsWith("\"") && fv.endsWith("\""))
-          filterValues.set(i, fv.substring(1, fv.length() - 2).trim());
-        else if (fv.startsWith("'") && fv.endsWith("'"))
-          filterValues.set(i, fv.substring(1, fv.length() - 2).trim());
-      }
-
-      startPo = ampPo + 1;
-      ampPo = startPo >= query.length() ? query.length() : query.indexOf('&', startPo);
-      if (ampPo < 0) ampPo = query.length();
-    }
-
-    if (reallyVerbose) {
-      String2.log(
-          "Output from parseQuery:"
-              + "\n  resultsVariables="
-              + resultsVariables
-              + "\n  filterVariables="
-              + filterVariables
-              + "\n  filterCops="
-              + filterCops
-              + "\n  filterValues="
-              + filterValues);
-    }
-  }
-
-  /**
    * This formats the filters as an opendap constraint.
    *
    * @param resultsVariables
@@ -1573,7 +1143,7 @@ public class DigirHelper {
     }
 
     for (int i = 0; i < filterVariables.length; i++) {
-      int op = String2.indexOf(COP_NAMES, filterCops[i]);
+      int op = COP_NAMES.indexOf(filterCops[i]);
       if (op < 0)
         Test.error(
             String2.ERROR
@@ -1581,7 +1151,7 @@ public class DigirHelper {
                 + "Invalid operator="
                 + filterCops[i]
                 + ".");
-      sb.append("&" + filterVariables[i] + COP_SYMBOLS[op] + filterValues[i]);
+      sb.append("&" + filterVariables[i] + COP_SYMBOLS.get(op) + filterValues[i]);
     }
 
     return sb.toString();
@@ -1596,22 +1166,4 @@ public class DigirHelper {
        *    id is Res_name:Catalognumber ???.
 
   */
-
-  /**
-   * This processes a Digir search request and returns XML response.
-   *
-   * @param request a Digir search request xml string
-   * @return a Digir response xml string
-   * @throws Exception if trouble
-   */
-  public static String processDigirSearchRequest(String request) throws Exception {
-    // parse the request
-
-    // get the data from opendap
-
-    // format as Digir response xml
-    StringBuilder response = new StringBuilder();
-
-    return response.toString();
-  }
 }

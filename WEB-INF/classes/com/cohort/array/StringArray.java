@@ -6,12 +6,12 @@ package com.cohort.array;
 
 import com.cohort.util.File2;
 import com.cohort.util.Math2;
-import com.cohort.util.MustBe;
 import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import com.cohort.util.StringHolder;
 import com.cohort.util.StringHolderComparator;
 import com.cohort.util.StringHolderComparatorIgnoreCase;
+import com.google.common.collect.ImmutableList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import ucar.ma2.StructureData;
@@ -46,8 +48,8 @@ import ucar.ma2.StructureData;
  */
 public class StringArray extends PrimitiveArray {
 
-  static StringHolderComparator stringHolderComparator = new StringHolderComparator();
-  static StringHolderComparatorIgnoreCase stringHolderComparatorIgnoreCase =
+  static final StringHolderComparator stringHolderComparator = new StringHolderComparator();
+  static final StringHolderComparatorIgnoreCase stringHolderComparatorIgnoreCase =
       new StringHolderComparatorIgnoreCase();
 
   /**
@@ -160,7 +162,19 @@ public class StringArray extends PrimitiveArray {
     int al = anArray.length;
     array = new StringHolder[al];
     size = 0;
-    for (int i = 0; i < al; i++) add(anArray[i]);
+    for (String s : anArray) add(s);
+  }
+
+  /**
+   * A constructor which gets values from an ImmutableList<String>.
+   *
+   * @param anArray
+   */
+  public StringArray(final ImmutableList<String> immutableList) {
+    int al = immutableList.size();
+    array = new StringHolder[al];
+    size = 0;
+    for (int i = 0; i < al; i++) add(immutableList.get(i));
   }
 
   /**
@@ -172,8 +186,7 @@ public class StringArray extends PrimitiveArray {
     final int al = anArray.length;
     array = new StringHolder[al];
     size = 0;
-    for (int i = 0; i < al; i++)
-      add(anArray[i] == null ? String2.EMPTY_STRING : anArray[i].toString());
+    for (Object o : anArray) add(o == null ? String2.EMPTY_STRING : o.toString());
   }
 
   /**
@@ -182,7 +195,7 @@ public class StringArray extends PrimitiveArray {
    * @param iterator which needs to be thread-safe if the backing data store may be changed by
    *     another thread (e.g., use ConcurrentHashMap instead of HashMap).
    */
-  public StringArray(final Iterator iterator) {
+  public StringArray(final Iterator<?> iterator) {
     array = new StringHolder[8];
     while (iterator.hasNext()) {
       add(iterator.next().toString());
@@ -195,7 +208,7 @@ public class StringArray extends PrimitiveArray {
    * @param enumeration which needs to be thread-safe if the backing data store may be changed by
    *     another thread (e.g., use ConcurrentHashMap instead of HashMap).
    */
-  public StringArray(final Enumeration enumeration) {
+  public StringArray(final Enumeration<?> enumeration) {
     array = new StringHolder[8];
     while (enumeration.hasMoreElements()) {
       add(enumeration.nextElement().toString());
@@ -222,18 +235,6 @@ public class StringArray extends PrimitiveArray {
   public StringArray fromUTF8() {
     for (int i = 0; i < size; i++) set(i, String2.utf8StringToString(get(i)));
     // String2.log(">>after fromUTF8: " + toNccsv127AttString());
-    return this;
-  }
-
-  /**
-   * A little weird: A special method which encodes all the Unicode strings in this to UTF-8 bytes
-   * (stored as strings). See fromUTF8().
-   *
-   * @return this for convenience
-   */
-  public StringArray toUTF8() {
-    for (int i = 0; i < size; i++) set(i, String2.stringToUtf8String(get(i)));
-    // String2.log(">>after toUTF8: " + toNccsv127AttString());
     return this;
   }
 
@@ -320,7 +321,7 @@ public class StringArray extends PrimitiveArray {
         File2.length(fileName), "StringArray.fromFile"); // canonical may lessen memory requirement
     final StringArray sa = new StringArray();
     try (final BufferedReader bufferedReader =
-        File2.getDecompressedBufferedFileReader(fileName, charset); ) {
+        File2.getDecompressedBufferedFileReader(fileName, charset)) {
       String s = bufferedReader.readLine();
       while (s != null) { // null = end-of-file
         sa.addNotCanonical(s);
@@ -637,7 +638,7 @@ public class StringArray extends PrimitiveArray {
   public int makeUnique() {
     final int n = size();
     int nChanged = 0;
-    HashSet<String> hs = toHashSet();
+    Set<String> hs = toHashSet();
     for (int i = 0; i < n - 1; i++) {
       String si = get(i);
       int add = 2;
@@ -664,7 +665,7 @@ public class StringArray extends PrimitiveArray {
   public void add(final String sar[]) {
     final int otherSize = sar.length;
     ensureCapacity(size + (long) otherSize);
-    for (int i = 0; i < otherSize; i++) add(sar[i]);
+    for (String s : sar) add(s);
   }
 
   /**
@@ -1440,11 +1441,10 @@ public class StringArray extends PrimitiveArray {
    */
   @Override
   public String testEquals(final Object o) {
-    if (!(o instanceof StringArray))
+    if (!(o instanceof StringArray other))
       return "The two objects aren't equal: this object is a StringArray; the other is a "
           + (o == null ? "null" : o.getClass().getName())
           + ".";
-    final StringArray other = (StringArray) o;
     if (other.size() != size)
       return "The two StringArrays aren't equal: one has "
           + size
@@ -1763,7 +1763,7 @@ public class StringArray extends PrimitiveArray {
       int nChar = dis.readInt();
       if (buffer.length < nChar) buffer = new byte[nChar + 10];
       dis.readFully(buffer, 0, nChar);
-      add(new String(buffer, 0, nChar));
+      add(new String(buffer, 0, nChar, StandardCharsets.UTF_8));
 
       // pad to 4 bytes boundary at end
       while (nChar++ % 4 != 0) dis.readByte();
@@ -1813,7 +1813,7 @@ public class StringArray extends PrimitiveArray {
     raf.readFully(bar);
     int po = 0;
     while (po < nBytesPer && bar[po] != 0) po++;
-    return new String(bar, 0, po);
+    return new String(bar, 0, po, StandardCharsets.UTF_8);
   }
 
   /**
@@ -1892,8 +1892,8 @@ public class StringArray extends PrimitiveArray {
     }
 
     // make a hashMap with all the unique values (associated values are initially all dummy)
-    final Integer dummy = Integer.valueOf(-1);
-    final HashMap hashMap = new HashMap(Math2.roundToInt(1.4 * size));
+    final Integer dummy = -1;
+    final HashMap<String, Integer> hashMap = new HashMap<>(Math2.roundToInt(1.4 * size));
     String lastValue = get(0); // since lastValue often equals currentValue, cache it
     hashMap.put(lastValue, dummy); // special for String
     boolean alreadySorted = true;
@@ -1910,7 +1910,7 @@ public class StringArray extends PrimitiveArray {
     }
 
     // quickly deal with: all unique and already sorted
-    final Set keySet = hashMap.keySet();
+    final Set<String> keySet = hashMap.keySet();
     final int nUnique = keySet.size();
     if (nUnique == size && alreadySorted) {
       indices.ensureCapacity(size);
@@ -1920,8 +1920,8 @@ public class StringArray extends PrimitiveArray {
     }
 
     // store all the elements in an array
-    final String unique[] = new String[nUnique];
-    final Iterator iterator = keySet.iterator();
+    final String[] unique = new String[nUnique];
+    final Iterator<String> iterator = keySet.iterator();
     int count = 0;
     while (iterator.hasNext()) unique[count++] = (String) iterator.next();
     if (nUnique != count)
@@ -1932,25 +1932,25 @@ public class StringArray extends PrimitiveArray {
     Arrays.sort(unique); // a variant could use String2.STRING_COMPARATOR_IGNORE_CASE);
 
     // special for StringArray: "" (missing value) sorts highest
-    if (((String) unique[0]).length() == 0) {
+    if (unique[0].length() == 0) {
       System.arraycopy(unique, 1, unique, 0, nUnique - 1);
       unique[nUnique - 1] = "";
     }
 
     // put the unique values back in the hashMap with the ranks as the associated values
-    for (int i = 0; i < count; i++) hashMap.put(unique[i], Integer.valueOf(i));
+    for (int i = 0; i < count; i++) hashMap.put(unique[i], i);
 
     // convert original values to ranks
-    final int ranks[] = new int[size];
+    final int[] ranks = new int[size];
     lastValue = get(0);
-    ranks[0] = ((Integer) hashMap.get(lastValue)).intValue();
+    ranks[0] = (Integer) hashMap.get(lastValue);
     int lastRank = ranks[0];
     for (int i = 1; i < size; i++) {
       if (get(i).equals(lastValue)) {
         ranks[i] = lastRank;
       } else {
         lastValue = get(i);
-        ranks[i] = ((Integer) hashMap.get(lastValue)).intValue();
+        ranks[i] = (Integer) hashMap.get(lastValue);
         lastRank = ranks[i];
       }
     }
@@ -1995,7 +1995,7 @@ public class StringArray extends PrimitiveArray {
    *     phrase"). The resulting parts are all trim'd.
    */
   public static StringArray wordsAndQuotedPhrases(final String searchFor) {
-    ArrayList<String> sa = new ArrayList(16);
+    ArrayList<String> sa = new ArrayList<>(16);
     wordsAndQuotedPhrases(searchFor, sa);
     return new StringArray(sa.iterator());
   }
@@ -2012,8 +2012,7 @@ public class StringArray extends PrimitiveArray {
    *     any other whitespace). Interior double quotes in double-quoted phrases must be doubled
    *     (e.g., "a quote "" within a phrase"). The resulting parts are all trim'd.
    */
-  public static ArrayList<String> wordsAndQuotedPhrases(
-      final String searchFor, final ArrayList<String> sa) {
+  public static List<String> wordsAndQuotedPhrases(final String searchFor, final List<String> sa) {
     sa.clear();
     if (searchFor == null) return sa;
     int po = 0;
@@ -2081,9 +2080,8 @@ public class StringArray extends PrimitiveArray {
    */
   public static StringArray fromCSVNoBlanks(final String searchFor) {
     final String[] sar = arrayFromCSV(searchFor);
-    final int tSize = sar.length;
     final StringArray sa = new StringArray();
-    for (int i = 0; i < tSize; i++) if (sar[i].length() > 0) sa.add(sar[i]);
+    for (String s : sar) if (s.length() > 0) sa.add(s);
     return sa;
   }
 
@@ -2147,7 +2145,7 @@ public class StringArray extends PrimitiveArray {
 
     if (searchFor == null || searchFor.length() == 0) return new String[0];
 
-    ArrayList<String> al = new ArrayList(16);
+    ArrayList<String> al = new ArrayList<>(16);
     arrayListFromCSV(searchFor, separatorChars, trim, keepNothing, al);
     return al.toArray(new String[0]);
   }
@@ -2165,12 +2163,12 @@ public class StringArray extends PrimitiveArray {
    * @param al the ArrayList into which the results are put. It is initially clear()'d.
    * @return al for convenience
    */
-  public static ArrayList<String> arrayListFromCSV(
+  public static List<String> arrayListFromCSV(
       final String searchFor,
       final String separatorChars,
       final boolean trim,
       final boolean keepNothing,
-      final ArrayList<String> al) {
+      final List<String> al) {
 
     al.clear();
     if (searchFor == null || searchFor.length() == 0) return al;
@@ -2197,12 +2195,12 @@ public class StringArray extends PrimitiveArray {
             // String2.log(">> quoteloop ch=" + ch);
             // "" internal quote
             if (ch == '"' && po < n && searchFor.charAt(po) == '"') {
-              word.append(searchFor.substring(start, po - 1));
+              word.append(searchFor, start, po - 1);
               start = po++; // the 2nd char " will be the first appended later
 
               // backslashed character
             } else if (ch == '\\' && po < n) {
-              word.append(searchFor.substring(start, po - 1));
+              word.append(searchFor, start, po - 1);
               ch = searchFor.charAt(po++);
               // don't support \\b, it's trouble
               if (ch == 'f') word.append('\f');
@@ -2226,12 +2224,12 @@ public class StringArray extends PrimitiveArray {
 
               // the end of the quoted string?
             } else if (ch == '"') {
-              word.append(searchFor.substring(start, po - 1));
+              word.append(searchFor, start, po - 1);
               break;
 
               // the end of searchFor?
             } else if (po == n) {
-              word.append(searchFor.substring(start, po));
+              word.append(searchFor, start, po);
               break;
 
               // a letter in the quoted string
@@ -2360,17 +2358,13 @@ public class StringArray extends PrimitiveArray {
           ch = csv.charAt(po++);
           if (ch == '\\' && po < n) {
             po++;
-            continue;
           } else if (ch == '"') {
             // matching close quote
             break;
           }
         }
-
       } else if (ch == '\\' && po < n) {
         po++;
-        continue;
-
       } else if (ch == ',') {
         // end of item
         sa.addNotCanonical(csv.substring(start, po - 1).trim()); // avoid canonical
@@ -2425,7 +2419,6 @@ public class StringArray extends PrimitiveArray {
           ch = csv.charAt(po++);
           if (ch == '\\') { // if there is no next char, that will be caught
             po++; // eat the next char
-            continue;
           } else if (ch == '"') {
             // matching close quote
             break;
@@ -2625,52 +2618,9 @@ public class StringArray extends PrimitiveArray {
     return new int[] {n, tmini, tmaxi};
   }
 
-  /**
-   * This compares two text files, line by line, and throws Exception indicating line where
-   * different. nullString == nullString is ok.
-   *
-   * @param fileName1 a complete file name
-   * @param fileName2 a complete file name
-   * @param charset e.g., File2.ISO_8859_1 or File2.UTF_8.
-   * @throws Exception if files are different
-   */
-  public static void diff(final String fileName1, final String fileName2, final String charset)
-      throws Exception {
-    StringArray sa1 = fromFile(fileName1, charset);
-    StringArray sa2 = fromFile(fileName2, charset);
-    sa1.diff(sa2);
-  }
-
-  /**
-   * This repeatedly compares two text files, line by line, and throws Exception indicating line
-   * where different. nullString == nullString is ok.
-   *
-   * @param fileName1 a complete file name
-   * @param fileName2 a complete file name
-   * @param charset e.g., File2.ISO_8859_1 or File2.UTF_8.
-   * @throws Exception if files are different
-   */
-  public static void repeatedDiff(
-      final String fileName1, final String fileName2, final String charset) throws Exception {
-    while (true) {
-      try {
-        String2.log("\nComparing " + fileName1 + "\n      and " + fileName2);
-        final StringArray sa1 = fromFile(fileName1, charset);
-        final StringArray sa2 = fromFile(fileName2, charset);
-        sa1.diff(sa2);
-        String2.log("!!! The files are the same!!!");
-        break;
-      } catch (Exception e) {
-        String2.getStringFromSystemIn(
-            MustBe.throwableToString(e)
-                + "\nPress ^C to stop or Enter to compare the files again...");
-      }
-    }
-  }
-
   /** This returns the values in this StringArray in a HashSet. */
-  public HashSet<String> toHashSet() {
-    final HashSet<String> hs = new HashSet(Math.max(8, size * 4 / 3));
+  public Set<String> toHashSet() {
+    final HashSet<String> hs = new HashSet<>(Math.max(8, size * 4 / 3));
     for (int i = 0; i < size; i++) hs.add(get(i));
     return hs;
   }
@@ -2679,7 +2629,7 @@ public class StringArray extends PrimitiveArray {
    * This adds the values in hs to this StringArray and returns this StringArray for convenience.
    * The order of the elements in this StringArray is not specified.
    */
-  public StringArray addSet(final Set hs) {
+  public StringArray addSet(final Set<?> hs) {
     ensureCapacity(size + (long) hs.size());
     for (Object o : hs) add(o.toString());
     return this;

@@ -34,9 +34,6 @@ public abstract class Point2D implements Serializable, Cloneable {
     /** y coordinate */
     public double y;
 
-    /** Default constructor */
-    public Double() {}
-
     public Double(double x, double y) {
       this.x = x;
       this.y = y;
@@ -49,8 +46,7 @@ public abstract class Point2D implements Serializable, Cloneable {
      */
     @Override
     public boolean equals(Object pt) {
-      if (pt instanceof Point2D.Double) {
-        Point2D.Double pt2 = (Point2D.Double) pt;
+      if (pt instanceof Point2D.Double pt2) {
         return (x == pt2.x) && (y == pt2.y);
       } else {
         return false;
@@ -64,79 +60,7 @@ public abstract class Point2D implements Serializable, Cloneable {
 
     @Override
     public String toString() {
-      return new String("(" + x + ", " + y + ")");
-    }
-
-    /**
-     * Make a copy of the <code>Rectangle2D</code>.
-     *
-     * @since sgt 3.0
-     */
-    public Point2D copy() {
-      try {
-        return (Point2D) clone();
-      } catch (CloneNotSupportedException e) {
-        return null;
-      }
-    }
-  }
-
-  /**
-   * Inner class for <code>Point2D</code> for type <code>float</code>.
-   *
-   * @since sgt 2.0
-   */
-  public static class Float extends Point2D {
-    /** x coordinate */
-    public float x;
-
-    /** y coordinate */
-    public float y;
-
-    /** Default constructor */
-    public Float() {}
-
-    public Float(float x, float y) {
-      this.x = x;
-      this.y = y;
-    }
-
-    /**
-     * Test for equality. Both x and y coordinates must be equal for equality.
-     *
-     * @since sgt 3.0
-     */
-    @Override
-    public boolean equals(Object pt) {
-      if (pt instanceof Point2D.Float) {
-        Point2D.Float pt2 = (Point2D.Float) pt;
-        return (x == pt2.x) && (y == pt2.y);
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return (int) Math.round(7 * 31 * x * y);
-    }
-
-    @Override
-    public String toString() {
-      return new String("(" + x + ", " + y + ")");
-    }
-
-    /**
-     * Make a copy of the <code>Rectangle2D</code>.
-     *
-     * @since sgt 3.0
-     */
-    public Point2D copy() {
-      try {
-        return (Point2D) clone();
-      } catch (CloneNotSupportedException e) {
-        return null;
-      }
+      return "(" + x + ", " + y + ")";
     }
   }
 
@@ -145,5 +69,7 @@ public abstract class Point2D implements Serializable, Cloneable {
    * subclasses are available for instantiation and provide a number of formats for storing the
    * information necessary to satisfy the various accessor methods below.
    */
-  protected Point2D() {}
+  protected Point2D() {
+    // Intentional empty constructor
+  }
 }

@@ -57,7 +57,6 @@ addEntry, closeEntry-এর অসুবিধার কারণে \&quot;comp
 <acronyms>সংক্ষিপ্ত শব্দ</acronyms>
 <addConstraints>আপনি এই ওয়েব পৃষ্ঠায় অনুরোধের জন্য টেবিলড্যাপের মতো সীমাবদ্ধতা যুক্ত করতে পারেন,
 উদাহরণ স্বরূপ,</addConstraints>
-<addVarWhereAttName>ঐচ্ছিক: একটি বৈশিষ্ট্যের নাম উল্লেখ করুন।</addVarWhereAttName>
 <addVarWhereAttValue>ঐচ্ছিক: একটি বৈশিষ্ট্য মান নির্দিষ্ট করুন।</addVarWhereAttValue>
 <addVarWhere><![CDATA[
 ঐচ্ছিক:
@@ -85,11 +84,11 @@ addEntry, closeEntry-এর অসুবিধার কারণে \&quot;comp
 <advl_institution>প্রতিষ্ঠান</advl_institution>
 <advc_dataStructure>ERDDAP প্রতিটি ডেটাসেটকে &#39;গ্রিড&#39; বা &#39;টেবিল&#39; ডেটাসেট হিসাবে বিবেচনা করে।</advc_dataStructure>
 <advl_dataStructure>তথ্য কাঠামো</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>সাধারণ ডেটা মডেল টাইপ</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>ERDDAP ক্লাস</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>শিরোনাম</advl_title>
 <advl_minLongitude>নূন্যতম দ্রাঘিমাংশ</advl_minLongitude>
 <advl_maxLongitude>সর্বোচ্চ দ্রাঘিমাংশ</advl_maxLongitude>
@@ -138,7 +137,7 @@ addEntry, closeEntry-এর অসুবিধার কারণে \&quot;comp
 <advl_outOfDate>অপ্রচলিত সূচক</advl_outOfDate>
 <advn_outOfDate><![CDATA[
 স্পষ্টতই, কোনো ডেটাসেটে
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> অ্যাট্রিবিউট নেই। সম্ভবত এই ERDDAP এ কোনো কাছাকাছি-রিয়েল-টাইম ডেটাসেট নেই।
 ]]></advn_outOfDate>
 <advancedSearch>উন্নত অনুসন্ধান</advancedSearch>
@@ -272,9 +271,6 @@ n ({1}) &lt; 0৷</ArrayAddN>
 <categorySearchHtml><![CDATA[
 বেছে নিন a(n) <kbd>{0}</kbd>
 ]]></categorySearchHtml>
-<categorySearchDifferentHtml><![CDATA[
-একটি ভিন্ন <kbd>&category;</kbd>
-]]></categorySearchDifferentHtml>
 <categoryClickHtml>প্রাসঙ্গিক ডেটাসেটের তালিকা দেখতে একটি বিভাগে (একটি বৈশিষ্ট্যের মান) ক্লিক করুন।</categoryClickHtml>
 <categoryNotAnOption>যখন attribute=&quot;{0}&quot;, value=&quot;{1}&quot; একটি বিকল্প নয়।</categoryNotAnOption>
 <caughtInterrupted>কারেন্ট থ্রেড().isInterrupted() ধরা পড়েছে।</caughtInterrupted>
@@ -332,6 +328,8 @@ CTD&#39;স যদি কোনো <kbd>TimeSeries</kbd> বা <kbd>Trajectory<
 অথবা,
 <a rel="help" href="#computerProgram">এই ওয়েব পৃষ্ঠাটি বাইপাস করুন</a> এবং একটি কম্পিউটার প্রোগ্রাম, স্ক্রিপ্ট বা ওয়েব পৃষ্ঠার মধ্যে থেকে রূপান্তর করুন৷
 ]]></convertBypass>
+<convertCOLORs>রং</convertCOLORs>
+<convertCOLORsMessage>রং এর রঙের মান রূপান্তর করুন</convertCOLORsMessage>
 <convertToAFullName><![CDATA[
 <strong>{0} থেকে একটি সম্পূর্ণ নামে রূপান্তর করুন।</strong>
 ]]></convertToAFullName>
@@ -1528,9 +1526,6 @@ A-Za-z0-9_-!.~&#39;()* ব্যতীত অন্য সমস্ত অক্
 এই ডেটা অ্যাক্সেস ফর্মটি আপনাকে OPeNDAP প্রোটোকলের মাধ্যমে <strong>ট্যাবুলার ডেটা</strong> সহ একটি ডেটাসেট থেকে ডেটার একটি উপসেট ডাউনলোড করতে সহায়তা করে। ট্যাবুলার ডেটাসেটে, ডেটাসেটটিকে কলাম এবং সারি সহ একটি টেবিল হিসাবে উপস্থাপন করা হয়। প্রতিটি কলামে (একটি পরিবর্তনশীল) এক ধরনের ডেটা থাকে (যেমন, Sea Surface Temperature )। প্রতিটি সারি ডেটার একটি ভিন্ন নমুনা উপস্থাপন করে (যেমন, একটি ভিন্ন সময় বা অবস্থান থেকে)।
 ]]></dafTableTooltip>
 <dasTitle>এই ডেটাসেটের জন্য ডেটাসেট অ্যাট্রিবিউট স্ট্রাকচার (.das)</dasTitle>
-
-<!--  ডেটা ডাউনলোড করা না গেলে বার্তাটি প্রদর্শিত হবে (যেমন, SeaWiFS &lt;=14 দিন পুরানো)। -->
-<dataAccessNotAllowed>[দুঃখিত। সেই ডেটা ডাউনলোড করা যাবে না।]</dataAccessNotAllowed>
 <databaseUnableToConnect>ডাটাবেসের সাথে সংযোগ করতে অক্ষম.</databaseUnableToConnect>
 <dataProviderForm>ডেটা প্রদানকারী ফর্ম</dataProviderForm>
 <dataProviderFormP1>ডেটা প্রদানকারী ফর্ম - পার্ট 1</dataProviderFormP1>
@@ -1621,7 +1616,7 @@ ERDDAP একটি ডেটাসেটের সাথে দুটি উপ
 <li>বর্তমানে একটি রিলেশনাল ডাটাবেসে সংরক্ষিত
 <a class="selfLink" id="databases" href="#databases" rel="bookmark">ডেটা</a> ।
 <br>অনুগ্রহ করে ERDDAP-এ
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> ডেটাসেট প্রকার সম্পর্কে তথ্য ERDDAP, বিশেষ করে তথ্যের প্রাথমিক ~2 স্ক্রীন যা একটি অস্বাভাবিক টেবিল তৈরি করার প্রয়োজনীয়তা সম্পর্কে কথা বলে। যে পাগল শোনাতে পারে.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> ডেটাসেট প্রকার সম্পর্কে তথ্য ERDDAP, বিশেষ করে তথ্যের প্রাথমিক ~2 স্ক্রীন যা একটি অস্বাভাবিক টেবিল তৈরি করার প্রয়োজনীয়তা সম্পর্কে কথা বলে। যে পাগল শোনাতে পারে.
 এই জন্য যৌক্তিক পড়তে যথেষ্ট বিশ্বাস করুন.
 <br>&nbsp;
 <li>সব <i>তথ্য</i> তথ্য.
@@ -1818,10 +1813,6 @@ y_wind</DEFAULT_commonStandardNames>
 
 <br>অনুগ্রহ করে এই সমস্যার সমাধান করুন, তারপর ফর্মের এই অংশটি আবার &#39;জমা দিন&#39;৷
 ]]></dpf_fixProblem>
-<dpf_yourName>তোমার নাম</dpf_yourName>
-<dpf_emailAddress>ইমেইল ঠিকানা</dpf_emailAddress>
-<dpf_Timestamp>টাইমস্ট্যাম্প</dpf_Timestamp>
-<dpf_frequency>ফ্রিকোয়েন্সি</dpf_frequency>
 <dpf_title>শিরোনাম</dpf_title>
 <dpf_titleTooltip><![CDATA[
 এটি ডেটাসেটের একটি সংক্ষিপ্ত (&lt;=80 অক্ষর) বর্ণনা। উদাহরণ স্বরূপ,
@@ -1878,11 +1869,6 @@ y_wind</DEFAULT_commonStandardNames>
 &standardLicense;
 <br>
 ]]></dpf_licenseTooltip>
-<dpf_howYouStoreData><![CDATA[
-
-<br>• ত্রুটি:
-অনুগ্রহ করে উল্লেখ করুন (নীচে) কীভাবে আপনার গ্রিড করা বা ট্যাবুলার ডেটা সংরক্ষণ করা হয়।
-]]></dpf_howYouStoreData>
 <dpf_provideIfAvailable>এটি আপনার ডেটাসেটের জন্য উপলব্ধ থাকলে তথ্য প্রদান করুন।</dpf_provideIfAvailable>
 <dpf_acknowledgement>স্বীকৃতি</dpf_acknowledgement>
 <dpf_acknowledgementTooltip><![CDATA[
@@ -2129,10 +2115,8 @@ ERDDAP অ্যাডমিনিস্ট্রেটর আপনাকে �
 <dtWMS>এই ডেটাসেটের ওয়েব ম্যাপ পরিষেবার মাধ্যমে এই ডেটার মানচিত্র তৈরির বিষয়ে জানতে ক্লিক করুন৷</dtWMS>
 <EasierAccessToScientificData>বৈজ্ঞানিক তথ্য সহজে অ্যাক্সেস</EasierAccessToScientificData>
 
-<!--  EDD বার্তাগুলি টেবিলড্যাপ এবং গ্রিড্যাপ ডেটা অ্যাক্সেস ফর্মগুলিতে প্রদর্শিত হয়। -->
-<EDDClickOnSubmitHtml><![CDATA[
-<kbd>Submit</kbd> এ ক্লিক করুন।
-]]></EDDClickOnSubmitHtml>
+<!--প্রদর্শিত বার্তাtabledapফর্ম ব্যবহার করে তালিকাবদ্ধ তথ্য এবং সক্রিয় করুন।
+-->
 <EDDDatasetID>ডেটাসেট আইডি</EDDDatasetID>
 <EDDFgdc>এফজিডিসি</EDDFgdc>
 <EDDFgdcMetadata>FGDC-STD-001-1998 মেটাডেটা</EDDFgdcMetadata>
@@ -2145,9 +2129,7 @@ ERDDAP অ্যাডমিনিস্ট্রেটর আপনাকে �
 <EDDInformation>তথ্য</EDDInformation>
 <EDDSummary>সারসংক্ষেপ</EDDSummary>
 <EDDDatasetTitle>ডেটাসেট শিরোনাম</EDDDatasetTitle>
-<EDDDownloadData>ডেটা ডাউনলোড করুন</EDDDownloadData>
 <EDDMakeAGraph>একটি গ্রাফ তৈরি করুন</EDDMakeAGraph>
-<EDDMakeAMap>একটি মানচিত্র তৈরি করুন</EDDMakeAMap>
 <EDDMinimum>সর্বনিম্ন</EDDMinimum>
 <EDDMaximum>সর্বোচ্চ</EDDMaximum>
 <EDDFileType>ফাইলের ধরন:</EDDFileType>
@@ -2211,8 +2193,6 @@ ERDDAP অ্যাডমিনিস্ট্রেটর আপনাকে �
 ]]></EDDGridDownloadDataTooltip>
 <EDDGridDimension>মাত্রা</EDDGridDimension>
 <EDDGridDimensionRanges>মাত্রা</EDDGridDimensionRanges>
-<EDDGridFirst>প্রথম</EDDGridFirst>
-<EDDGridLast>শেষ</EDDGridLast>
 <EDDGridStart>শুরু করুন</EDDGridStart>
 <EDDGridStop>থামো</EDDGridStop>
 <EDDGridStartStopTooltip><![CDATA[
@@ -2252,14 +2232,6 @@ ERDDAP অ্যাডমিনিস্ট্রেটর আপনাকে �
 আপনার তথ্যের জন্য:
 এটি একটি মাত্রার মানগুলির মধ্যে গড় ব্যবধান (মাত্রার এককগুলিতে) এবং মানগুলি পুরোপুরি সমানভাবে ব্যবধানে আছে কিনা তার একটি ইঙ্গিত৷ একটি সামান্য বিজোড়, অসম ব্যবধান প্রায়ই নির্দেশ করে যে এক বা কয়েকটি ফাইল অনুপস্থিত বা অন্যথায় পুরোপুরি সমানভাবে স্পেসযুক্ত ডেটাসেটে খারাপ।
 ]]></EDDGridSpacingTooltip>
-<EDDGridDimensionFirstTooltip><![CDATA[
-আপনার তথ্যের জন্য:
-এটি একটি মাত্রার প্রথম মান।
-]]></EDDGridDimensionFirstTooltip>
-<EDDGridDimensionLastTooltip><![CDATA[
-আপনার তথ্যের জন্য:
-এটি একটি মাত্রার শেষ মান।
-]]></EDDGridDimensionLastTooltip>
 <EDDGridDownloadTooltip><![CDATA[
 আপনি যে ভেরিয়েবলগুলি ডাউনলোড করতে চান তা নির্বাচন করুন:
 <br>* শুধু মাত্র মাত্রা ডেটা ডাউনলোড করতে:
@@ -2499,10 +2471,6 @@ ERDDAP হল একটি ডেটা সার্ভার যা আপন�
 
 <!--  এই বার্তাগুলি প্রদর্শিত হয় যখন একটি ত্রুটি বার্তা দেখানো হয়। -->
 <errorTitle>ত্রুটি</errorTitle>
-<errorRequestUrl>আপনার অনুরোধ URL:</errorRequestUrl>
-<errorRequestQuery>আপনার অনুরোধ প্রশ্ন:</errorRequestQuery>
-<errorTheError>ভূল:</errorTheError>
-<errorCopyFrom>{0} থেকে কপি করতে অক্ষম৷</errorCopyFrom>
 <errorFileNotFound>ফাইল পাওয়া যায়নি: {0}</errorFileNotFound>
 <errorFileNotFoundImage>ফাইল ক্যাশে পাওয়া যায়নি. ছবিটি পুনরায় তৈরি করুন এবং আবার চেষ্টা করুন।</errorFileNotFoundImage>
 <errorInternal>অভ্যন্তরীণ ত্রুটি:</errorInternal>
@@ -2524,6 +2492,7 @@ ERDDAP হল একটি ডেটা সার্ভার যা আপন�
 <externalLink>(এক্সটার্নাল লিংক)</externalLink>
 <externalWebSite>একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না.</externalWebSite>
 <fileHelp_asc>OPeNDAP-শৈলী ISO-8859-1 কমা দ্বারা পৃথক করা পাঠ্য দেখুন৷</fileHelp_asc>
+<fileHelp_croissant>তথ্য cristsyst স্কিমা ডাউনলোড করুন ।</fileHelp_croissant>
 <fileHelp_csv>একটি ISO-8859-1 কমা-বিচ্ছিন্ন পাঠ্য টেবিল ডাউনলোড করুন (লাইন 1: নাম; লাইন 2: ইউনিট; ISO 8601 বার)।</fileHelp_csv>
 <fileHelp_csvp>লাইন 1: নাম (ইউনিট) সহ একটি ISO-8859-1 .csv ফাইল ডাউনলোড করুন। সময়গুলি হল ISO 8601 স্ট্রিং৷</fileHelp_csvp>
 <fileHelp_csv0>কলামের নাম বা ইউনিট ছাড়া একটি ISO-8859-1 .csv ফাইল ডাউনলোড করুন। সময়গুলি হল ISO 8601 স্ট্রিং৷</fileHelp_csv0>
@@ -2535,12 +2504,18 @@ ERDDAP হল একটি ডেটা সার্ভার যা আপন�
 <fileHelpTable_esriCsv>ESRI এর ArcGIS 9.x এবং নীচের জন্য একটি ISO_8859_1 .csv ফাইল ডাউনলোড করুন (আলাদা তারিখ এবং সময় কলাম)।</fileHelpTable_esriCsv>
 <fileHelp_fgdc>ডেটাসেটের UTF-8 FGDC .xml মেটাডেটা দেখুন।</fileHelp_fgdc>
 <fileHelp_geoJson>একটি UTF-8 GeoJSON .json ফাইল হিসাবে দ্রাঘিমাংশ, অক্ষাংশ, অন্যান্য কলাম ডেটা ডাউনলোড করুন।</fileHelp_geoJson>
-<fileHelp_graph>একটি গ্রাফ ওয়েব পেজ দেখুন।</fileHelp_graph>
 <fileHelpGrid_help>গ্রিড্যাপের বর্ণনা সহ একটি ওয়েব পৃষ্ঠা দেখুন।</fileHelpGrid_help>
 <fileHelpTable_help>টেবিলড্যাপের বিবরণ সহ একটি ওয়েব পৃষ্ঠা দেখুন।</fileHelpTable_help>
 <fileHelp_html>একটি ওপেনড্যাপ-স্টাইল এইচটিএমএল ডেটা অ্যাক্সেস ফর্ম দেখুন।</fileHelp_html>
 <fileHelp_htmlTable>একটি টেবিলে ডেটা সহ একটি UTF-8 .html ওয়েব পৃষ্ঠা দেখুন৷ সময়গুলি হল ISO 8601 স্ট্রিং৷</fileHelp_htmlTable>
-<fileHelp_iso19115>ডেটাসেটের ISO 19115-2/19139 UTF-8 .xml মেটাডেটা দেখুন।</fileHelp_iso19115>
+<fileHelp_iso19115>তথ্য প্রদর্শন করুনISO 19115/19139এই সার্ভারের ডিফল্ট সংস্করণে ব্যবহারযোগ্য .xml&#39;র মিটা-ডাটা।
+</fileHelp_iso19115>
+<fileHelp_iso19115_2>তথ্য প্রদর্শন করুনISO 19115-2/19139UTF.xml অসম্পূর্ণ।
+</fileHelp_iso19115_2>
+<fileHelp_iso191392007>তথ্য প্রদর্শন করুনISO 19139:2007UTF.xml অসম্পূর্ণ।
+</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>তথ্য প্রদর্শন করুনISO 19115-3:2016UTF.xml অসম্পূর্ণ।
+</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>একটি ISO-8859-1 ইগর টেক্সট ফাইল ডাউনলোড করুন। প্রতিটি অক্ষ পরিবর্তনশীল এবং প্রতিটি ডেটা ভেরিয়েবল একটি তরঙ্গে পরিণত হয়।</fileHelp_itxGrid>
 <fileHelp_itxTable>একটি ISO-8859-1 ইগর টেক্সট ফাইল ডাউনলোড করুন। প্রতিটি প্রতিক্রিয়া কলাম একটি তরঙ্গ হয়ে ওঠে।</fileHelp_itxTable>
 <fileHelp_json>একটি টেবিলের মতো UTF-8 JSON ফাইল দেখুন (অনুপস্থিত মান = &#39;null&#39;; বারগুলি হল ISO 8601 স্ট্রিং)।</fileHelp_json>
@@ -2566,7 +2541,6 @@ ERDDAP হল একটি ডেটা সার্ভার যা আপন�
 <fileHelpTable_odvTxt>একটি ISO-8859-1 ODV জেনেরিক স্প্রেডশীট ফাইল (.txt) হিসাবে দ্রাঘিমাংশ, অক্ষাংশ, সময়, অন্যান্য কলাম ডাউনলোড করুন।</fileHelpTable_odvTxt>
 <fileHelp_parquet>ডাউনলোড করো ফোল্ডারের মধ্যে উপস্থিত নাম (ব্যবহারকারী %s) ও সেগুলির নাম পরিবর্তন করা হবে (_d)</fileHelp_parquet>
 <fileHelp_parquet_with_meta>সর্বধরনের মিটা-ডাটা সহ একটি পুঙ্খানুপুঙ্খভাবে ডাউনলোড করুন।</fileHelp_parquet_with_meta>
-<fileHelp_subset>একটি এইচটিএমএল ফর্ম দেখুন যা ডেটার উপসেট বাছাইকে সহজ করতে মুখী অনুসন্ধান ব্যবহার করে।</fileHelp_subset>
 <fileHelp_timeGaps>মধ্যবর্তী ব্যবধানের চেয়ে বড় সময়ের মানের ফাঁকগুলির একটি UTF-8 তালিকা দেখুন।</fileHelp_timeGaps>
 <fileHelp_tsv>একটি ISO-8859-1 ট্যাব-বিচ্ছিন্ন পাঠ্য টেবিল ডাউনলোড করুন (লাইন 1: নাম; লাইন 2: ইউনিট; ISO 8601 বার)।</fileHelp_tsv>
 <fileHelp_tsvp>লাইন 1: নাম (ইউনিট) সহ একটি ISO-8859-1 .tsv ফাইল ডাউনলোড করুন। সময়গুলি হল ISO 8601 স্ট্রিং৷</fileHelp_tsvp>
@@ -2586,7 +2560,6 @@ ERDDAP হল একটি ডেটা সার্ভার যা আপন�
 
 <!--  বর্ণনা এবং সতর্কীকরণ শব্দগুলি এক বা একাধিক ডেটাসেটের জন্য অস্পষ্ট। -->
 <filesDescription>ERDDAP এর &quot;ফাইল&quot; সিস্টেম আপনাকে একটি ভার্চুয়াল ফাইল সিস্টেম ব্রাউজ করতে এবং উৎস ডেটা ফাইল ডাউনলোড করতে দেয়।</filesDescription>
-<filesSort>সাজানোর ক্রম পরিবর্তন করতে একটি শিরোনামে ক্লিক করুন (যেমন, নাম, সর্বশেষ সংশোধিত, আকার)। &quot;শেষ পরিবর্তিত&quot; জুলু সময় অঞ্চল ব্যবহার করে।</filesSort>
 <filesWarning><![CDATA[
 এই উৎস ফাইলগুলিতে ডেটাসেটের মেটাডেটা এবং পরিবর্তনশীল নামগুলি ERDDAP এর অন্য কোথাও থেকে আলাদা হতে পারে! আপনি পরিবর্তে ডেটাসেটের ডেটা অ্যাক্সেস ফর্ম ব্যবহার করতে পছন্দ করতে পারেন।
 ]]></filesWarning>
@@ -2831,7 +2804,7 @@ ERDDAP এর একটি প্রধান বৈশিষ্ট্য হল
 <a rel="help" href="https://anaconda.org/eumetsat/ncview"><img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a>)
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, স্থায়ীভাবে .nc ফাইল পরিবর্তন করার জন্য একটি শক্তিশালী কমান্ড লাইন টুল।
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, স্থায়ীভাবে .nc ফাইল পরিবর্তন করার জন্য একটি শক্তিশালী কমান্ড লাইন টুল।
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C এবং NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a>, C, C++, Fortran, বা Java এর জন্য প্রধান সফ্টওয়্যার লাইব্রেরি যা .nc ফাইলগুলি পড়তে এবং লিখতে পারে।
@@ -2964,10 +2937,6 @@ orderBy ...
 <p><strong>orderByMean</strong> ফলাফল টেবিলের সারিগুলিকে গ্রুপে সাজায় এবং প্রতিটি গ্রুপের জন্য একটি সারি প্রদান করে। সেই সারিতে অন্যান্য ভেরিয়েবলের গড় থাকবে। উদাহরণস্বরূপ, orderByMax(&quot;stationID, time/1day&quot;) প্রতিটি stationID জন্য প্রতিটি দিনের জন্য একটি গ্রুপ তৈরি করবে এবং অন্যান্য ভেরিয়েবলের গড় গণনা করবে এবং ফেরত দেবে।
 <p><strong>orderBy Sum</strong> ফলাফল টেবিলের সারিগুলিকে গ্রুপে সাজায় এবং প্রতিটি গ্রুপের জন্য একটি সারি প্রদান করে। সেই সারিতে অন্যান্য ভেরিয়েবলের প্রতিটির যোগফল থাকবে। উদাহরণস্বরূপ, orderByMax(&quot;stationID, time/1day&quot;) প্রতিটি stationID জন্য প্রতিটি দিনের জন্য একটি গ্রুপ তৈরি করবে এবং অন্যান্য ভেরিয়েবলের যোগফল গণনা করবে এবং ফেরত দেবে।
 ]]></functionOrderByTooltip>
-<functionOrderByExtra><![CDATA[
-orderByClosest এর জন্য, এখানে ব্যবধানটি নির্দিষ্ট করুন (n[timeUnits] বিন্যাস ব্যবহার করে, যেমন, 1 ঘন্টা)।
-<br>orderByLimit এর জন্য, এখানে প্রতি গ্রুপে সর্বোচ্চ সংখ্যক সারি উল্লেখ করুন।
-]]></functionOrderByExtra>
 <functionOrderBySort><![CDATA[
 এই স্লটটি হল {0} গুরুত্বপূর্ণ orderBy ...
 স্লট।
@@ -2978,7 +2947,6 @@ orderByClosest এর জন্য, এখানে ব্যবধানটি 
 <functionOrderBySort3>তৃতীয় সর্বাধিক</functionOrderBySort3>
 <functionOrderBySort4>চতুর্থ সর্বাধিক</functionOrderBySort4>
 <functionOrderBySortLeast>অন্তত</functionOrderBySortLeast>
-<functionOrderBySortRowMax>শুধুমাত্র সর্বোচ্চ মান সহ সারি রাখা হবে।</functionOrderBySortRowMax>
 <generatedAt>এই ওয়েব পৃষ্ঠাটি {0} এ তৈরি হয়েছিল।</generatedAt>
 <geoServicesDescription><![CDATA[
 এই ERDDAP এর ডেটা ArcGIS ব্যবহারকারীদের কাছে আরও অ্যাক্সেসযোগ্য করার জন্য, ERDDAP এর এই অংশটি অনুকরণ করে
@@ -3192,7 +3160,7 @@ href="https://groups.google.com/forum/#!forum/erddap"><img
 <h2><a class="selfLink" id="JavaPrograms" href="#JavaPrograms" rel="bookmark">আপনার Java প্রোগ্রামের মধ্যে একটি ডেটা উত্স হিসাবে ERDDAP ব্যবহার করা</a></h2>
 উপরে বর্ণিত হিসাবে, যেহেতু Java প্রোগ্রামগুলি ওয়েবে উপলব্ধ ডেটা অ্যাক্সেস করতে পারে, আপনি একটি Java প্রোগ্রাম লিখতে পারেন যা যে কোনও সর্বজনীনভাবে অ্যাক্সেসযোগ্য ERDDAP ইনস্টলেশন থেকে ডেটা অ্যাক্সেস করে।
 <p>অথবা, যেহেতু ERDDAP হল একটি অল-ওপেন সোর্স প্রোগ্রাম, আপনি আপনার নিজস্ব ডেটা পরিবেশন করার জন্য আপনার নিজের সার্ভারে (সর্বজনীনভাবে অ্যাক্সেসযোগ্য বা না) ERDDAP এর নিজস্ব কপি সেট আপ করতে পারেন। আপনার Java প্রোগ্রামগুলি ERDDAP এর সেই অনুলিপি থেকে ডেটা পেতে পারে।
-<a rel="help" href="https://erddap.github.io/setup.html">আপনার নিজের ERDDAP সেট আপ</a> দেখুন।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">আপনার নিজের ERDDAP সেট আপ</a> দেখুন।
 ]]></javaProgramsHTML>
 
 <!--  JustGenerateAndView বার্তাগুলি justGenerateAndView বোতামের জন্য ব্যবহৃত হয়
@@ -3253,14 +3221,13 @@ ERDDAP-এর অনুভূমিক কিংবদন্তির জন্�
 <!--  যেমন, {0}=WMS বা listAll -->
 <listOfDatasets>{0} ডেটাসেটের তালিকা</listOfDatasets>
 <listAll>সব</listAll>
-<LogIn>প্রবেশ করুন</LogIn>
 <login>প্রবেশ করুন</login>
 <loginHTML><![CDATA[
 
 <h2><a class="selfLink" id="login" href="#login" rel="bookmark">ব্যক্তিগত ডেটাসেট অ্যাক্সেস করতে লগ ইন করুন।</a></h2>
 অনেক ERDDAP ইনস্টলেশনে প্রমাণীকরণ সক্ষম নেই এবং এইভাবে ব্যবহারকারীদের লগইন করার কোনো উপায় প্রদান করে না, বা তাদের কোনো ব্যক্তিগত ডেটাসেটও নেই।
 <p>কিছু ERDDAP ইনস্টলেশনে প্রমাণীকরণ সক্ষম করা আছে। বর্তমানে, ERDDAP শুধুমাত্র Google-পরিচালিত ইমেল অ্যাকাউন্টগুলির মাধ্যমে প্রমাণীকরণ সমর্থন করে, যার মধ্যে NOAA এবং অনেক বিশ্ববিদ্যালয়ে ইমেল অ্যাকাউন্ট রয়েছে। যদি একটি ERDDAP প্রমাণীকরণ সক্ষম করে থাকে, তবে Google-পরিচালিত ইমেল অ্যাকাউন্টের সাথে যে কেউ লগ ইন করতে পারে, কিন্তু তারা শুধুমাত্র ব্যক্তিগত ডেটাসেটগুলিতে অ্যাক্সেস পাবে যা ERDDAP প্রশাসক তাদের অ্যাক্সেস করার জন্য স্পষ্টভাবে অনুমোদন করেছেন। ব্রাউজার থেকে বা স্ক্রিপ্টের মাধ্যমে ERDDAP এ লগ ইন করার নির্দেশাবলীর জন্য, ERDDAP-
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">ERDDAP ব্যক্তিগত ডেটাসেটের অ্যাক্সেস</a> দেখুন।
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">ERDDAP ব্যক্তিগত ডেটাসেটের অ্যাক্সেস</a> দেখুন।
 ]]></loginHTML>
 <loginAttemptBlocked>ত্রুটি: 3টি ব্যর্থ প্রচেষ্টার পরে {0}-এর লগইন প্রচেষ্টা সাময়িকভাবে ব্লক করা হচ্ছে৷
 {1} মিনিট অপেক্ষা করুন, তারপর আবার চেষ্টা করুন।</loginAttemptBlocked>
@@ -3290,22 +3257,15 @@ ERDDAP-এর অনুভূমিক কিংবদন্তির জন্�
     src="&erddapUrl;/images/external.png" alt=" (external link)" 
     title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a> একটি ওপেন স্ট্যান্ডার্ড যা আপনাকে একটি ওয়েবসাইটে আপনার পাসওয়ার্ড দিয়ে লগ ইন করতে দেয় এবং তারপর ERDDAP সহ অন্যান্য অনেক ওয়েবসাইটে আপনার পাসওয়ার্ড ছাড়াই লগ ইন করতে দেয়। শুধুমাত্র যারা এই ERDDAP এর প্রশাসকের সাথে ব্যবস্থা করেছেন তারা লগ ইন করতে পারেন৷
 ]]></loginDescribeOpenID>
-<loginErddap>ERDDAP লগ ইন করুন</loginErddap>
 <loginCanNot>ব্যবহারকারীদের লগ ইন করতে দেওয়ার জন্য এই ERDDAP কনফিগার করা হয়নি৷</loginCanNot>
 <loginAreNot>আপনি লগ ইন করেননি</loginAreNot>
 <loginToLogIn>লগ - ইন করতে</loginToLogIn>
-<loginEmailAddress>ইমেইল ঠিকানা</loginEmailAddress>
 <loginYourEmailAddress>আপনার ইমেইল ঠিকানা</loginYourEmailAddress>
 <loginUserName>ব্যবহারকারীর নাম</loginUserName>
 <loginPassword>পাসওয়ার্ড</loginPassword>
 <loginUserNameAndPassword>ব্যবহারকারীর নাম এবং পাসওয়ার্ড</loginUserNameAndPassword>
 <loginGoogleSignIn>আপনার Google অ্যাকাউন্ট দিয়ে প্রমাণীকরণ করুন।</loginGoogleSignIn>
 <loginOrcidSignIn>আপনার ORCID আইডি দিয়ে প্রমাণীকরণ করুন।</loginOrcidSignIn>
-<loginOpenID>আপনার OpenID URL দিয়ে লগ ইন করুন</loginOpenID>
-<loginOpenIDOr>অথবা আপনার বিদ্যমান (নন-ওপেনআইডি) অ্যাকাউন্টে লগ ইন করুন</loginOpenIDOr>
-<loginOpenIDCreate>অথবা এ একটি OpenID URL তৈরি করুন</loginOpenIDCreate>
-<loginOpenIDFree>তারা সবাই বিনামূল্যে!</loginOpenIDFree>
-<loginOpenIDSame>নিশ্চিত করুন যে আপনি ঠিক একই OpenID URL দিয়ে লগ ইন করেছেন যা আপনি ERDDAP অ্যাডমিনিস্ট্রেটরকে দিয়েছেন।</loginOpenIDSame>
 <loginAs>আপনি {0} হিসাবে লগ ইন করেছেন।</loginAs>
 <loginPartwayAs>আপনি {0} হিসাবে আংশিকভাবে লগ ইন করেছেন।</loginPartwayAs>
 <loginFailed>ত্রুটি: লগইন ব্যর্থ হয়েছে৷</loginFailed>
@@ -3397,7 +3357,6 @@ ERDDAP-এর অনুভূমিক কিংবদন্তির জন্�
 ]]></loginPublicAccess>
 <LogOut>প্রস্থান</LogOut>
 <logout>প্রস্থান</logout>
-<logoutOpenID>আপনার OpenID প্রদানকারী থেকে লগ আউট করুন.</logoutOpenID>
 
 <!--  লগআউট সাকসেস সর্বশেষ আপডেট হয়েছে 2019-12-19 -->
 <logoutSuccess>আপনি সফলভাবে লগ আউট করেছেন।
@@ -3640,10 +3599,6 @@ ERDDAP-এর অনুভূমিক কিংবদন্তির জন্�
 একটি খালি ফাইল ফেরত ভাল? কিন্তু .nc এবং অন্যরা 0-দৈর্ঘ্যের ডেটা অনুমোদন করে না।
  -->
 <MustBeThereIsNoData>আপনার ক্যোয়ারী কোন মিল ফলাফল উত্পাদিত.</MustBeThereIsNoData>
-
-<!--  অনেক ফাইলের ধরন একটি ফাইল কতটা ডেটা ধারণ করতে পারে তার একটি সীমা রাখে (যেমন, 2GB)। -->
-<MustBeNotNull>{0} অবশ্যই শূন্য হবে না।</MustBeNotNull>
-<MustBeNotEmpty>{0} একটি খালি স্ট্রিং হওয়া উচিত নয়৷</MustBeNotEmpty>
 <MustBeInternalError>অভ্যন্তরীণ ত্রুটি</MustBeInternalError>
 <MustBeOutOfMemoryError>মেমরি ত্রুটি আউট</MustBeOutOfMemoryError>
 
@@ -3684,11 +3639,9 @@ ERDDAP-এর অনুভূমিক কিংবদন্তির জন্�
 <noXxxNoLonIn180>-180 থেকে 360 এর মধ্যে কোনো দ্রাঘিমাংশের মান নেই৷</noXxxNoLonIn180>
 <noXxxNoNonString>কোন নন-স্ট্রিং ভেরিয়েবল নেই</noXxxNoNonString>
 <noXxxNo2NonString>অন্তত দুটি নন-স্ট্রিং ভেরিয়েবল নেই</noXxxNo2NonString>
-<noXxxNoStation>cdmDataType={0} &quot;TimeSeries&quot; নয়</noXxxNoStation>
 <noXxxNoStationID>কোনো স্টেশনআইডি-এর মতো ভেরিয়েবল নেই</noXxxNoStationID>
 <noXxxNoSubsetVariables>উপসেট ভেরিয়েবল নির্দিষ্ট করা হয়নি</noXxxNoSubsetVariables>
 <noXxxNoOLLSubsetVariables>উপসেট ভেরিয়েবলের অফার, দ্রাঘিমাংশ এবং অক্ষাংশ ভেরিয়েবল নেই</noXxxNoOLLSubsetVariables>
-<noXxxNoMinMax>উৎস ডেটা সার্ভার সর্বনিম্ন এবং সর্বোচ্চ মান প্রদান করে না</noXxxNoMinMax>
 <noXxxItsGridded>এটি একটি গ্রিড করা ডেটাসেট</noXxxItsGridded>
 <noXxxItsTabular>এটি একটি সারণী ডেটাসেট</noXxxItsTabular>
 <oneRequestAtATime>একটি সময়ে শুধুমাত্র একটি অনুরোধ করুন.</oneRequestAtATime>
@@ -3713,7 +3666,6 @@ ERDDAP-এর অনুভূমিক কিংবদন্তির জন্�
 <options>অপশন</options>
 <orAListOfValues>অথবা মূল্যবোধের একটি তালিকা</orAListOfValues>
 <orRefineSearchWith>অথবা, এর সাথে এই অনুসন্ধানটি পরিমার্জন করুন</orRefineSearchWith>
-<orSearchWith>অথবা, এর সাথে ডেটাসেট অনুসন্ধান করুন</orSearchWith>
 <orComma>অথবা,</orComma>
 <otherFeatures>অন্যান্য বৈশিষ্ট্য</otherFeatures>
 <outOfDateDatasets>পুরানো ডেটাসেট</outOfDateDatasets>
@@ -3769,7 +3721,6 @@ A-Za-z0-9_-!.~&#39;()* ছাড়া অন্য সব অক্ষরকে
     src="&erddapUrl;/images/external.png" alt=" (external link)" 
     title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a> .
 ]]></percentEncode>
-<pickADataset>একটি ডেটাসেট চয়ন করুন</pickADataset>
 
 <!--  প্রোটোকল-ভিত্তিক ডেটাসেট অনুসন্ধান সম্পর্কিত বার্তা। -->
 <protocolSearchHtml>প্রোটোকল দ্বারা ডেটাসেট অনুসন্ধান করুন</protocolSearchHtml>
@@ -3783,7 +3734,6 @@ A-Za-z0-9_-!.~&#39;()* ছাড়া অন্য সব অক্ষরকে
 <queryError1Var>{0} বিন্যাস শুধুমাত্র একটি ডেটা ভেরিয়েবল পরিচালনা করতে পারে।</queryError1Var>
 <queryError2Var>{0} বিন্যাসের জন্য অনুরোধে কমপক্ষে দুটি সংখ্যাসূচক ভেরিয়েবল (X এবং Y অক্ষের জন্য) অন্তর্ভুক্ত থাকতে হবে।</queryError2Var>
 <queryErrorActualRange>{0} ভেরিয়েবলের প্রকৃত_পরিসীমার বাইরে: {1} থেকে {2}</queryErrorActualRange>
-<queryErrorAscending>{0} অনুরোধের জন্য, দ্রাঘিমাংশের মান এবং অক্ষাংশের মানগুলি অবশ্যই আরোহী হতে হবে৷</queryErrorAscending>
 <queryErrorAdjusted>{0} অনুরোধের জন্য, সামঞ্জস্যকৃত দ্রাঘিমাংশের মান ({1} থেকে {2}) অবশ্যই -180 এবং 180-এর মধ্যে হতে হবে।</queryErrorAdjusted>
 <queryErrorConstraintNaN>সীমাবদ্ধতা মান=&quot;{0}&quot; NaN কে মূল্যায়ন করে। আপনি যদি সত্যিই NaN চান তবে এটিকে NaN হিসাবে লিখুন।</queryErrorConstraintNaN>
 <queryErrorEqualSpacing>{0} অনুরোধের জন্য, দ্রাঘিমাংশ ব্যবধান ({1}) অবশ্যই অক্ষাংশ ব্যবধান ({2}) এর সমান হবে৷</queryErrorEqualSpacing>
@@ -3815,7 +3765,6 @@ A-Za-z0-9_-!.~&#39;()* ছাড়া অন্য সব অক্ষরকে
 <queryErrorGridNoAxisVar>একটি গ্রিড্যাপ ডেটা ভেরিয়েবল ক্যোয়ারী একটি অক্ষ পরিবর্তনশীল ({0}) অন্তর্ভুক্ত করতে পারে না।</queryErrorGridNoAxisVar>
 <queryErrorGridNoDataVar>একটি গ্রিড্যাপ অক্ষ পরিবর্তনশীল ক্যোয়ারী একটি ডেটা ভেরিয়েবল ({0}) অন্তর্ভুক্ত করতে পারে না।</queryErrorGridNoDataVar>
 <queryErrorGridNotIdentical>পরিবর্তনশীল={1}-এর জন্য সীমাবদ্ধতা {2} পরিবর্তনশীল={2}-এর জন্য সীমাবদ্ধতা অভিন্ন নয়। আপনার যদি বিভিন্ন উপসেটের প্রয়োজন হয় তবে আলাদা অনুরোধ করুন।</queryErrorGridNotIdentical>
-<queryErrorGridSLessS>StartIndex={0} হল StopIndex={1} থেকে বড়।</queryErrorGridSLessS>
 <queryErrorLastEndP>{0} &quot;(&quot; দিয়ে শুরু হয়, কিন্তু &quot;)&quot; দিয়ে শেষ হয় না।</queryErrorLastEndP>
 <queryErrorLastExpected>&quot;শেষ&quot; {0} এর শুরুতে প্রত্যাশিত ছিল৷</queryErrorLastExpected>
 <queryErrorLastUnexpected>{0} এ &quot;শেষ&quot; এর পরে অপ্রত্যাশিত অক্ষর৷</queryErrorLastUnexpected>
@@ -3843,7 +3792,7 @@ ERDDAP উভয়ই:
 <a rel="help" href="https://www.json.org/">JSON &externalLinkHtml;</a> এর মতো আরও কম্পিউটার-প্রোগ্রাম-বান্ধব বিন্যাসে একই তথ্য পেতে ব্যবহার করতে পারে। .
 <h3><a class="selfLink" id="BuildThings" href="#BuildThings" rel="bookmark">ERDDAP এর উপরে জিনিস তৈরি করুন</a></h3>
 ERDDAP এ এমন অনেক বৈশিষ্ট্য রয়েছে যা কম্পিউটার প্রোগ্রাম বা আপনার লেখা স্ক্রিপ্ট দ্বারা ব্যবহার করা যেতে পারে। আপনি ERDDAP এর উপরে অন্যান্য ওয়েব অ্যাপ্লিকেশন বা ওয়েব পরিষেবা তৈরি করতে ব্যবহার করতে পারেন, যার ফলে ERDDAP বেশিরভাগ কাজ করে! সুতরাং আপনার যদি ERDDAP যে ডেটা পরিবেশন করে বা এমন একটি ওয়েব পৃষ্ঠা যা ডেটা অ্যাক্সেস করার একটি সহজ উপায় প্রয়োজন তার একটি ভাল ইন্টারফেসের জন্য একটি ধারণা থাকলে, আমরা আপনাকে আপনার নিজস্ব ওয়েব অ্যাপ্লিকেশন, ওয়েব পরিষেবা, বা ওয়েব পৃষ্ঠা তৈরি করতে এবং ERDDAP হিসাবে ব্যবহার করতে উত্সাহিত করি ভিত্তি আপনার সিস্টেম ERD এর ERDDAP বা অন্যান্য ERDDAP ইনস্টলেশন থেকে ডেটা, গ্রাফ এবং অন্যান্য তথ্য পেতে পারে, অথবা আপনি করতে পারেন<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">আপনার নিজস্ব ERDDAP সার্ভার সেট আপ করুন</a>, যা সর্বজনীনভাবে অ্যাক্সেসযোগ্য বা ব্যক্তিগতভাবে অ্যাক্সেসযোগ্য হতে পারে।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">আপনার নিজস্ব ERDDAP সার্ভার সেট আপ করুন</a>, যা সর্বজনীনভাবে অ্যাক্সেসযোগ্য বা ব্যক্তিগতভাবে অ্যাক্সেসযোগ্য হতে পারে।
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">RESTful URL অনুরোধ</a></h3>
 ERDDAP থেকে ব্যবহারকারী-ইন্টারফেস তথ্যের জন্য অনুরোধ (উদাহরণস্বরূপ, অনুসন্ধান ফলাফল) অনুরোধের জন্য ওয়েবের সার্বজনীন মান ব্যবহার করে:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URLs &externalLinkHtml;</a>
@@ -3886,7 +3835,7 @@ ERDDAP থেকে ব্যবহারকারী-ইন্টারফে�
 <li>.jsonlKVP - কী:মান জোড়া সহ একটি JSON লাইন ফাইল। (<a rel="help" href="https://jsonlines.org/">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
 <li>.mat - একটি MATLAB বাইনারি ফাইল। (<a rel="help" href="https://www.mathworks.com/">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
 <li>.nc - একটি সমতল, টেবিলের মতো, NetCDF -3 বাইনারি ফাইল। (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
-<li>.nccsv - একটি ফ্ল্যাট, টেবিলের মতো, NetCDF এর মতো, ASCII CSV ফাইল৷ (<a rel="help" href="https://erddap.github.io/NCCSV.html">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
+<li>.nccsv - একটি ফ্ল্যাট, টেবিলের মতো, NetCDF এর মতো, ASCII CSV ফাইল৷ (<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
 <li>.tsv - একটি ট্যাব-বিচ্ছিন্ন ASCII টেক্সট টেবিল। (<a rel="help" href="https://jkorpela.fi/TSV.html">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
 <li>.xhtml - একটি টেবিলের ডেটা সহ একটি XHTML (XML) ফাইল। (<a rel="help" href="https://www.w3schools.com/html/html_tables.asp">আরো&nbsp;তথ্য &externalLinkHtml;</a>)
 </ul>
@@ -4003,7 +3952,6 @@ ERDDAP থেকে ব্যবহারকারী-ইন্টারফে�
 <SOSDocumentation>ERDDAP এর SOS ডকুমেন্টেশন</SOSDocumentation>
 <WCSDocumentation>ERDDAP এর WCS ডকুমেন্টেশন</WCSDocumentation>
 <WMSDocumentation>ERDDAP এর WMS ডকুমেন্টেশন</WMSDocumentation>
-<findOutChange>যাতে আপনার কম্পিউটার প্রোগ্রাম একটি ডেটাসেট পরিবর্তিত হয়েছে কিনা তা খুঁজে বের করতে পারে।</findOutChange>
 <requestFormatExamplesHtml><![CDATA[
 (উদাহরণস্বরূপ,
 <a rel="help" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3">HTTP GET <img 
@@ -4387,12 +4335,6 @@ ERDDAP এর একটি ইমেল/URL সাবস্ক্রিপশন
 <br>সাবস্ক্রিপশন আইডি এবং কী মেলে, সাবস্ক্রিপশন মুছে ফেলা হবে।</span>
 ]]></subscriptionRemoveSuccess>
 <subscriptionRSS>এই ডেটাসেটের জন্য RSS ফিডে সদস্যতা নিন...</subscriptionRSS>
-<subscriptionsNotAvailable><![CDATA[
-
-<p><strong>দুঃখিত। এই ERDDAP ইনস্টলেশনে ইমেল/URL সাবস্ক্রিপশন সিস্টেম উপলব্ধ নেই।</strong>
-<br>পরিবর্তে
-<a rel="help" href="{0}/information.html#subscriptions">RSS</a> সাবস্ক্রিপশন পরিষেবা ব্যবহার করার কথা বিবেচনা করুন।
-]]></subscriptionsNotAvailable>
 <subscriptionUrlHtml><![CDATA[
 <kbd>URL/action</kbd> হল একটি ঐচ্ছিক ইউআরএল যার ERDDAP আপনাকে ইমেল পাঠানোর পরিবর্তে যোগাযোগ করবে।
 <br>তাই যখনই ডেটাসেট পরিবর্তন হয় আপনি যদি একটি ইমেল পেতে চান, তাহলে <kbd>URL/action</kbd> ফাঁকা রাখুন।
@@ -4473,7 +4415,7 @@ OPeNDAP স্ট্যান্ডার্ডের মাধ্যমে।
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>ERDDAP সম্পর্কে আরও জানুন।</strong></a>
 <p><strong>ডেটা প্রদানকারী:
 আপনি
-<a rel="help" href="https://erddap.github.io/setup.html">আপনার নিজস্ব ERDDAP সার্ভার সেট আপ</a> করতে পারেন এবং আপনার নিজস্ব ডেটা পরিবেশন করতে পারেন।</strong> ERDDAP বিনামূল্যে এবং ওপেন সোর্স। এটি Apache-এর মতো লাইসেন্স ব্যবহার করে, তাই আপনি এটি দিয়ে যা চান তা করতে পারেন। ERDDAP এর চেহারা কাস্টমাইজযোগ্য, তাই আপনার ERDDAP আপনার প্রতিষ্ঠানকে প্রতিফলিত করবে, NOAA নয়। ERDDAP সেট আপ করার ছোট প্রচেষ্টা অনেক সুবিধা নিয়ে আসে। আপনার যদি ইতিমধ্যেই আপনার ডেটা বিতরণের জন্য একটি ওয়েব পরিষেবা থাকে, তাহলে আপনি বিদ্যমান পরিষেবার মাধ্যমে বা উৎস ফাইল বা ডাটাবেসের মাধ্যমে আপনার ডেটা অ্যাক্সেস করতে ERDDAP সেট আপ করতে পারেন। তারপর, লোকেরা আপনার ডেটা অ্যাক্সেস করার অন্য উপায় পাবে এবং অতিরিক্ত ফাইল ফর্ম্যাটে বা গ্রাফ বা মানচিত্র হিসাবে ডেটা ডাউনলোড করতে সক্ষম হবে৷ ERDDAP অন্তত 14টি দেশে 90টিরও বেশি সংস্থা দ্বারা ইনস্টল করা হয়েছে।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">আপনার নিজস্ব ERDDAP সার্ভার সেট আপ</a> করতে পারেন এবং আপনার নিজস্ব ডেটা পরিবেশন করতে পারেন।</strong> ERDDAP বিনামূল্যে এবং ওপেন সোর্স। এটি Apache-এর মতো লাইসেন্স ব্যবহার করে, তাই আপনি এটি দিয়ে যা চান তা করতে পারেন। ERDDAP এর চেহারা কাস্টমাইজযোগ্য, তাই আপনার ERDDAP আপনার প্রতিষ্ঠানকে প্রতিফলিত করবে, NOAA নয়। ERDDAP সেট আপ করার ছোট প্রচেষ্টা অনেক সুবিধা নিয়ে আসে। আপনার যদি ইতিমধ্যেই আপনার ডেটা বিতরণের জন্য একটি ওয়েব পরিষেবা থাকে, তাহলে আপনি বিদ্যমান পরিষেবার মাধ্যমে বা উৎস ফাইল বা ডাটাবেসের মাধ্যমে আপনার ডেটা অ্যাক্সেস করতে ERDDAP সেট আপ করতে পারেন। তারপর, লোকেরা আপনার ডেটা অ্যাক্সেস করার অন্য উপায় পাবে এবং অতিরিক্ত ফাইল ফর্ম্যাটে বা গ্রাফ বা মানচিত্র হিসাবে ডেটা ডাউনলোড করতে সক্ষম হবে৷ ERDDAP অন্তত 14টি দেশে 90টিরও বেশি সংস্থা দ্বারা ইনস্টল করা হয়েছে।
 <a rel="bookmark"
 href="https://www.ngdc.noaa.gov/wiki/index.php/Data_Access_Technical_Recommendations#Software_implementations">NOAA এর ডেটা অ্যাক্সেস পদ্ধতিগত নির্দেশিকা <img 
     src="&erddapUrl;/images/external.png" alt=" (external link)" 
@@ -4610,11 +4552,6 @@ favicon.ico হল সেই ছবি যা ব্রাউজার আপন
 <!--  নিম্নলিখিত ট্যাগটি 2টি পূর্ববর্তী ট্যাগের মধ্যে 1টির পূর্বে রয়েছে।
   {0} হল subsetViewSelectDistintCombos বা subsetViewSelectRelatedCounts। -->
 <subsetWhenCounts>&quot;{2}&quot; এর {1} মানের জন্য {0} হল:</subsetWhenCounts>
-<subsetComboClickSelect><![CDATA[
-উপরে তালিকাভুক্ত ভেরিয়েবলের স্বতন্ত্র সমন্বয়ের গণনা দেখতে,
-<br>উপরে <kbd>{0} :
-{1}</kbd> চেক করুন এবং উপরের ভেরিয়েবলগুলির একটির জন্য একটি মান নির্বাচন করুন।
-]]></subsetComboClickSelect>
 <subsetNVariableCombos>মোট, উপরে তালিকাভুক্ত ভেরিয়েবলের স্বতন্ত্র সমন্বয়ের {0}টি সারি রয়েছে।</subsetNVariableCombos>
 <subsetShowingAllRows>সব সারি উপরে দেখানো হয়েছে.</subsetShowingAllRows>
 <subsetShowingNRows>প্রথম {0}টি সারি উপরে দেখানো হয়েছে। অবশিষ্ট {1} সারি দেখানো হচ্ছে না।</subsetShowingNRows>
@@ -4775,7 +4712,7 @@ ERDDAP ব্যতীত, যখন একজন ব্যক্তি (বা 
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP স্থানীয় (সার্ভারের হার্ড ড্রাইভে) এবং দূরবর্তী (ওয়েবের মাধ্যমে অ্যাক্সেস করা) ডেটা উত্স থেকে ডেটা পেতে পারে।</a></strong>
 <br>ERDDAP অ্যাক্সেস করতে পারে এমন
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">ধরনের ডেটা উত্সগুলির তালিকা</a> দেখুন।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">ধরনের ডেটা উত্সগুলির তালিকা</a> দেখুন।
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP শুধুমাত্র সমুদ্র সংক্রান্ত তথ্য নয়, অনেক ধরনের বৈজ্ঞানিক তথ্য পরিবেশন করতে পারে।</a></strong>
 <br>ERDDAP হল একটি ডেটা সার্ভার যা
@@ -4916,8 +4853,8 @@ ERDDAP এছাড়াও ডেটা অ্যাক্সেস ফর্�
 <a rel="help" href="https://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html">CF মেটাডেটা <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a>) ডেটা বর্ণনা করে। ERDDAP অ্যাডমিনিস্ট্রেটরকে মেটাডেটা বর্ণনা করতে দেয় (এবং উত্সাহিত করে) যা ডেটাসেটে যোগ করা হবে এবং তাদের ভেরিয়েবল অন-দ্য-ফ্লাই।
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">অ্যাডমিনিস্ট্রেটরদের জন্য নির্দেশাবলীর</a>
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">addAttributes বিভাগটি</a> দেখুন।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">অ্যাডমিনিস্ট্রেটরদের জন্য নির্দেশাবলীর</a>
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">addAttributes বিভাগটি</a> দেখুন।
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP আপনাকে গ্রাফ এবং মানচিত্র সহ .png এবং .pdf ছবি ফাইলের অনুরোধ করতে দেয়</a></strong>
@@ -5028,7 +4965,7 @@ ERDDAP প্রতিটি ডেটাসেটের জন্য একট�
 <a rel="help" href="&erddapUrl;/rest.html">কম্পিউটার প্রোগ্রামের জন্য</a> ERDDAP এর পরিষেবা সম্পর্কে আরও পড়ুন।
 <br>&nbsp;
 <li><strong><a class="selfLink" id="security" href="#security" rel="bookmark">নিরাপত্তা</a></strong> - ডিফল্টরূপে, ERDDAP একটি সম্পূর্ণ পাবলিক সার্ভার হিসাবে চলে যেখানে কোনো লগইন সিস্টেম নেই এবং ডেটা অ্যাক্সেসে কোনো সীমাবদ্ধতা নেই। যাইহোক, একজন ERDDAP অ্যাডমিনিস্ট্রেটর ERDDAP কনফিগার করতে পারেন কিছু বা সমস্ত ডেটাসেটের অ্যাক্সেস সীমাবদ্ধ করতে ব্যবহারকারীদের জন্য যারা লগ ইন করেছেন এবং নির্দিষ্ট ভূমিকা নিযুক্ত করা হয়েছে। প্রমাণীকরণ (লগ ইন) করার জন্য ERDDAP অন্তর্নির্মিত পদ্ধতি রয়েছে। যদি একটি ERDDAP ইনস্টলেশনের প্রমাণীকরণ চালু থাকে, তাহলে প্রতিটি ওয়েব পৃষ্ঠার শীর্ষে একটি&quot;লগ ইন&quot;লিঙ্ক থাকবে। সর্বজনীনভাবে উপলব্ধ ডেটাসেটগুলি অ্যাক্সেস করতে ব্যবহারকারীদের কখনই লগ ইন করতে হবে না। যে ব্যবহারকারীরা লগ ইন করেছেন তারা সর্বজনীন ডেটাসেট এবং ব্যক্তিগত ডেটাসেটগুলিতে অ্যাক্সেস করতে পারবেন যেখানে তাদের অ্যাক্সেসের অনুমতি দেওয়া হয়েছে। লগ ইন করতে এবং ব্যক্তিগত ডেটাসেট অ্যাক্সেস করতে ব্যবহারকারীদের অবশ্যই https:
-(সিকিউর সকেট লেয়ার) ব্যবহার করতে হবে। ডেটাসেটগুলিকে গ্রাফ এবং মানচিত্র সর্বজনীনভাবে অ্যাক্সেসযোগ্য রাখার জন্য কনফিগার করা যেতে পারে, তবে শুধুমাত্র অনুমোদিত ব্যবহারকারীদের কাছে ডেটা অ্যাক্সেসযোগ্য। (<a rel="help" href="https://erddap.github.io/setup.html#security">অধিক তথ্য</a>)
+(সিকিউর সকেট লেয়ার) ব্যবহার করতে হবে। ডেটাসেটগুলিকে গ্রাফ এবং মানচিত্র সর্বজনীনভাবে অ্যাক্সেসযোগ্য রাখার জন্য কনফিগার করা যেতে পারে, তবে শুধুমাত্র অনুমোদিত ব্যবহারকারীদের কাছে ডেটা অ্যাক্সেসযোগ্য। (<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">অধিক তথ্য</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP খণ্ডে ডেটা প্রক্রিয়া করে।</a></strong>
 <br>মেমরি সংরক্ষণ করতে (একটি বড় সমস্যা) এবং প্রতিক্রিয়াগুলি তাড়াতাড়ি শুরু করতে, ERDDAP খণ্ডে ডেটা অনুরোধগুলি প্রক্রিয়া করে — বারবার উত্স থেকে ডেটার একটি খণ্ড পাওয়া, এটি পরিষ্কার করা (উদাহরণস্বরূপ,
@@ -5048,15 +4985,15 @@ Push অ্যান্ড Pull টেকনোলজি</a></strong>
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a> :
 কিন্তু ERDDAP কাছে একটি দূরবর্তী ডেটা উত্স থেকে সমস্ত উপলব্ধ ডেটা সক্রিয়ভাবে পেতে এবং
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">ডেটার একটি স্থানীয় অনুলিপি সংরক্ষণ করার</a> ক্ষমতা রয়েছে৷
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">ডেটার একটি স্থানীয় অনুলিপি সংরক্ষণ করার</a> ক্ষমতা রয়েছে৷
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Push প্রযুক্তি <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="একটি বহিরাগত ওয়েবসাইটের এই লিঙ্ক একটি অনুমোদন গঠন করে না."></a> :
 ERDDAP এর
 <a href="#subscriptions">সাবস্ক্রিপশন পরিষেবাগুলি</a> ব্যবহার করে, নতুন ডেটা উপলব্ধ হওয়ার সাথে সাথে অন্যান্য ডেটা সার্ভারগুলিকে অবহিত করা যেতে পারে যাতে তারা ডেটার জন্য অনুরোধ করতে পারে (ডেটা টেনে)। ERDDAP এর
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> এবং
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> ERDDAP এর সাবস্ক্রিপশন পরিষেবা এবং
-<a rel="help" href="https://erddap.github.io/setup.html#flag">ফ্ল্যাগ সিস্টেম</a> ব্যবহার করে যাতে নতুন ডেটা উপলব্ধ হলে তাদের অবিলম্বে অবহিত করা হয়। আপনি এগুলিকে দারুণ প্রভাবে একত্রিত করতে পারেন:
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> এবং
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> ERDDAP এর সাবস্ক্রিপশন পরিষেবা এবং
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">ফ্ল্যাগ সিস্টেম</a> ব্যবহার করে যাতে নতুন ডেটা উপলব্ধ হলে তাদের অবিলম্বে অবহিত করা হয়। আপনি এগুলিকে দারুণ প্রভাবে একত্রিত করতে পারেন:
 যদি আপনি একটি EDDGrid কপি একটি EDDGrid FromErddap ডেটাসেটের চারপাশে মোড়ান (অথবা একটি EDDTableFromErddap ডেটাসেটের চারপাশে একটি EDDTableCopy মোড়ানো), ERDDAP স্বয়ংক্রিয়ভাবে অন্য ERDDAP এর ডেটাসেটের একটি স্থানীয় অনুলিপি তৈরি এবং বজায় রাখবে। যেহেতু নতুন ডেটা উপলব্ধ হওয়ার সাথে সাথে সাবস্ক্রিপশন পরিষেবাগুলি কাজ করে, পুশ প্রযুক্তি খুব দ্রুত (সেকেন্ডের মধ্যে) ডেটা ছড়িয়ে দেয়।
 <p>এই আর্কিটেকচারটি প্রতিটি ERDDAP অ্যাডমিনিস্ট্রেটরকে তার/তার ERDDAP এর ডেটা কোথা থেকে আসে তা নির্ধারণের দায়িত্বে রাখে। অন্যান্য ERDDAP অ্যাডমিনিস্ট্রেটররা একই কাজ করতে পারেন। প্রশাসকদের মধ্যে সমন্বয়ের প্রয়োজন নেই। অনেক ERDDAP অ্যাডমিনিস্ট্রেটর একে অপরের ERDDAP এর সাথে লিঙ্ক করলে, একটি ডেটা বিতরণ নেটওয়ার্ক গঠিত হয়। ডেটা দ্রুত, দক্ষতার সাথে, এবং স্বয়ংক্রিয়ভাবে ডেটা উত্স (ERDDAP এবং অন্যান্য সার্ভার) থেকে ডেটা পুনঃবন্টন সাইটগুলিতে (ERDDAP গুলি) নেটওয়ার্কের যে কোনও জায়গায় ছড়িয়ে দেওয়া হবে৷ একটি প্রদত্ত ERDDAP কিছু ডেটাসেটের জন্য ডেটার উত্স এবং অন্যান্য ডেটাসেটের জন্য একটি পুনঃবন্টন সাইট উভয়ই হতে পারে। ফলস্বরূপ নেটওয়ার্কটি
 <a rel="bookmark" href="https://www.unidata.ucar.edu/software/idd/">Unidata IDD/IDM</a> এর মতো প্রোগ্রামগুলির সাথে সেট আপ করা ডেটা বিতরণ নেটওয়ার্কগুলির সাথে প্রায় একই রকম
@@ -5109,9 +5046,9 @@ ERDDAP ?
 মৎস্য বিজ্ঞানীদের (প্রাথমিকভাবে, কিন্তু প্রকৃতপক্ষে প্রত্যেকের) জন্য বিভিন্ন উত্স থেকে বৈজ্ঞানিক তথ্য পাওয়া সহজ করে তোলে৷
 <p><a class="selfLink" id="miraculous" href="#miraculous" rel="bookmark">সফ্টওয়্যার সম্পর্কে অলৌকিক জিনিস হল যে এটি নকল করতে কিছুই খরচ হয় না।</a> তাই আমার কাজ করার জন্য, আমি ERD এ ব্যবহারের জন্য ERDDAP লিখি। আমি মনে করি আমার কাজ করার জন্য এটাই আমার পক্ষে সবচেয়ে ভালো উপায়। একমাত্র এই কারণটিই ERDDAP তৈরির ব্যয়কে সমর্থন করে। (আমি মনে করি এটি দেখানো যেতে পারে যে ERDDAP NOAA বিজ্ঞানীদের সময় বাঁচিয়েছে যতটা আমি ERDDAP ডেভেলপ করতে ব্যয় করেছি। সময়=মানি।) কিন্তু পার্শ্ব সুবিধা হল যে অন্য কোন সংস্থা <strong>বিনামূল্যে</strong> তাদের বিতরণ করতে
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">ERDDAP ডাউনলোড, ইনস্টল এবং ব্যবহার করতে</a> পারে বৈজ্ঞানিক তথ্য।
+href="https://erddap.github.io/docs/server-admin/deploy-install">ERDDAP ডাউনলোড, ইনস্টল এবং ব্যবহার করতে</a> পারে বৈজ্ঞানিক তথ্য।
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >অন্তত 14টি দেশে 90টিরও বেশি প্রতিষ্ঠান ERDDAP ব্যবহার করে</a> । হয়তো একটি বিনামূল্যে লাঞ্চ হিসাবে যেমন একটি জিনিস আছে.
 <p>ERDDAP একটি Java প্রোগ্রাম। প্রতিটি সংস্করণের জন্য সোর্স কোড
 <a rel="bookmark" href="https://github.com/ERDDAP">GitHub</a> এ রয়েছে
@@ -5178,13 +5115,13 @@ NOAA / NMFS / SWFSC / ERD ।</kbd>
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">এখানে</a> পাওয়া যাবে।
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">আপনি</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>আপনার নিজস্ব ERDDAP সার্ভার সেট আপ</strong></a> করতে পারেন এবং আপনার নিজস্ব ডেটা পরিবেশন করতে পারেন।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>আপনার নিজস্ব ERDDAP সার্ভার সেট আপ</strong></a> করতে পারেন এবং আপনার নিজস্ব ডেটা পরিবেশন করতে পারেন।
 <ul>
 <li>ERDDAP সেট আপ করার ছোট প্রচেষ্টা অনেক সুবিধা নিয়ে আসে।
 <li>আপনার যদি ইতিমধ্যেই আপনার ডেটা বিতরণের জন্য একটি ওয়েব পরিষেবা থাকে তবে আপনি বিদ্যমান পরিষেবার মাধ্যমে বা উৎস ফাইল বা ডাটাবেসের মাধ্যমে আপনার ডেটা অ্যাক্সেস করতে ERDDAP সেট আপ করতে পারেন। তারপর, লোকেরা আপনার ডেটা অ্যাক্সেস করার অন্য উপায় পাবে এবং অতিরিক্ত ফাইল ফর্ম্যাটে বা গ্রাফ বা মানচিত্র হিসাবে ডেটা ডাউনলোড করতে সক্ষম হবে৷
 <li>যদি আপনার কাছে উচ্চ চাহিদার ডেটাসেট থাকে, তাহলে আপনি
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >একাধিক ERDDAP ইনস্টল করতে পারেন যা একটি বৃহৎ ডেটা বিতরণ কেন্দ্রের চাহিদা মেটাতে এবং স্কেল করার জন্য একসাথে কাজ করে</a> ।
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">যোগাযোগ করুন</a></h2>
@@ -5201,7 +5138,6 @@ href="https://groups.google.com/forum/#!forum/erddap"><img
 এই ওয়েব পৃষ্ঠার মতামতগুলি বব সিমন্সের ব্যক্তিগত মতামত এবং অগত্যা সরকার বা National Oceanic and Atmospheric Administration কোনও অবস্থান প্রতিফলিত করে না৷
 
 ]]></theLongDescriptionHtml>
-<Then>তারপর</Then>
 <twoClickMapDefaultTooltip>দুটি তির্যক কোণে ক্লিক করে একটি আয়তক্ষেত্র নির্দিষ্ট করুন। প্রয়োজনে আবার করুন।</twoClickMapDefaultTooltip>
 
 <!--  এটি ERDDAP এর স্ট্যান্ডার্ডাইজ UDUnits কনভার্টারকে ওভাররাইড করার একটি উপায়
@@ -6394,7 +6330,6 @@ html?page=1&amp;itemsPerPage=1000 https://udig.refractions.net https://weather.h
 তাই যদি আপনি কিছুই না চান, তাহলে একটি অশ্লীল শব্দ লিখুন যা কখনই একটি বৈশিষ্ট্যের নাম হবে না। -->
 <updateUrlsSkipAttributes>sourceUrl</updateUrlsSkipAttributes>
 <variableNames>পরিবর্তনশীল নাম</variableNames>
-<viewAllDatasetsHtml>সমস্ত ডেটাসেটের একটি তালিকা দেখুন</viewAllDatasetsHtml>
 <waitThenTryAgain>একটি (অস্থায়ী?) সমস্যা ছিল। এক মিনিট অপেক্ষা করুন, তারপর আবার চেষ্টা করুন। (একটি ব্রাউজারে, পুনরায় লোড বোতামে ক্লিক করুন।)</waitThenTryAgain>
 <warning>সতর্কতা!</warning>
 <units>ইউনিট</units>
@@ -6663,7 +6598,7 @@ A-Za-z0-9_- ছাড়া অন্য ক্যোয়ারী মান�
 <li>ডেটা ভেরিয়েবল অবশ্যই একটি গ্রিডেড ভেরিয়েবল হতে হবে।
 <li>ডেটা ভেরিয়েবলে অবশ্যই দ্রাঘিমাংশ এবং অক্ষাংশের ভেরিয়েবল থাকতে হবে। (অন্যান্য অক্ষ ভেরিয়েবল ঐচ্ছিক।)
 <li>-180 এবং 180 এর মধ্যে কিছু দ্রাঘিমাংশের মান থাকতে হবে।
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">colorBarMinimum এবং colorBarMaximum গুণাবলী</a> অবশ্যই নির্দিষ্ট করতে হবে। (অন্যান্য রঙ বার বৈশিষ্ট্য ঐচ্ছিক.)
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">colorBarMinimum এবং colorBarMaximum গুণাবলী</a> অবশ্যই নির্দিষ্ট করতে হবে। (অন্যান্য রঙ বার বৈশিষ্ট্য ঐচ্ছিক.)
 </ul>
 <li><strong>গ্রিড ডেটা স্তর:</strong> ERDDAP এর WMS এ, গ্রিড ডেটাসেটের সমস্ত ডেটা ভেরিয়েবল যেগুলি দ্রাঘিমাংশ এবং অক্ষাংশের মাত্রা ব্যবহার করে WMS এর মাধ্যমে উপলব্ধ। এই ধরনের প্রতিটি পরিবর্তনশীল WMS &amp; <i>datasetID</i> &WMSSEPARATOR; <i>পরিবর্তনশীল নাম</i> । এই জাতীয় প্রতিটি স্তর স্বচ্ছ (অর্থাৎ, ডেটা মানগুলি রঙের একটি পরিসর হিসাবে উপস্থাপন করা হয় এবং অনুপস্থিত মানগুলি স্বচ্ছ পিক্সেল দ্বারা উপস্থাপিত হয়)।
 <li><strong>সারণী ডেটা স্তর:</strong> বর্তমানে ERDDAP এর WMS এ, টেবিল ডেটাসেটের ডেটা ভেরিয়েবলগুলি WMS এর মাধ্যমে উপলব্ধ নয়৷

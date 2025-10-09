@@ -9,7 +9,7 @@ import gov.noaa.pfel.erddap.util.EDStatic;
 import org.xml.sax.Attributes;
 
 public class EDDTableFromEDDGridHandler extends BaseTableHandler {
-  private SaxParsingContext context;
+  private final SaxParsingContext context;
 
   public EDDTableFromEDDGridHandler(
       SaxHandler saxHandler, String datasetID, State completeState, SaxParsingContext context) {
@@ -18,7 +18,7 @@ public class EDDTableFromEDDGridHandler extends BaseTableHandler {
   }
 
   private EDDGrid tChildDataset = null;
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
 
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) {

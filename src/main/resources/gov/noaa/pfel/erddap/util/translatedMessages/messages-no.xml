@@ -64,7 +64,6 @@ Det er opp til klientprogrammet å se etter <kbd>content-encoding</kbd> og dekom
 <acronyms>Akronymer</acronyms>
 <addConstraints>Du kan legge til tabledap-lignende begrensninger for forespørsler til denne nettsiden,
 for eksempel,</addConstraints>
-<addVarWhereAttName>Valgfritt: Angi et attributtnavn.</addVarWhereAttName>
 <addVarWhereAttValue>Valgfritt: Angi en attributtverdi.</addVarWhereAttValue>
 <addVarWhere><![CDATA[
 
@@ -96,11 +95,11 @@ Deretter vil ERDDAP legge til alle
 <advl_institution>Institusjon</advl_institution>
 <advc_dataStructure>ERDDAP behandler hvert datasett som enten et &#39;rutenett&#39; eller et &#39;tabell&#39;-datasett.</advc_dataStructure>
 <advl_dataStructure>Data struktur</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>Vanlig datamodelltype</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>ERDDAP klasse</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>Tittel</advl_title>
 <advl_minLongitude>Minimum lengdegrad</advl_minLongitude>
 <advl_maxLongitude>Maksimal lengdegrad</advl_maxLongitude>
@@ -145,7 +144,7 @@ Deretter vil ERDDAP legge til alle
 <advn_outOfDate><![CDATA[
 
 Tilsynelatende har ingen datasett
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> attributtet.
 Kanskje er det ingen nesten-sanntidsdatasett i denne ERDDAP .
 
@@ -297,9 +296,6 @@ Deretter kan du klikke på en kategori for å se en liste over relevante dataset
 <categorySearchHtml><![CDATA[
 Velg en (n) <kbd>{0}</kbd>
 ]]></categorySearchHtml>
-<categorySearchDifferentHtml><![CDATA[
-Søk etter datasett med en annen <kbd>&category;</kbd>
-]]></categorySearchDifferentHtml>
 <categoryClickHtml>Klikk på en kategori (en attributtverdi) for å se en liste over relevante datasett.</categoryClickHtml>
 <categoryNotAnOption>Når attributt=&quot;{0}&quot;, verdi=&quot;{1}&quot; ikke er et alternativ.</categoryNotAnOption>
 <caughtInterrupted>fanget gjeldende tråd().isInterrupted().</caughtInterrupted>
@@ -362,6 +358,8 @@ Eller
 <a rel="help" href="#computerProgram">omgå denne nettsiden</a> og foreta konverteringer fra et dataprogram, skript eller nettside.
 
 ]]></convertBypass>
+<convertCOLORs>Farger</convertCOLORs>
+<convertCOLORsMessage>Konverter verdi til farge fra fargelinjen</convertCOLORsMessage>
 <convertToAFullName><![CDATA[
 <strong>Konverter fra {0} til et fullt navn.</strong>
 ]]></convertToAFullName>
@@ -1803,9 +1801,6 @@ fra et annet tidspunkt eller sted).
 
 ]]></dafTableTooltip>
 <dasTitle>Datasettattributtstrukturen (.das) for dette datasettet</dasTitle>
-
-<!--  Meldingen som skal vises hvis dataene ikke kan lastes ned (f.eks. SeaWiFS &lt;=14 dager gammel).  -->
-<dataAccessNotAllowed>[Beklager. Disse dataene kan ikke lastes ned.]</dataAccessNotAllowed>
 <databaseUnableToConnect>Ikke i stand til å opprette kontakt med database.</databaseUnableToConnect>
 <dataProviderForm>Dataleverandørskjema</dataProviderForm>
 <dataProviderFormP1>Dataleverandørskjema – del 1</dataProviderFormP1>
@@ -1920,7 +1915,7 @@ Dette inkluderer:
 <ul>
 <li><a class="selfLink" id="databases" href="#databases" rel="bookmark">Data</a> som for øyeblikket er lagret i en relasjonsdatabase.
 <br>Vennligst les informasjonen om
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> datasetttypen i ERDDAP, spesielt de innledende ~2 skjermbildene med informasjon som snakker om behovet for å lage en denormalisert tabell.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> datasetttypen i ERDDAP, spesielt de innledende ~2 skjermbildene med informasjon som snakker om behovet for å lage en denormalisert tabell.
 Det høres kanskje sprøtt ut.
 Stol på nok til å lese begrunnelsen for dette.
 <br>&nbsp;
@@ -2131,10 +2126,6 @@ Klikk &widgetSubmitButton; for å sende denne informasjonen til ERDDAP administr
 <br>Løs disse problemene, og &#39;Send inn&#39; denne delen av skjemaet på nytt.
 
 ]]></dpf_fixProblem>
-<dpf_yourName>Navnet ditt</dpf_yourName>
-<dpf_emailAddress>Epostadresse</dpf_emailAddress>
-<dpf_Timestamp>Tidsstempel</dpf_Timestamp>
-<dpf_frequency>Frekvens</dpf_frequency>
 <dpf_title>tittel</dpf_title>
 <dpf_titleTooltip><![CDATA[
 
@@ -2212,12 +2203,6 @@ Dette er lisensen og ansvarsfraskrivelsen for bruk av disse dataene.
 <br><kbd>
 
 ]]></dpf_licenseTooltip>
-<dpf_howYouStoreData><![CDATA[
-
-<br>• Feil:
-Vennligst spesifiser (nedenfor) hvordan rutenett- eller tabelldataene dine lagres.
-
-]]></dpf_howYouStoreData>
 <dpf_provideIfAvailable>Vennligst oppgi informasjonen hvis den er tilgjengelig for datasettet ditt.</dpf_provideIfAvailable>
 <dpf_acknowledgement>bekreftelse</dpf_acknowledgement>
 <dpf_acknowledgementTooltip><![CDATA[
@@ -2518,10 +2503,8 @@ Tidsstempelet til denne datasettinnsendingen er &tTimestamp; .
 <dtWMS>Klikk for å finne ut hvordan du lager kart over disse dataene via dette datasettets nettkarttjeneste.</dtWMS>
 <EasierAccessToScientificData>Enklere tilgang til vitenskapelige data</EasierAccessToScientificData>
 
-<!--  EDD-meldingene vises på tabledap- og griddap-datatilgangsskjemaene.  -->
-<EDDClickOnSubmitHtml><![CDATA[
-Klikk på <kbd>Submit</kbd> .
-]]></EDDClickOnSubmitHtml>
+<!--EDD-meldingene vises påtabledapog netdap Data Access Forms.
+-->
 <EDDDatasetID>Datasett-ID</EDDDatasetID>
 <EDDFgdc>FGDC</EDDFgdc>
 <EDDFgdcMetadata>FGDC-STD-001-1998 Metadata</EDDFgdcMetadata>
@@ -2534,9 +2517,7 @@ Klikk på <kbd>Submit</kbd> .
 <EDDInformation>Informasjon</EDDInformation>
 <EDDSummary>Sammendrag</EDDSummary>
 <EDDDatasetTitle>Datasetttittel</EDDDatasetTitle>
-<EDDDownloadData>Last ned data</EDDDownloadData>
 <EDDMakeAGraph>Lag en graf</EDDMakeAGraph>
-<EDDMakeAMap>Lag et kart</EDDMakeAMap>
 <EDDMinimum>Minimum</EDDMinimum>
 <EDDMaximum>Maksimum</EDDMaximum>
 <EDDFileType>Filtype:</EDDFileType>
@@ -2604,8 +2585,6 @@ Det gjør URL-en for deg.
 ]]></EDDGridDownloadDataTooltip>
 <EDDGridDimension>Dimensjoner</EDDGridDimension>
 <EDDGridDimensionRanges>Dimensjoner</EDDGridDimensionRanges>
-<EDDGridFirst>Først</EDDGridFirst>
-<EDDGridLast>Siste</EDDGridLast>
 <EDDGridStart>Start</EDDGridStart>
 <EDDGridStop>Stoppe</EDDGridStop>
 <EDDGridStartStopTooltip><![CDATA[
@@ -2649,14 +2628,6 @@ dette er gjennomsnittlig avstand mellom verdiene til en dimensjon (i enhetene ti
 En litt merkelig, ujevn avstand indikerer ofte at én eller noen få filer mangler eller er dårlige i et ellers helt jevnt fordelt datasett.
 
 ]]></EDDGridSpacingTooltip>
-<EDDGridDimensionFirstTooltip><![CDATA[
-Til informasjon:
-Dette er den første verdien av en dimensjon.
-]]></EDDGridDimensionFirstTooltip>
-<EDDGridDimensionLastTooltip><![CDATA[
-Til informasjon:
-dette er den siste verdien av en dimensjon.
-]]></EDDGridDimensionLastTooltip>
 <EDDGridDownloadTooltip><![CDATA[
 Velg variablene du vil laste ned:
 <br>* For å laste ned kun dimensjonsdata:
@@ -2932,10 +2903,6 @@ For eksempel:
 
 <!--  Disse meldingene vises når en feilmelding vises.  -->
 <errorTitle>Feil</errorTitle>
-<errorRequestUrl>Din forespørsels-URL:</errorRequestUrl>
-<errorRequestQuery>Din forespørsel:</errorRequestQuery>
-<errorTheError>Feilen:</errorTheError>
-<errorCopyFrom>Kan ikke kopiere fra {0}.</errorCopyFrom>
 <errorFileNotFound>Filen ble ikke funnet: {0}.</errorFileNotFound>
 <errorFileNotFoundImage>Finner ikke fil i hurtigbufferen. Gjenskap bildet og prøv igjen.</errorFileNotFoundImage>
 <errorInternal>Intern feil:</errorInternal>
@@ -2957,6 +2924,7 @@ For eksempel:
 <externalLink>(ekstern lenke)</externalLink>
 <externalWebSite>Denne lenken til et eksternt nettsted utgjør ikke en godkjenning.</externalWebSite>
 <fileHelp_asc>Se OPeNDAP-stil ISO-8859-1 kommadelt tekst.</fileHelp_asc>
+<fileHelp_croissant>Last ned datasettet croissant skjema.</fileHelp_croissant>
 <fileHelp_csv>Last ned en ISO-8859-1 kommaseparert teksttabell (linje 1: navn; linje 2: enheter; ISO 8601 ganger).</fileHelp_csv>
 <fileHelp_csvp>Last ned en ISO-8859-1 .csv-fil med linje 1: navn (enheter). Tidene er ISO 8601-strenger.</fileHelp_csvp>
 <fileHelp_csv0>Last ned en ISO-8859-1 .csv-fil uten kolonnenavn eller enheter. Tidene er ISO 8601-strenger.</fileHelp_csv0>
@@ -2968,12 +2936,18 @@ For eksempel:
 <fileHelpTable_esriCsv>Last ned en ISO_8859_1 .csv-fil for ESRIs ArcGIS 9.x og under (separate dato- og tidskolonner).</fileHelpTable_esriCsv>
 <fileHelp_fgdc>Se datasettets UTF-8 FGDC .xml-metadata.</fileHelp_fgdc>
 <fileHelp_geoJson>Last ned data for lengdegrad, breddegrad, andre kolonner som en UTF-8 GeoJSON .json-fil.</fileHelp_geoJson>
-<fileHelp_graph>Vis en Make A Graph-webside.</fileHelp_graph>
 <fileHelpGrid_help>Vis en nettside med en beskrivelse av griddap.</fileHelpGrid_help>
 <fileHelpTable_help>Se en nettside med en beskrivelse av tabledap.</fileHelpTable_help>
 <fileHelp_html>Se et HTML-datatilgangsskjema i OPeNDAP-stil.</fileHelp_html>
 <fileHelp_htmlTable>Vis en UTF-8 .html-webside med dataene i en tabell. Tidene er ISO 8601-strenger.</fileHelp_htmlTable>
-<fileHelp_iso19115>Se datasettets ISO 19115-2/19139 UTF-8 .xml-metadata.</fileHelp_iso19115>
+<fileHelp_iso19115>Se datasettetsISO 19115/19139UTF-8 .xml metadata ved å bruke versjonsstandarden for denne serveren.
+</fileHelp_iso19115>
+<fileHelp_iso19115_2>Se datasettetsISO 19115-2/19139UTF-8.xml metadata.
+</fileHelp_iso19115_2>
+<fileHelp_iso191392007>Se datasettetsISO 19139:2007UTF-8.xml metadata.
+</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>Se datasettetsISO 19115-3:2016UTF-8.xml metadata.
+</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>Last ned en ISO-8859-1 Igor-tekstfil. Hver aksevariabel og hver datavariabel blir en bølge.</fileHelp_itxGrid>
 <fileHelp_itxTable>Last ned en ISO-8859-1 Igor-tekstfil. Hver svarkolonne blir en bølge.</fileHelp_itxTable>
 <fileHelp_json>Se en tabelllignende UTF-8 JSON-fil (manglende verdi = &#39;null&#39;; tidene er ISO 8601-strenger).</fileHelp_json>
@@ -2999,7 +2973,6 @@ For eksempel:
 <fileHelpTable_odvTxt>Last ned lengdegrad, breddegrad, tid, andre kolonner som en ISO-8859-1 ODV generisk regnearkfil (.txt).</fileHelpTable_odvTxt>
 <fileHelp_parquet>Last ned som parkettfil. Metadata inneholder kolonnenavn (&quot; column_names&quot;) og enheter (&quot; column_units&quot;).</fileHelp_parquet>
 <fileHelp_parquet_with_meta>Last ned som en parkettfil med detaljerte metadata.</fileHelp_parquet_with_meta>
-<fileHelp_subset>Se et HTML-skjema som bruker fasettert søk for å forenkle valg av undersett av data.</fileHelp_subset>
 <fileHelp_timeGaps>Se en UTF-8-liste over gap i tidsverdiene som er større enn mediangapet.</fileHelp_timeGaps>
 <fileHelp_tsv>Last ned en ISO-8859-1 tabulatordelt teksttabell (linje 1: navn; linje 2: enheter; ISO 8601 ganger).</fileHelp_tsv>
 <fileHelp_tsvp>Last ned en ISO-8859-1 .tsv-fil med linje 1: navn (enheter). Tidene er ISO 8601-strenger.</fileHelp_tsvp>
@@ -3019,7 +2992,6 @@ For eksempel:
 
 <!--  Ordlyden i beskrivelsen og advarselen er vag for å tillate ett eller flere datasett.  -->
 <filesDescription>ERDDAPs &quot;filer&quot;-system lar deg bla gjennom et virtuelt filsystem og laste ned kildedatafiler.</filesDescription>
-<filesSort>Klikk på en overskrift (f.eks. Navn, Sist endret, Størrelse) for å endre sorteringsrekkefølgen.  &quot;Sist endret&quot; bruker Zulu-tidssonen.</filesSort>
 <filesWarning><![CDATA[
 
 Datasettets metadata og variabelnavn i disse kildefilene kan være annerledes enn andre steder i ERDDAP ! Du foretrekker kanskje å bruke datasettets datatilgangsskjema i stedet.
@@ -3290,7 +3262,7 @@ Filer av begge versjoner har filtypen .nc og kan leses av programmer som leser .
 <a rel="help" href="https://anaconda.org/eumetsat/ncview">via Conda <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Denne lenken til et eksternt nettsted utgjør ikke en godkjenning."></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, et kraftig kommandolinjeverktøy for å permanent endre .nc -filer.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, et kraftig kommandolinjeverktøy for å permanent endre .nc -filer.
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C og NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Denne lenken til et eksternt nettsted utgjør ikke en godkjenning."></a>, hovedprogramvarebibliotekene for C, C++, Fortran eller Java for å lese og skrive .nc -filer.
@@ -3456,13 +3428,6 @@ Den raden vil ha summen av hver av de andre variablene.
 For eksempel vil orderByMax(&quot;stationID, time/1day&quot;) opprette en gruppe for hver stationID for hver dag, og vil beregne og returnere summen av de andre variablene.
 
 ]]></functionOrderByTooltip>
-<functionOrderByExtra><![CDATA[
-
-For orderByClosest spesifiser intervallet (bruk formatet n[timeUnits], f.eks.
-1 time) her.
-<br>For orderByLimit, spesifiser maksimalt antall rader per gruppe her.
-
-]]></functionOrderByExtra>
 <functionOrderBySort><![CDATA[
 
 Dette sporet er det {0} viktige orderBy ...-sporet.
@@ -3474,7 +3439,6 @@ Dette sporet er det {0} viktige orderBy ...-sporet.
 <functionOrderBySort3>tredje flest</functionOrderBySort3>
 <functionOrderBySort4>fjerde flest</functionOrderBySort4>
 <functionOrderBySortLeast>minst</functionOrderBySortLeast>
-<functionOrderBySortRowMax>Bare raden med maksimal verdi beholdes.</functionOrderBySortRowMax>
 <generatedAt>Denne nettsiden ble generert {0} .</generatedAt>
 <geoServicesDescription><![CDATA[
 
@@ -3697,7 +3661,7 @@ Som beskrevet ovenfor, siden Java programmer kan få tilgang til data tilgjengel
 <p>Eller siden ERDDAP er et helt åpen kildekode-program, kan du også sette opp din egen kopi av ERDDAP på din egen server (offentlig tilgjengelig eller ikke) for å betjene dine egne data.
 Java programmene dine kan hente data fra den kopien av ERDDAP .
 Se
-<a rel="help" href="https://erddap.github.io/setup.html">Sett opp din egen ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">Sett opp din egen ERDDAP</a> .
   
 ]]></javaProgramsHTML>
 
@@ -3773,7 +3737,6 @@ Standard er ingenting (ubrukt).
 <!--  f.eks. {0}=WMS eller listAll  -->
 <listOfDatasets>Liste over {0} datasett</listOfDatasets>
 <listAll>Alle</listAll>
-<LogIn>Logg Inn</LogIn>
 <login>Logg Inn</login>
 <loginHTML><![CDATA[
 
@@ -3784,7 +3747,7 @@ Mange ERDDAP -installasjoner har ikke autentisering aktivert og gir derfor ingen
 Foreløpig støtter ERDDAP kun autentisering via Google-administrerte e-postkontoer, som inkluderer e-postkontoer ved NOAA og mange universiteter.
 Hvis en ERDDAP har autentisering aktivert, kan alle med en Google-administrert e-postkonto logge på, men de vil bare ha tilgang til de private datasettene som ERDDAP administratoren eksplisitt har autorisert dem til å få tilgang til.
 For instruksjoner om å logge på ERDDAP fra en nettleser eller via et skript, se
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">Tilgang til private datasett i ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">Tilgang til private datasett i ERDDAP</a> .
   
 ]]></loginHTML>
 <loginAttemptBlocked>FEIL: Påloggingsforsøk for {0} blir midlertidig blokkert etter 3 mislykkede forsøk.
@@ -3832,22 +3795,15 @@ Alle med en Google-e-postkonto eller ORCID iD kan logge på, men administratoren
 Kun personer som har avtalt med administratoren av denne ERDDAP kan logge inn.
 
 ]]></loginDescribeOpenID>
-<loginErddap>Logg inn på ERDDAP</loginErddap>
 <loginCanNot>Denne ERDDAP er ikke konfigurert til å la brukere logge på.</loginCanNot>
 <loginAreNot>Du er ikke logget inn.</loginAreNot>
 <loginToLogIn>Å logge inn</loginToLogIn>
-<loginEmailAddress>epostadresse</loginEmailAddress>
 <loginYourEmailAddress>Din epostadresse</loginYourEmailAddress>
 <loginUserName>Brukernavn</loginUserName>
 <loginPassword>Passord</loginPassword>
 <loginUserNameAndPassword>Brukernavn og passord</loginUserNameAndPassword>
 <loginGoogleSignIn>Autentiser med Google-kontoen din.</loginGoogleSignIn>
 <loginOrcidSignIn>Autentiser med din ORCID iD.</loginOrcidSignIn>
-<loginOpenID>Logg på med din OpenID URL</loginOpenID>
-<loginOpenIDOr>Eller logg inn på din eksisterende (ikke-OpenID) konto på</loginOpenIDOr>
-<loginOpenIDCreate>Eller opprett en OpenID URL på</loginOpenIDCreate>
-<loginOpenIDFree>De er alle gratis!</loginOpenIDFree>
-<loginOpenIDSame>Sørg for at du logget på med nøyaktig samme OpenID URL som du ga til ERDDAP-administratoren.</loginOpenIDSame>
 <loginAs>Du er logget på som {0}.</loginAs>
 <loginPartwayAs>Du er pålogget halvveis som {0} .</loginPartwayAs>
 <loginFailed>FEIL: Pålogging mislyktes</loginFailed>
@@ -3962,7 +3918,6 @@ Det er mulig at enkelte datasett for øyeblikket ikke er tilgjengelige, eller at
 ]]></loginPublicAccess>
 <LogOut>Logg ut</LogOut>
 <logout>Logg ut</logout>
-<logoutOpenID>Logg ut fra OpenID-leverandøren din.</logoutOpenID>
 
 <!--  logoutSuccess sist oppdatert 2019-12-19  -->
 <logoutSuccess>Du har logget ut. 
@@ -4265,10 +4220,6 @@ Men dods.dap.DODSException har ikke noe relevant unntak.
 Bedre å returnere en tom fil? Men .nc og andre tillater ikke 0-lengde data.
  -->
 <MustBeThereIsNoData>Søket ditt ga ingen samsvarende resultater.</MustBeThereIsNoData>
-
-<!--  Mange filtyper setter en grense for hvor mye data en fil kan inneholde (f.eks. 2 GB).  -->
-<MustBeNotNull>{0} må ikke være null.</MustBeNotNull>
-<MustBeNotEmpty>{0} må ikke være en tom streng.</MustBeNotEmpty>
 <MustBeInternalError>Intern feil</MustBeInternalError>
 <MustBeOutOfMemoryError>Minnet er fullt feil</MustBeOutOfMemoryError>
 
@@ -4309,11 +4260,9 @@ Bedre å returnere en tom fil? Men .nc og andre tillater ikke 0-lengde data.
 <noXxxNoLonIn180>det er ingen lengdegradsverdier innenfor -180 til 360</noXxxNoLonIn180>
 <noXxxNoNonString>det er ingen ikke-strengvariabler</noXxxNoNonString>
 <noXxxNo2NonString>det er ikke minst to ikke-strengvariabler</noXxxNo2NonString>
-<noXxxNoStation>cdmDataType={0} er ikke &quot;TimeSeries&quot;</noXxxNoStation>
 <noXxxNoStationID>det er ingen stasjons-ID-lignende variabel</noXxxNoStationID>
 <noXxxNoSubsetVariables>subsetVariables ble ikke spesifisert</noXxxNoSubsetVariables>
 <noXxxNoOLLSubsetVariables>subsetVariables har ikke tilbuds-, lengde- og breddegradsvariablene</noXxxNoOLLSubsetVariables>
-<noXxxNoMinMax>kildedataserveren gir ikke minimums- og maksimumsverdier</noXxxNoMinMax>
 <noXxxItsGridded>det er et gitterdatasett</noXxxItsGridded>
 <noXxxItsTabular>det er et tabellbasert datasett</noXxxItsTabular>
 <oneRequestAtATime>Vennligst send bare én forespørsel om gangen.</oneRequestAtATime>
@@ -4340,7 +4289,6 @@ Utviklere av dataprogrammer og Java Scripted nettsider kan få tilgang til ERDDA
 <options>Alternativer</options>
 <orAListOfValues>eller en liste over verdier</orAListOfValues>
 <orRefineSearchWith>Eller avgrens dette søket med</orRefineSearchWith>
-<orSearchWith>Eller søk etter datasett med</orSearchWith>
 <orComma>Eller,</orComma>
 <otherFeatures>Andre funksjoner</otherFeatures>
 <outOfDateDatasets>Utdaterte datasett</outOfDateDatasets>
@@ -4399,7 +4347,6 @@ Det er
     title="Denne lenken til et eksternt nettsted utgjør ikke en godkjenning."></a> .
 
 ]]></percentEncode>
-<pickADataset>Velg et datasett</pickADataset>
 
 <!--  Meldinger relatert til protokollbaserte datasettsøk.  -->
 <protocolSearchHtml>Søk etter datasett etter protokoll</protocolSearchHtml>
@@ -4416,7 +4363,6 @@ Ulike protokoller er passende for ulike typer data og for ulike klientapplikasjo
 <queryError1Var>{0}-formatet kan bare håndtere én datavariabel.</queryError1Var>
 <queryError2Var>Forespørsler om {0}-formatet må inneholde minst to numeriske variabler (for X- og Y-aksene).</queryError2Var>
 <queryErrorActualRange>{0} er utenfor variabelens faktiske område: {1} til {2}</queryErrorActualRange>
-<queryErrorAscending>For {0} forespørsler må lengdegrads- og breddegradsverdiene være stigende.</queryErrorAscending>
 <queryErrorAdjusted>For {0} forespørsler må de justerte lengdegradsverdiene ({1} til {2}) være mellom -180 og 180.</queryErrorAdjusted>
 <queryErrorConstraintNaN>Constraint value=&quot;{0}&quot; evalueres til NaN.  Hvis du virkelig vil ha NaN, skriv det som NaN.</queryErrorConstraintNaN>
 <queryErrorEqualSpacing>For {0} forespørsler må lengdegradsavstanden ({1}) være lik breddegradsavstanden ({2}).</queryErrorEqualSpacing>
@@ -4448,7 +4394,6 @@ Ulike protokoller er passende for ulike typer data og for ulike klientapplikasjo
 <queryErrorGridNoAxisVar>En griddap-datavariabelspørring kan ikke inkludere en aksevariabel ({0}).</queryErrorGridNoAxisVar>
 <queryErrorGridNoDataVar>En griddap-aksevariabelspørring kan ikke inkludere en datavariabel ({0}).</queryErrorGridNoDataVar>
 <queryErrorGridNotIdentical>Begrensningen {0} for variabel={1} er ikke identisk med begrensningen {2} for variabel={2}.  Hvis du trenger forskjellige delsett, gjør separate forespørsler.</queryErrorGridNotIdentical>
-<queryErrorGridSLessS>StartIndex={0} er større enn StopIndex={1}.</queryErrorGridSLessS>
 <queryErrorLastEndP>{0} begynner med &quot;(&quot;, men slutter ikke med &quot;)&quot;.</queryErrorLastEndP>
 <queryErrorLastExpected>&quot;siste&quot; ble forventet i begynnelsen av {0}.</queryErrorLastExpected>
 <queryErrorLastUnexpected>Uventet tegn etter &quot;siste&quot; i {0}.</queryErrorLastUnexpected>
@@ -4480,7 +4425,7 @@ For eksempel kan mennesker bruke denne nettadressen til å gjøre et fullteksts�
 Det er mange funksjoner i ERDDAP som kan brukes av dataprogrammer eller skript du skriver.
 Du kan bruke dem til å bygge andre nettapplikasjoner eller nettjenester på toppen av ERDDAP, noe som får ERDDAP til å gjøre det meste av jobben! Så hvis du har en idé om et bedre grensesnitt til dataene som ERDDAP betjener eller en nettside som trenger en enkel måte å få tilgang til data på, oppfordrer vi deg til å bygge din egen nettapplikasjon, webtjeneste eller nettside og bruke ERDDAP som fundament.
 Systemet ditt kan hente data, grafer og annen informasjon fra ERD ERDDAP eller fra andre ERDDAP installasjoner, eller du kan<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">sette opp din egen ERDDAP -server</a>, som kan være offentlig tilgjengelig eller bare privat tilgjengelig.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">sette opp din egen ERDDAP -server</a>, som kan være offentlig tilgjengelig eller bare privat tilgjengelig.
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">RESTful URL-forespørsler</a></h3>
 Forespørsler om brukergrensesnittinformasjon fra ERDDAP (for eksempel søkeresultater) bruker nettets universelle standard for forespørsler:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URL-er &externalLinkHtml;</a> sendt via
@@ -4540,7 +4485,7 @@ ERDDAP kan returnere brukergrensesnittresultater som en tabell med data i disse 
 <li>.nc - en flat, tabelllignende NetCDF -3 binær fil.
 (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">mer&nbsp;informasjon &externalLinkHtml;</a>)
 <li>.nccsv - en flat, tabelllignende, NetCDF -lignende, ASCII CSV-fil.
-(<a rel="help" href="https://erddap.github.io/NCCSV.html">mer&nbsp;informasjon &externalLinkHtml;</a>)
+(<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">mer&nbsp;informasjon &externalLinkHtml;</a>)
 <li>.tsv - en tabulatordelt ASCII-teksttabell.
 (<a rel="help" href="https://jkorpela.fi/TSV.html">mer&nbsp;informasjon &externalLinkHtml;</a>)
 <li>.xhtml - en XHTML (XML) fil med dataene i en tabell.
@@ -4688,7 +4633,6 @@ Se
 <SOSDocumentation>ERDDAPs SOS-dokumentasjon</SOSDocumentation>
 <WCSDocumentation>ERDDAPs WCS-dokumentasjon</WCSDocumentation>
 <WMSDocumentation>ERDDAPs WMS-dokumentasjon</WMSDocumentation>
-<findOutChange>slik at dataprogrammet ditt kan finne ut om et datasett er endret.</findOutChange>
 <requestFormatExamplesHtml><![CDATA[
 
 (for eksempel
@@ -5141,14 +5085,6 @@ Be i stedet om en e-post med en
 
 ]]></subscriptionRemoveSuccess>
 <subscriptionRSS>Abonner på RSS-feeden for dette datasettet...</subscriptionRSS>
-<subscriptionsNotAvailable><![CDATA[
-
-<p><strong>Beklager.
-E-post/URL-abonnementssystemet er ikke tilgjengelig ved denne ERDDAP installasjonen.</strong>
-<br>Vurder å bruke
-<a rel="help" href="{0}/information.html#subscriptions">RSS</a> abonnementstjenesten i stedet.
-
-]]></subscriptionsNotAvailable>
 <subscriptionUrlHtml><![CDATA[
 
 <kbd>URL/action</kbd> er en valgfri URL som ERDDAP vil kontakte i stedet for å sende deg en e-post.
@@ -5254,7 +5190,7 @@ Det er implisitt.)
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>Finn ut mer om ERDDAP .</strong></a>
 <p><strong>Dataleverandører:
 Du kan
-<a rel="help" href="https://erddap.github.io/setup.html">sette opp din egen ERDDAP server</a> og betjene dine egne data.</strong> ERDDAP er gratis og åpen kildekode.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">sette opp din egen ERDDAP server</a> og betjene dine egne data.</strong> ERDDAP er gratis og åpen kildekode.
 Den bruker Apache-lignende lisenser, slik at du kan gjøre hva du vil med den.
 ERDDAP utseende kan tilpasses, så ERDDAP vil gjenspeile institusjonen din, ikke NOAA .
 Den lille innsatsen for å sette opp ERDDAP gir mange fordeler.
@@ -5413,13 +5349,6 @@ For å se {0},
 <!--  Følgende etikett innledes med 1 av de 2 foregående etikettene. 
   {0} er subsetViewSelectDistintCombos eller subsetViewSelectRelatedCounts.  -->
 <subsetWhenCounts>{0} for {1}-verdiene for &quot;{2}&quot; er:</subsetWhenCounts>
-<subsetComboClickSelect><![CDATA[
-
-For å se antallet distinkte kombinasjoner av variablene oppført ovenfor,
-<br>sjekk <kbd>{0} :
-{1}</kbd> ovenfor og velg en verdi for en av variablene ovenfor.
-
-]]></subsetComboClickSelect>
 <subsetNVariableCombos>Totalt er det {0} rader med distinkte kombinasjoner av variablene som er oppført ovenfor.</subsetNVariableCombos>
 <subsetShowingAllRows>Alle radene er vist ovenfor.</subsetShowingAllRows>
 <subsetShowingNRows>De første {0} radene vises ovenfor.  De resterende {1} radene vises ikke.</subsetShowingNRows>
@@ -5614,7 +5543,7 @@ Det er implisitt.)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP kan hente data fra lokale (på serverens harddisk) og eksterne (tilgangs via nettet) datakilder.</a></strong>
 <br>Se
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">listen over typer datakilder</a> som ERDDAP har tilgang til.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">listen over typer datakilder</a> som ERDDAP har tilgang til.
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP kan tjene mange typer vitenskapelige data, ikke bare oseanografiske data.</a></strong>
 <br>ERDDAP er en dataserver som ble skrevet på
@@ -5769,8 +5698,8 @@ Når du ber om data eller en graf fra et
       title="Denne lenken til et eksternt nettsted utgjør ikke en godkjenning."></a>) som beskriver dataene.
 ERDDAP lar (og oppfordrer) administratoren til å beskrive metadata som vil bli lagt til datasett og deres variabler på farten.
 Se delen
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">addAttributes</a> i
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">instruksjonene for administratorer</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">addAttributes</a> i
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">instruksjonene for administratorer</a> .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP lar deg be om .png- og .pdf-bildefiler med grafer og kart</a></strong>
@@ -5925,7 +5854,7 @@ Brukere som har logget på kan få tilgang til offentlige datasett og de private
 Brukere må bruke https:
 (Secure Sockets Layer) for å logge på og for å få tilgang til private datasett.
 Datasett kan konfigureres til å ha grafer og kart offentlig tilgjengelig, men har data bare tilgjengelig for autoriserte brukere.
-(<a rel="help" href="https://erddap.github.io/setup.html#security">mer informasjon</a>)
+(<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">mer informasjon</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP behandler data i biter.</a></strong>
 <br>For å spare minne (et stort problem) og få svar til å starte raskere, behandler ERDDAP dataforespørsler i biter - gjentatte ganger henter en del av data fra kilden, rydder opp (for eksempel legge til
@@ -5947,16 +5876,16 @@ den tar en forespørsel fra en bruker; henter data fra en ekstern datakilde; for
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Denne lenken til et eksternt nettsted utgjør ikke en godkjenning."></a> :
 Men ERDDAP har også muligheten til å aktivt hente alle tilgjengelige data fra en ekstern datakilde og
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">lagre en lokal kopi av dataene</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">lagre en lokal kopi av dataene</a> .
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Push -teknologi <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Denne lenken til et eksternt nettsted utgjør ikke en godkjenning."></a> :
 Ved å bruke ERDDAP
 <a href="#subscriptions">abonnementstjenester</a> kan andre dataservere varsles så snart nye data er tilgjengelige slik at de kan be om dataene (ved å trekke dataene).
 ERDDAP
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> og
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> bruker ERDDAP abonnementstjenester og
-<a rel="help" href="https://erddap.github.io/setup.html#flag">flaggsystem</a> slik at de vil bli varslet umiddelbart når nye data er tilgjengelige.
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> og
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> bruker ERDDAP abonnementstjenester og
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">flaggsystem</a> slik at de vil bli varslet umiddelbart når nye data er tilgjengelige.
 Du kan kombinere disse med stor effekt:
 hvis du vikler en EDDGrid kopi rundt et EDDGrid FromErddap-datasett (eller vikler en EDDTableCopy rundt et EDDTableFromErddap-datasett), vil ERDDAP automatisk opprette og vedlikeholde en lokal kopi av en annen ERDDAP datasett.
 Fordi abonnementstjenestene fungerer så snart nye data er tilgjengelige, sprer push-teknologi data veldig raskt (innen sekunder).
@@ -6047,9 +5976,9 @@ Bare denne grunnen rettferdiggjør kostnadene ved å utvikle ERDDAP .
 (Jeg tror det kan vises at ERDDAP har spart mer NOAA -forskers tid enn at jeg har brukt på å utvikle ERDDAP .
 Time=Money.) Men sidegevinsten er at enhver annen organisasjon kan
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">laste ned, installere og bruke ERDDAP</a> <strong>gratis</strong> for å distribuere sine vitenskapelige data.
+href="https://erddap.github.io/docs/server-admin/deploy-install">laste ned, installere og bruke ERDDAP</a> <strong>gratis</strong> for å distribuere sine vitenskapelige data.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >Over 90 organisasjoner i minst 14 land bruker ERDDAP</a> .
 Kanskje det er noe som heter gratis lunsj.
 <p>ERDDAP er et Java program.
@@ -6164,14 +6093,14 @@ Bare tenk på det som et navn, ikke et akronym.
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">her</a> .
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">Du kan</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>sette opp din egen ERDDAP server</strong></a> og betjene dine egne data.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>sette opp din egen ERDDAP server</strong></a> og betjene dine egne data.
 <ul>
 <li>Den lille innsatsen for å sette opp ERDDAP gir mange fordeler.
 <li>Hvis du allerede har en webtjeneste for å distribuere dataene dine, kan du sette opp ERDDAP for å få tilgang til dataene dine via den eksisterende tjenesten eller via kildefilene eller databasen.
 Deretter vil folk ha en annen måte å få tilgang til dataene dine og vil kunne laste ned dataene i flere filformater eller som grafer eller kart.
 <li>Hvis du har datasett som er etterspurt, kan du installere
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >flere ERDDAP -er som jobber sammen</a> for å skalere opp og møte behovene til et stort datadistribusjonssenter.
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">Kontakt oss</a></h2>
@@ -6186,7 +6115,6 @@ Når du er medlem, kan du legge inn spørsmålet ditt der eller søke for å se 
 Meningene på denne nettsiden er Bob Simons&#39; personlige meninger og reflekterer ikke nødvendigvis noen holdning til regjeringen eller National Oceanic and Atmospheric Administration .
 
 ]]></theLongDescriptionHtml>
-<Then>Deretter</Then>
 <twoClickMapDefaultTooltip>Angi et rektangel ved å klikke på to diagonale hjørner.  Gjør det igjen om nødvendig.</twoClickMapDefaultTooltip>
 
 <!--  Dette er en måte å overstyre ERDDAPs Standardize UDUnits-omformer
@@ -7470,7 +7398,6 @@ Dette kan ikke være noe. Så hvis du ikke vil ha noe, skriv inn et ord som vil
 aldri være et attributtnavn.  -->
 <updateUrlsSkipAttributes>sourceUrl</updateUrlsSkipAttributes>
 <variableNames>Variablenavn</variableNames>
-<viewAllDatasetsHtml>Vis en liste over alle datasett</viewAllDatasetsHtml>
 <waitThenTryAgain>Det var et (midlertidig?) problem.  Vent et minutt, og prøv igjen.  (I en nettleser klikker du på Last inn på nytt.)</waitThenTryAgain>
 <warning>ADVARSEL!</warning>
 <units>Enheter</units>
@@ -7798,7 +7725,7 @@ datasett.
 <li>Datavariabelen MÅ ha lengdegrad og breddegradsaksevariabler.
 (Andre aksevariabler er VALGFRI.)
 <li>Det MÅ være noen lengdegradsverdier mellom -180 og 180.
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">Attributtene colorBarMinimum og colorBarMaximum</a> MÅ spesifiseres.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">Attributtene colorBarMinimum og colorBarMaximum</a> MÅ spesifiseres.
 (Andre fargefeltattributter er VALGFRITT.)
 </ul>
 <li><strong>Griddatalag:</strong> I ERDDAP WMS er alle datavariabler i griddatasett som bruker lengde- og breddegradsdimensjoner tilgjengelige via WMS .

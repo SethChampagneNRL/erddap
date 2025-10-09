@@ -5,7 +5,8 @@
  */
 package com.cohort.array;
 
-import com.cohort.util.*;
+import com.cohort.util.Math2;
+import com.cohort.util.String2;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -287,7 +288,7 @@ public class FloatArray extends PrimitiveArray {
   public void addObject(final Object value) {
     if (size == array.length) // if we're at capacity
     ensureCapacity(size + 1L);
-    array[size++] = value != null && value instanceof Number na ? na.floatValue() : Float.NaN;
+    array[size++] = value instanceof Number na ? na.floatValue() : Float.NaN;
   }
 
   /**
@@ -984,11 +985,10 @@ public class FloatArray extends PrimitiveArray {
    */
   @Override
   public String testEquals(final Object o) {
-    if (!(o instanceof FloatArray))
+    if (!(o instanceof FloatArray other))
       return "The two objects aren't equal: this object is a FloatArray; the other is a "
           + (o == null ? "null" : o.getClass().getName())
           + ".";
-    final FloatArray other = (FloatArray) o;
     if (other.size() != size)
       return "The two FloatArrays aren't equal: one has "
           + size
@@ -1027,7 +1027,7 @@ public class FloatArray extends PrimitiveArray {
   @Override
   public String toNccsvAttString() {
     final StringBuilder sb = new StringBuilder(size * 11);
-    for (int i = 0; i < size; i++) sb.append((i == 0 ? "" : ",") + String.valueOf(array[i]) + "f");
+    for (int i = 0; i < size; i++) sb.append((i == 0 ? "" : ",") + array[i] + "f");
     return sb.toString();
   }
 
@@ -1242,22 +1242,22 @@ public class FloatArray extends PrimitiveArray {
     }
 
     // make a hashMap with all the unique values (associated values are initially all dummy)
-    final Integer dummy = Integer.valueOf(-1);
-    final HashMap hashMap = new HashMap(Math2.roundToInt(1.4 * size));
+    final Integer dummy = -1;
+    final HashMap<Float, Integer> hashMap = new HashMap<>(Math2.roundToInt(1.4 * size));
     float lastValue = array[0]; // since lastValue often equals currentValue, cache it
-    hashMap.put(Float.valueOf(lastValue), dummy);
+    hashMap.put(lastValue, dummy);
     boolean alreadySorted = true;
     for (int i = 1; i < size; i++) {
       final float currentValue = array[i];
       if (currentValue != lastValue) {
         if (currentValue < lastValue) alreadySorted = false;
         lastValue = currentValue;
-        hashMap.put(Float.valueOf(lastValue), dummy);
+        hashMap.put(lastValue, dummy);
       }
     }
 
     // quickly deal with: all unique and already sorted
-    final Set keySet = hashMap.keySet();
+    final Set<Float> keySet = hashMap.keySet();
     final int nUnique = keySet.size();
     if (nUnique == size && alreadySorted) {
       indices.ensureCapacity(size);
@@ -1266,8 +1266,8 @@ public class FloatArray extends PrimitiveArray {
     }
 
     // store all the elements in an array
-    final Object unique[] = new Object[nUnique];
-    final Iterator iterator = keySet.iterator();
+    final float[] unique = new float[nUnique];
+    final Iterator<Float> iterator = keySet.iterator();
     int count = 0;
     while (iterator.hasNext()) unique[count++] = iterator.next();
     if (nUnique != count)
@@ -1278,24 +1278,21 @@ public class FloatArray extends PrimitiveArray {
     Arrays.sort(unique);
 
     // put the unique values back in the hashMap with the ranks as the associated values
-    // and make tUnique
-    final float tUnique[] = new float[nUnique];
     for (int i = 0; i < count; i++) {
-      hashMap.put(unique[i], Integer.valueOf(i));
-      tUnique[i] = ((Float) unique[i]).floatValue();
+      hashMap.put(unique[i], i);
     }
 
     // convert original values to ranks
     final int ranks[] = new int[size];
     lastValue = array[0];
-    ranks[0] = ((Integer) hashMap.get(Float.valueOf(lastValue))).intValue();
+    ranks[0] = (Integer) hashMap.get(lastValue);
     int lastRank = ranks[0];
     for (int i = 1; i < size; i++) {
       if (array[i] == lastValue) {
         ranks[i] = lastRank;
       } else {
         lastValue = array[i];
-        ranks[i] = ((Integer) hashMap.get(Float.valueOf(lastValue))).intValue();
+        ranks[i] = (Integer) hashMap.get(lastValue);
         lastRank = ranks[i];
       }
     }
@@ -1303,7 +1300,7 @@ public class FloatArray extends PrimitiveArray {
     // store the results in ranked
     indices.append(new IntArray(ranks));
 
-    return new FloatArray(tUnique);
+    return new FloatArray(unique);
   }
 
   /**

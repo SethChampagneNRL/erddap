@@ -2,19 +2,31 @@
 package dods.dap.parser;
 
 import com.cohort.util.MustBe; // Bob added
-import dods.dap.*;
-import java.util.Stack;
+import dods.dap.Attribute;
+import dods.dap.AttributeBadValueException;
+import dods.dap.AttributeExistsException;
+import dods.dap.AttributeTable;
+import dods.dap.DAS;
+import dods.dap.DASException;
+import dods.dap.DODSException;
+import dods.dap.NoSuchAttributeException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 public class DASParser implements DASParserConstants {
   /* $Id: DASParser.java,v 1.28 2002/06/05 20:44:51 jimg Exp $ */
   private DAS das;
-  private Stack stack;
+  private Deque<AttributeTable> stack;
   private String name;
   private int type;
 
   private static final String attrTupleMsg =
-      "Error: Expected an attribute type. Such as Byte, Int32, String, etc.\n"
-          + "followed by a name and value.\n";
+      """
+                  Error: Expected an attribute type. Such as Byte, Int32, String, etc.
+                  followed by a name and value.
+                  """;
 
   private static final String noDASMsg =
       "The attribute object returned from the dataset was null\n"
@@ -22,7 +34,7 @@ public class DASParser implements DASParserConstants {
 
   /** Return the topmost AttributeTable on the stack. */
   private final AttributeTable topOfStack() {
-    return (AttributeTable) stack.peek();
+    return stack.peek();
   }
 
   /** Is the stack empty? */
@@ -32,7 +44,7 @@ public class DASParser implements DASParserConstants {
 
   public final void Attributes(DAS das) throws ParseException, DASException {
     this.das = das;
-    this.stack = new Stack();
+    this.stack = new ArrayDeque<>();
     try {
       switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
         case ATTR:
@@ -41,7 +53,6 @@ public class DASParser implements DASParserConstants {
             Attribute();
             switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
               case ATTR:
-                ;
                 break;
               default:
                 jj_la1[0] = jj_gen;
@@ -83,7 +94,6 @@ public class DASParser implements DASParserConstants {
         case STRING:
         case URL:
         case WORD:
-          ;
           break;
         default:
           jj_la1[2] = jj_gen;
@@ -108,7 +118,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[3] = jj_gen;
@@ -128,7 +137,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[4] = jj_gen;
@@ -148,7 +156,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[5] = jj_gen;
@@ -168,7 +175,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[6] = jj_gen;
@@ -188,7 +194,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[7] = jj_gen;
@@ -208,7 +213,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[8] = jj_gen;
@@ -228,7 +232,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[9] = jj_gen;
@@ -248,7 +251,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[10] = jj_gen;
@@ -268,7 +270,6 @@ public class DASParser implements DASParserConstants {
         while (true) {
           switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
             case 21:
-              ;
               break;
             default:
               jj_la1[11] = jj_gen;
@@ -384,15 +385,9 @@ public class DASParser implements DASParserConstants {
       }
       jj_consume_token(22);
     } catch (NoSuchAttributeException e) {
-      error(
-          "Error: The attribute " + attr + " does not exist. (" + e.toString() + ")"); // bob added
+      error("Error: The attribute " + attr + " does not exist. (" + e + ")"); // bob added
     } catch (AttributeExistsException e) {
-      error(
-          "Error: The alias "
-              + alias
-              + " already exists in this DAS. ("
-              + e.toString()
-              + ")"); // bob added
+      error("Error: The alias " + alias + " already exists in this DAS. (" + e + ")"); // bob added
     }
   }
 
@@ -401,82 +396,45 @@ public class DASParser implements DASParserConstants {
     switch ((jj_ntk == -1) ? jj_ntk() : jj_ntk) {
       case WORD:
         t = jj_consume_token(WORD);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case ATTR:
         t = jj_consume_token(ATTR);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case ALIAS:
         t = jj_consume_token(ALIAS);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case BYTE:
         t = jj_consume_token(BYTE);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case INT16:
         t = jj_consume_token(INT16);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case UINT16:
         t = jj_consume_token(UINT16);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case INT32:
         t = jj_consume_token(INT32);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case UINT32:
         t = jj_consume_token(UINT32);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case FLOAT32:
         t = jj_consume_token(FLOAT32);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case FLOAT64:
         t = jj_consume_token(FLOAT64);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case STRING:
         t = jj_consume_token(STRING);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       case URL:
         t = jj_consume_token(URL);
-        {
-          if (true) return t;
-        }
-        break;
+        return t;
       default:
         jj_la1[13] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
     }
-    throw new Error("Missing return statement in function");
   }
 
   void error(String msg) throws ParseException, DASException {
@@ -511,7 +469,7 @@ public class DASParser implements DASParserConstants {
               + " "
               + getTypeName(type)
               + " value. ("
-              + e.toString()
+              + e
               + ")"; // bob added
       addBadAttribute(topOfStack().getName(), type, name, value, msg);
     }
@@ -554,30 +512,19 @@ public class DASParser implements DASParserConstants {
   }
 
   String getTypeName(int type) throws ParseException {
-    switch (type) {
-      case Attribute.CONTAINER:
-        return "Container";
-      case Attribute.BYTE:
-        return "Byte";
-      case Attribute.INT16:
-        return "Int16";
-      case Attribute.UINT16:
-        return "UInt16";
-      case Attribute.INT32:
-        return "Int32";
-      case Attribute.UINT32:
-        return "UInt32";
-      case Attribute.FLOAT32:
-        return "Float32";
-      case Attribute.FLOAT64:
-        return "Float64";
-      case Attribute.STRING:
-        return "String";
-      case Attribute.URL:
-        return "Url";
-      default:
-        return "";
-    }
+    return switch (type) {
+      case Attribute.CONTAINER -> "Container";
+      case Attribute.BYTE -> "Byte";
+      case Attribute.INT16 -> "Int16";
+      case Attribute.UINT16 -> "UInt16";
+      case Attribute.INT32 -> "Int32";
+      case Attribute.UINT32 -> "UInt32";
+      case Attribute.FLOAT32 -> "Float32";
+      case Attribute.FLOAT64 -> "Float64";
+      case Attribute.STRING -> "String";
+      case Attribute.URL -> "Url";
+      default -> "";
+    };
   }
 
   private final boolean jj_2_1(int xla) {
@@ -710,169 +657,121 @@ public class DASParser implements DASParserConstants {
   }
 
   private final boolean jj_3R_14() {
-    if (jj_scan_token(WORD)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(WORD);
   }
 
   private final boolean jj_3_7() {
     if (jj_scan_token(FLOAT32)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3_6() {
     if (jj_scan_token(UINT32)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3_5() {
     if (jj_scan_token(INT32)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3_4() {
     if (jj_scan_token(UINT16)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3_3() {
     if (jj_scan_token(INT16)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3_2() {
     if (jj_scan_token(BYTE)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3_1() {
-    if (jj_3R_12()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_12();
   }
 
   private final boolean jj_3R_12() {
     if (jj_scan_token(ALIAS)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(WORD)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(WORD);
   }
 
   private final boolean jj_3_11() {
     if (jj_3R_13()) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(19)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(19);
   }
 
   private final boolean jj_3R_25() {
-    if (jj_scan_token(URL)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(URL);
   }
 
   private final boolean jj_3R_24() {
-    if (jj_scan_token(STRING)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(STRING);
   }
 
   private final boolean jj_3R_23() {
-    if (jj_scan_token(FLOAT64)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(FLOAT64);
   }
 
   private final boolean jj_3_10() {
     if (jj_scan_token(URL)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3R_22() {
-    if (jj_scan_token(FLOAT32)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(FLOAT32);
   }
 
   private final boolean jj_3R_21() {
-    if (jj_scan_token(UINT32)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(UINT32);
   }
 
   private final boolean jj_3R_20() {
-    if (jj_scan_token(INT32)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(INT32);
   }
 
   private final boolean jj_3R_19() {
-    if (jj_scan_token(UINT16)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(UINT16);
   }
 
   private final boolean jj_3_9() {
     if (jj_scan_token(STRING)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3R_18() {
-    if (jj_scan_token(INT16)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(INT16);
   }
 
   private final boolean jj_3R_17() {
-    if (jj_scan_token(BYTE)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(BYTE);
   }
 
   private final boolean jj_3R_16() {
-    if (jj_scan_token(ALIAS)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(ALIAS);
   }
 
   private final boolean jj_3_8() {
     if (jj_scan_token(FLOAT64)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_13()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_3R_13();
   }
 
   private final boolean jj_3R_15() {
-    if (jj_scan_token(ATTR)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
+    return jj_scan_token(ATTR);
   }
 
   public DASParserTokenManager token_source;
@@ -881,8 +780,6 @@ public class DASParser implements DASParserConstants {
   private int jj_ntk;
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
-  public boolean lookingAhead = false;
-  private boolean jj_semLA;
   private int jj_gen;
   private final int[] jj_la1 = new int[14];
   private final int[] jj_la1_0 = {
@@ -903,65 +800,17 @@ public class DASParser implements DASParserConstants {
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
-  public void ReInit(java.io.InputStream stream) {
-    jj_input_stream.ReInit(stream, 1, 1);
-    token_source.ReInit(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  public DASParser(java.io.Reader stream) {
-    jj_input_stream = new SimpleCharStream(stream, 1, 1);
-    token_source = new DASParserTokenManager(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  public void ReInit(java.io.Reader stream) {
-    jj_input_stream.ReInit(stream, 1, 1);
-    token_source.ReInit(jj_input_stream);
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  public DASParser(DASParserTokenManager tm) {
-    token_source = tm;
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
-  public void ReInit(DASParserTokenManager tm) {
-    token_source = tm;
-    token = new Token();
-    jj_ntk = -1;
-    jj_gen = 0;
-    for (int i = 0; i < 14; i++) jj_la1[i] = -1;
-    for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
-  }
-
   private final Token jj_consume_token(int kind) throws ParseException {
-    Token oldToken;
-    if ((oldToken = token).next != null) token = token.next;
+    Token oldToken = token;
+    if (oldToken.next != null) token = token.next;
     else token = token.next = token_source.getNextToken();
     jj_ntk = -1;
     if (token.kind == kind) {
       jj_gen++;
       if (++jj_gc > 100) {
         jj_gc = 0;
-        for (int i = 0; i < jj_2_rtns.length; i++) {
-          JJCalls c = jj_2_rtns[i];
+        for (JJCalls jj2Rtn : jj_2_rtns) {
+          JJCalls c = jj2Rtn;
           while (c != null) {
             if (c.gen < jj_gen) c.first = null;
             c = c.next;
@@ -998,33 +847,20 @@ public class DASParser implements DASParserConstants {
     return (jj_scanpos.kind != kind);
   }
 
-  public final Token getNextToken() {
-    if (token.next != null) token = token.next;
-    else token = token.next = token_source.getNextToken();
-    jj_ntk = -1;
-    jj_gen++;
-    return token;
-  }
-
-  public final Token getToken(int index) {
-    Token t = lookingAhead ? jj_scanpos : token;
-    for (int i = 0; i < index; i++) {
-      if (t.next != null) t = t.next;
-      else t = t.next = token_source.getNextToken();
-    }
-    return t;
-  }
-
   private final int jj_ntk() {
-    if ((jj_nt = token.next) == null)
-      return (jj_ntk = (token.next = token_source.getNextToken()).kind);
-    else return (jj_ntk = jj_nt.kind);
+    if ((jj_nt = token.next) == null) {
+      token.next = token_source.getNextToken();
+      jj_ntk = token.next.kind;
+    } else {
+      jj_ntk = jj_nt.kind;
+    }
+    return jj_ntk;
   }
 
-  private java.util.Vector jj_expentries = new java.util.Vector();
+  private final List<int[]> jj_expentries = new ArrayList<>();
   private int[] jj_expentry;
   private int jj_kind = -1;
-  private int[] jj_lasttokens = new int[100];
+  private final int[] jj_lasttokens = new int[100];
   private int jj_endpos;
 
   private void jj_add_error_token(int kind, int pos) {
@@ -1033,12 +869,9 @@ public class DASParser implements DASParserConstants {
       jj_lasttokens[jj_endpos++] = kind;
     } else if (jj_endpos != 0) {
       jj_expentry = new int[jj_endpos];
-      for (int i = 0; i < jj_endpos; i++) {
-        jj_expentry[i] = jj_lasttokens[i];
-      }
+      System.arraycopy(jj_lasttokens, 0, jj_expentry, 0, jj_endpos);
       boolean exists = false;
-      for (java.util.Enumeration en = jj_expentries.elements(); en.hasMoreElements(); ) {
-        int[] oldentry = (int[]) en.nextElement();
+      for (int[] oldentry : jj_expentries) {
         if (oldentry.length == jj_expentry.length) {
           exists = true;
           for (int i = 0; i < jj_expentry.length; i++) {
@@ -1050,13 +883,13 @@ public class DASParser implements DASParserConstants {
           if (exists) break;
         }
       }
-      if (!exists) jj_expentries.addElement(jj_expentry);
+      if (!exists) jj_expentries.add(jj_expentry);
       if (pos != 0) jj_lasttokens[(jj_endpos = pos) - 1] = kind;
     }
   }
 
   public final ParseException generateParseException() {
-    jj_expentries.removeAllElements();
+    jj_expentries.clear();
     boolean[] la1tokens = new boolean[23];
     for (int i = 0; i < 23; i++) {
       la1tokens[i] = false;
@@ -1078,7 +911,7 @@ public class DASParser implements DASParserConstants {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
-        jj_expentries.addElement(jj_expentry);
+        jj_expentries.add(jj_expentry);
       }
     }
     jj_endpos = 0;
@@ -1086,14 +919,10 @@ public class DASParser implements DASParserConstants {
     jj_add_error_token(0, 0);
     int[][] exptokseq = new int[jj_expentries.size()][];
     for (int i = 0; i < jj_expentries.size(); i++) {
-      exptokseq[i] = (int[]) jj_expentries.elementAt(i);
+      exptokseq[i] = jj_expentries.get(i);
     }
     return new ParseException(token, exptokseq, tokenImage);
   }
-
-  public final void enable_tracing() {}
-
-  public final void disable_tracing() {}
 
   private final void jj_rescan_token() {
     jj_rescan = true;

@@ -4,10 +4,17 @@ import com.cohort.util.String2;
 import com.cohort.util.Test;
 import dods.dap.DConnect;
 import gov.noaa.pfel.coastwatch.util.SSR;
+import org.junit.jupiter.api.BeforeAll;
 import tags.TagIncompleteTest;
 import tags.TagThredds;
+import testDataset.Initialization;
 
 class OpendapTests {
+
+  @BeforeAll
+  static void init() {
+    Initialization.edStatic();
+  }
 
   @org.junit.jupiter.api.Test
   @TagThredds
@@ -40,8 +47,7 @@ class OpendapTests {
 
     // test THREDDS //was :8081
     opendap =
-        new Opendap(
-            "https://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite/GA/ssta/3day", true, null);
+        new Opendap("https://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite/GA/ssta/3day", true);
     DConnect dConnect = new DConnect(opendap.url, opendap.acceptDeflate, 1, 1);
     opendap.getGridInfo(
         dConnect.getDAS(OpendapHelper.DEFAULT_TIMEOUT),
@@ -59,7 +65,7 @@ class OpendapTests {
     // test THREDDS
     opendap =
         new Opendap( // was :8081
-            "https://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite/AG/ssta/3day", true, null);
+            "https://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite/AG/ssta/3day", true);
     dConnect = new DConnect(opendap.url, opendap.acceptDeflate, 1, 1);
     opendap.getGridInfo(dConnect.getDAS(60000), dConnect.getDDS(60000), "AGssta", "-1.0e34");
     Test.ensureEqual(opendap.getLat(0), -75, "");
@@ -73,7 +79,6 @@ class OpendapTests {
 
     // ensure not oddly spaced after makeLonPM180
     // data is 0..360, so ask for ~-180 to ~180
-    String dir = SSR.getTempDirectory();
     Grid grid = opendap.makeGrid(opendap.timeOptions[0], -170, 170, 22, 50, 53, 37);
     String2.log("lon values: " + String2.toCSSVString(grid.lon));
     DataHelper.ensureEvenlySpaced(grid.lon, "The lon values aren't evenly spaced:\n");
@@ -246,7 +251,6 @@ class OpendapTests {
   @org.junit.jupiter.api.Test
   @TagIncompleteTest // Connection cannot be opened
   void doErddapSpeedTests() throws Exception {
-    boolean doDotTestToo = false;
     boolean doAsciiTestToo = false;
     // System.out.println("\nOpendap.doErddapSpeedTests");
     // try {

@@ -6,7 +6,6 @@ package gov.noaa.pfel.coastwatch.util;
 
 import com.cohort.array.Attributes;
 import com.cohort.array.StringArray;
-import com.cohort.util.File2;
 import com.cohort.util.MustBe;
 import com.cohort.util.String2;
 import com.cohort.util.XML;
@@ -14,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * This facilitates reading a simple XML file. The file can have comments (begin with "&lt;!--" and
@@ -25,16 +25,16 @@ import java.io.Reader;
 public class SimpleXMLReader {
 
   private Reader reader;
-  private StringArray stack = new StringArray();
-  private StringArray attributeNames = new StringArray();
-  private StringArray attributeValues = new StringArray();
+  private final StringArray stack = new StringArray();
+  private final StringArray attributeNames = new StringArray();
+  private final StringArray attributeValues = new StringArray();
   private boolean itsOwnEndTag = false;
-  private StringBuilder allTags = new StringBuilder();
-  private StringBuilder contentBuffer = new StringBuilder();
+  private final StringBuilder allTags = new StringBuilder();
+  private final StringBuilder contentBuffer = new StringBuilder();
   private String rawContent = "";
   private String content = "";
   private String endWhiteSpace = "";
-  private StringBuilder tagBuffer = new StringBuilder();
+  private final StringBuilder tagBuffer = new StringBuilder();
   private long lineNumber = 1, tagNumber = 0;
 
   /**
@@ -53,9 +53,7 @@ public class SimpleXMLReader {
         b = inputStream.read();
         if (b < 0) {
           throwException(
-              "Unexpected end of file while looking for end of first tag=\""
-                  + sb.toString()
-                  + "\".");
+              "Unexpected end of file while looking for end of first tag=\"" + sb + "\".");
         } else if (b == '\n') lineNumber++;
       }
       sb.append((char) b);
@@ -63,7 +61,7 @@ public class SimpleXMLReader {
       } else {
         throwException(
             "The first XML tag=\""
-                + sb.toString()
+                + sb
                 + "\" should have started with \"<?xml \" and ended with \"?>\".");
       }
 
@@ -84,7 +82,7 @@ public class SimpleXMLReader {
       reader =
           new BufferedReader(
               encoding.length() == 0
-                  ? new InputStreamReader(inputStream, File2.UTF_8)
+                  ? new InputStreamReader(inputStream, StandardCharsets.UTF_8)
                   : new InputStreamReader(inputStream, encoding));
     } catch (Exception e) {
       try {
@@ -136,15 +134,6 @@ public class SimpleXMLReader {
   }
 
   /**
-   * This returns the number of times nextTag has been called.
-   *
-   * @return the number of times nextTag has been called.
-   */
-  public long tagNumber() {
-    return tagNumber;
-  }
-
-  /**
    * This returns the requested item from the stack of tags. Call this right after nextTag().
    *
    * @param item
@@ -186,28 +175,6 @@ public class SimpleXMLReader {
   }
 
   /**
-   * This indicates if the current tag is an end tag.
-   *
-   * @return true if the current tag is an end tag
-   */
-  public boolean isEndTag() {
-    if (topTag() == null) {
-      return false;
-    }
-    return topTag().charAt(0) == '/';
-  }
-
-  /**
-   * Get the rawContent that occurred before the last tag, i.e. keep CDATA markers and comment
-   * syntax.
-   *
-   * @return the rawContent of a tag. This is not trim'd and e.g., has CDATA markers.
-   */
-  public String rawContent() {
-    return rawContent;
-  }
-
-  /**
    * This returns the trim'd content which occurred right before that last tag. Call this right
    * after nextTag(). So this is normally called right after an end tag.
    *
@@ -218,16 +185,6 @@ public class SimpleXMLReader {
    */
   public String content() {
     return content;
-  }
-
-  /**
-   * This returns the whitespace right before the last tag. Call this right after nextTag(). This
-   * should rarely be needed
-   *
-   * @return the whitespace right before the last tag. If none, this will be "" (not null).
-   */
-  public String endWhiteSpace() {
-    return endWhiteSpace;
   }
 
   /**
@@ -372,7 +329,7 @@ public class SimpleXMLReader {
               && tagBuffer.substring(0, 3).equals("!--")) { // it is a comment
             if (tagBuffer.substring(tagBuffer.length() - 2, tagBuffer.length()).equals("--")) {
               // end of comment
-              rawContent += "<" + tagBuffer.toString() + ">\n";
+              rawContent += "<" + tagBuffer + ">\n";
               tagBuffer.setLength(0); // throw away the content
             } else {
               // It's the end of a tag within the comment. Not yet end of comment.
@@ -387,7 +344,7 @@ public class SimpleXMLReader {
             if (tagBuffer.substring(tagBuffer.length() - 2).equals("]]")) {
               // end of CDATA, transfer to contentBuffer
               // don't include "![CDATA[" start or "]]" end
-              rawContent = "<" + tagBuffer.toString() + ">";
+              rawContent = "<" + tagBuffer + ">";
               tagBuffer.delete(0, 8);
               tagBuffer.setLength(tagBuffer.length() - 2);
               // defeat character decode below by encoding & as &amp; here
@@ -427,7 +384,7 @@ public class SimpleXMLReader {
                 + allTags()
                 + "\n"
                 + "  tag = "
-                + tagBuffer.toString()
+                + tagBuffer
                 + "\n"
                 + "  content = "
                 + content()
@@ -442,7 +399,7 @@ public class SimpleXMLReader {
     // <?xml-stylesheet type="text/xsl" href="../../style/eml/eml-2.0.0.xsl"?>
     // String2.log("tag #" + tagNumber + " tagBuffer=" + tagBuffer);
     if (tagNumber == 1 && String2.startsWith(tagBuffer, "?xml")) {
-      rawContent = "<" + tagBuffer.toString() + ">";
+      rawContent = "<" + tagBuffer + ">";
       tagNumber--;
       nextTag();
       return;
@@ -715,31 +672,6 @@ public class SimpleXMLReader {
         // e.g., <emphasis> <subscript> <superscript>
         sb.append(tContent + tEndWhiteSpace + "[" + tTag + "]");
       }
-    }
-  }
-
-  /**
-   * This tests validity of an XML file by running through the file printing all the tags. If there
-   * is an error, you can see that the last few tags read were.
-   *
-   * @param rootTag e.g., "erddapDatasets"
-   * @throws Throwable if trouble (e.g., file not valid)
-   */
-  public static void testValidity(String fileName, String rootTag) throws Throwable {
-    String2.log("\n*** SimpleXMLReader.testValidity...");
-    SimpleXMLReader xmlReader =
-        new SimpleXMLReader(File2.getDecompressedBufferedInputStream(fileName), rootTag);
-    try {
-      while (true) {
-        xmlReader.nextTag();
-        String at = xmlReader.allTags();
-        String2.log("line=" + xmlReader.lineNumber() + " " + at);
-        if (xmlReader.stackSize() == 1 && at.equals("</" + rootTag + ">")) {
-          return;
-        }
-      }
-    } finally {
-      xmlReader.close();
     }
   }
 }

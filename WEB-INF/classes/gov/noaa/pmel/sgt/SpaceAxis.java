@@ -21,7 +21,6 @@ import gov.noaa.pmel.util.SoTValue;
 import gov.noaa.pmel.util.TimePoint;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.util.Enumeration;
 
 // jdk1.2
 // import java.awt.geom.Point2D;
@@ -109,32 +108,6 @@ public abstract class SpaceAxis extends Axis {
   static final double TIC_RATIO = 1.3;
   static final double LABEL_RATIO = 1.3;
 
-  //
-  @Override
-  protected void updateRegisteredTransforms() {
-    if (!registeredTransforms_.isEmpty()) {
-      AxisTransform trns;
-      for (Enumeration it = registeredTransforms_.elements(); it.hasMoreElements(); ) {
-        trns = (AxisTransform) it.nextElement();
-        trns.setRangeP(pRange_);
-        trns.setRangeU(uRange_);
-      }
-    }
-  }
-
-  //
-  @Override
-  protected void updateRegisteredAxes() {
-    if (!registeredAxes_.isEmpty()) {
-      SpaceAxis ax;
-      for (Enumeration it = registeredAxes_.elements(); it.hasMoreElements(); ) {
-        ax = (SpaceAxis) it.nextElement();
-        ax.setRangeU(uRange_);
-        ax.setRangeP(pRange_);
-      }
-    }
-  }
-
   // Bob added atLeast                      start     finish       (big)delta   y
   protected void drawSmallXTics(
       Graphics g, double xu, double xtest, double del, double yp, double atLeast) {
@@ -210,27 +183,6 @@ public abstract class SpaceAxis extends Axis {
   }
 
   /**
-   * Set the number of significant digits in the label. This is used if a format is not specified.
-   *
-   * @param nsig number of significant digits
-   */
-  public void setSignificantDigits(int nsig) {
-    if (sigDigits_ != nsig) {
-      sigDigits_ = nsig;
-      modified("SpaceAxis: setSignificantDigits()");
-    }
-  }
-
-  /**
-   * Get the number of significant digits in the label.
-   *
-   * @return number of significant digits.
-   */
-  public int getSignificantDigits() {
-    return sigDigits_;
-  }
-
-  /**
    * Set the label interval.
    *
    * @param lint label interval.
@@ -240,15 +192,6 @@ public abstract class SpaceAxis extends Axis {
       labelInterval_ = lint;
       modified("SpaceAxis: setLabelInterval()");
     }
-  }
-
-  /**
-   * Get the label interval.
-   *
-   * @return label interval
-   */
-  public int getLabelInterval() {
-    return labelInterval_;
   }
 
   /**
@@ -277,15 +220,6 @@ public abstract class SpaceAxis extends Axis {
   }
 
   /**
-   * Get the label format.
-   *
-   * @return label format
-   */
-  public String getLabelFormat() {
-    return labelFormat_;
-  }
-
-  /**
    * Set the user range to draw the axis. Registered Axes and AxisTransforms will be updated.
    *
    * @param ur range in user coordinates
@@ -293,8 +227,6 @@ public abstract class SpaceAxis extends Axis {
   public void setRangeU(Range2D ur) {
     if (uRange_ == null || !uRange_.equals(ur)) {
       uRange_ = ur;
-      updateRegisteredAxes();
-      updateRegisteredTransforms();
       modified("SpaceAxis: setRangeU()");
     }
   }
@@ -306,41 +238,6 @@ public abstract class SpaceAxis extends Axis {
             ((SoTRange.Double) ur).start,
             ((SoTRange.Double) ur).end,
             ((SoTRange.Double) ur).delta));
-  }
-
-  /**
-   * Get the user range.
-   *
-   * @return range in user coordinates
-   */
-  public Range2D getRangeU() {
-    return uRange_;
-  }
-
-  @Override
-  public SoTRange getSoTRangeU() {
-    return new SoTRange.Double(uRange_);
-  }
-
-  /**
-   * Set the increment between large tics.
-   *
-   * @param delta increment in user coordinates
-   */
-  public void setDeltaU(double delta) {
-    if (uRange_.delta != delta) {
-      uRange_.delta = delta;
-      modified("SpaceAxis: setDeltaU()");
-    }
-  }
-
-  /**
-   * Get the increment between large tics.
-   *
-   * @return user coordinate increment
-   */
-  public double getDeltaU() {
-    return uRange_.delta;
   }
 
   /**
@@ -387,37 +284,6 @@ public abstract class SpaceAxis extends Axis {
       x = ((SoTValue.Double) upt.getX()).getValue();
       y = ((SoTValue.Double) upt.getY()).getValue();
       setLocationU(new Point2D.Double(x, y));
-    }
-  }
-
-  /**
-   * Get the origin in user units of the axis
-   *
-   * @return origin
-   */
-  public Point2D.Double getLocationU() {
-    return uLocation_;
-  }
-
-  /**
-   * Get the origin in user units of the axis
-   *
-   * @return origin
-   */
-  public TimePoint getTimeLocationU() {
-    return tLocation_;
-  }
-
-  @Override
-  public SoTPoint getSoTLocationU() {
-    if (tLocation_ == null) {
-      return new SoTPoint(uLocation_.x, uLocation_.y);
-    } else {
-      if (orientation_ == HORIZONTAL) {
-        return new SoTPoint(tLocation_.t, tLocation_.x);
-      } else {
-        return new SoTPoint(tLocation_.x, tLocation_.t);
-      }
     }
   }
 

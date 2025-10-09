@@ -16,9 +16,11 @@ import com.cohort.util.String2;
 import com.cohort.util.Test;
 import dods.dap.*;
 import gov.noaa.pfel.coastwatch.TimePeriods;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.GregorianCalendar;
+import java.util.Iterator;
 
 /** This class holds information about an OPeNDAP grid data set for one time period. */
 public class Opendap {
@@ -30,7 +32,7 @@ public class Opendap {
   public static boolean verbose = false;
 
   /** The following information about this OPeNDAP data set is set by the constructor. */
-  public String url;
+  public final String url;
 
   public boolean acceptDeflate =
       true; // Dave got faster than possible response; ergo, compression is working(?)
@@ -116,7 +118,7 @@ public class Opendap {
    *     need for a new index.
    * @throws Exception if trouble
    */
-  public Opendap(String url, boolean acceptDeflate, String flagDirectory) throws Exception {
+  public Opendap(String url, boolean acceptDeflate) throws Exception {
     this.url = url;
     this.acceptDeflate = acceptDeflate;
 
@@ -126,104 +128,6 @@ public class Opendap {
     if (verbose)
       String2.log(
           "  Opendap constructor done.  TIME=" + (System.currentTimeMillis() - time) + "ms");
-  }
-
-  /**
-   * Given a das, this gets globalAttributeTable.
-   *
-   * @param das from dConnect.getDAS()
-   * @throws Exception if trouble (e.g., das attribute table with "GLOBAL" in name not found)
-   */
-  public AttributeTable getGlobalAttributeTable(DAS das) throws Exception {
-
-    // find the GLOBAL attributes
-    // this assumes that GLOBAL is in the name (I've see GLOBAL and NC_GLOBAL)
-    Enumeration names = das.getNames();
-    while (names.hasMoreElements()) {
-      String s = (String) names.nextElement();
-      if (s.indexOf("GLOBAL") >= 0) {
-        return das.getAttributeTable(s);
-      }
-    }
-    Test.error(
-        String2.ERROR
-            + " in Opendap.getGlobalAttributeTable:\n"
-            + "'GLOBAL' attribute table not found for "
-            + url);
-    return null;
-  }
-
-  /**
-   * Get the length of an array from the DDS info.
-   *
-   * @param dds from dConnect.getDDS(OpendapHelper.DEFAULT_TIMEOUT)
-   * @param dimensionName e.g. "lat". This searches top-level variables and variables within Grids.
-   * @return int the length of the array (or -1 if not found)
-   */
-  public int getArrayLength(DDS dds, String dimensionName) {
-    try {
-      // search top-level variables
-      // dds is read-only so no need to use sychronized(dds)
-      int len;
-      Enumeration e = dds.getVariables();
-      while (e.hasMoreElements()) {
-        BaseType bt = (BaseType) e.nextElement();
-        len = getDArrayLength(bt, dimensionName);
-        if (len > 0) return len;
-        if (bt instanceof DGrid dg) {
-          Enumeration e2 = dg.getVariables();
-          while (e2.hasMoreElements()) {
-            len = getDArrayLength((BaseType) e2.nextElement(), dimensionName);
-            if (len > 0) {
-              if (verbose) String2.log("Opendap.getArrayLength(" + dimensionName + ") = " + len);
-              return len;
-            }
-          }
-        }
-      }
-    } catch (Exception e) {
-    }
-    if (verbose) String2.log("Opendap.getArrayLength: '" + dimensionName + "' not found.");
-    return -1;
-  }
-
-  /**
-   * Get the name of the grids from the dds. A sample dds:
-   *
-   * <pre>
-   * Dataset {
-   * Float32 altitude[altitude = 1];
-   * Float32 lat[lat = 2321];
-   * Float32 lon[lon = 4001];
-   * Float64 time[time = 171];
-   * Grid {
-   * ARRAY:
-   * Float32 MOk490[time = 171][altitude = 1][lat = 2321][lon = 4001];
-   * MAPS:
-   * Float64 time[time = 171];
-   * Float32 altitude[altitude = 1];
-   * Float32 lat[lat = 2321];
-   * Float32 lon[lon = 4001];
-   * } MOk490;
-   * } dodsC/satellite/MO/k490/hday;
-   * </pre>
-   *
-   * @param dds from getDds(OpendapHelper.DEFAULT_TIMEOUT)
-   * @return a StringArray with the names of the Grid variables (size 0 if no Grids).
-   */
-  public StringArray getGridNames(DDS dds) {
-    String ddsString = OpendapHelper.getDdsString(dds);
-    StringArray results = new StringArray();
-    int po = ddsString.indexOf("Grid {");
-    while (po > 0) {
-      po = ddsString.indexOf('}', po + 6); // if not found, ddsString is ill-formed
-      int semiPo = ddsString.indexOf(';', po + 2);
-      results.add(ddsString.substring(po + 2, semiPo));
-
-      // find the next grid
-      po = ddsString.indexOf("Grid {", semiPo + 1);
-    }
-    return results;
   }
 
   /**
@@ -241,7 +145,6 @@ public class Opendap {
   public void getGridInfo(DAS das, DDS dds, String gridName, String defaultMissingValue)
       throws Exception {
     long time = System.currentTimeMillis();
-    String errorInMethod = String2.ERROR + " in Opendap.getGridInfo(" + gridName + "):\n  ";
 
     if (verbose) String2.log("Opendap.getGridInfo for " + gridName);
 
@@ -265,8 +168,7 @@ public class Opendap {
 
     // get the grid baseType
     BaseType bt = dds.getVariable(gridName); // throws exception if not found
-    DArray da =
-        (DArray) ((DGrid) bt).getVariables().nextElement(); // first element is always main array
+    DArray da = (DArray) ((DGrid) bt).getVariables().next(); // first element is always main array
     // if (verbose) String2.log("  da.getName()=" + da.getName()); //always(?) same as gridName
 
     // gridMissingValue:  get from _FillValue  (it is preferred over missing_value)
@@ -291,10 +193,10 @@ public class Opendap {
     gridDimensionData = new double[numDimensions][];
     gridDimensionAscending = new boolean[numDimensions];
     int po = 0;
-    Enumeration e2 = da.getDimensions();
-    while (e2.hasMoreElements()) {
+    Iterator<DArrayDimension> e2 = da.getDimensions();
+    while (e2.hasNext()) {
       long time1 = System.currentTimeMillis();
-      DArrayDimension dad = (DArrayDimension) e2.nextElement();
+      DArrayDimension dad = e2.next();
       gridDimensionNames[po] = dad.getName();
 
       // get dimension info
@@ -311,38 +213,40 @@ public class Opendap {
           Math.abs(
               gridDimensionData[po][gridDimensionData[po].length - 1] - gridDimensionData[po][0]);
       gridDimensionAscending[po] = range > 0;
-      if (dad.getName().equals("time")
-          || dad.getName().equals("time_series")) { // lynn's files use this
-        gridTimeDimension = po;
+      switch (dad.getName()) {
+        case "time", "time_series" -> {
+          gridTimeDimension = po;
 
-        // interpret time_series units (e.g., "days since 1985-01-01" or "days since 1985-1-1")
-        // it must be: <units> since <isoDate>   or exception thrown
-        // FUTURE: need to catch time zone information
-        String tsUnits = OpendapHelper.getAttributeValue(das, dad.getName(), "units");
-        tsUnits = String2.replaceAll(tsUnits, "\"", "");
-        double timeBaseAndFactor[] =
-            Calendar2.getTimeBaseAndFactor(tsUnits); // throws exception if trouble
-        gridTimeBaseSeconds = timeBaseAndFactor[0];
-        gridTimeFactorToGetSeconds = timeBaseAndFactor[1];
+          // interpret time_series units (e.g., "days since 1985-01-01" or "days since 1985-1-1")
+          // it must be: <units> since <isoDate>   or exception thrown
+          // FUTURE: need to catch time zone information
+          String tsUnits = OpendapHelper.getAttributeValue(das, dad.getName(), "units");
+          tsUnits = String2.replaceAll(tsUnits, "\"", "");
+          double timeBaseAndFactor[] =
+              Calendar2.getTimeBaseAndFactor(tsUnits); // throws exception if trouble
 
-        // timeLongName is used to determine if the times in the file are already
-        // centered ("Centered Time" or anything other than "End Time")
-        // or aren't yet centered ("End Time").
-        timeLongName = OpendapHelper.getAttributeValue(das, dad.getName(), "long_name");
+          gridTimeBaseSeconds = timeBaseAndFactor[0];
+          gridTimeFactorToGetSeconds = timeBaseAndFactor[1];
 
-      } else if (dad.getName().equals("depth") || dad.getName().equals("altitude")) {
-        gridDepthDimension = po;
-      } else if (dad.getName().equals("lat") || dad.getName().equals("latitude")) {
-        gridLatDimension = po;
-        gridNLatValues = gridDimensionData[po].length;
-        gridLatIncrement = range / (gridNLatValues - 1);
-      } else if (dad.getName().equals("lon") || dad.getName().equals("longitude")) {
-        gridLonDimension = po;
-        gridNLonValues = gridDimensionData[po].length;
-        gridLonIncrement = range / (gridNLonValues - 1);
-        lonIsPM180 =
-            !DataHelper.lonNeedsToBe0360(
-                gridDimensionData[po][0], gridDimensionData[po][gridNLonValues - 1]);
+          // timeLongName is used to determine if the times in the file are already
+          // centered ("Centered Time" or anything other than "End Time")
+          // or aren't yet centered ("End Time").
+          timeLongName = OpendapHelper.getAttributeValue(das, dad.getName(), "long_name");
+        }
+        case "depth", "altitude" -> gridDepthDimension = po;
+        case "lat", "latitude" -> {
+          gridLatDimension = po;
+          gridNLatValues = gridDimensionData[po].length;
+          gridLatIncrement = range / (gridNLatValues - 1);
+        }
+        case "lon", "longitude" -> {
+          gridLonDimension = po;
+          gridNLonValues = gridDimensionData[po].length;
+          gridLonIncrement = range / (gridNLonValues - 1);
+          lonIsPM180 =
+              !DataHelper.lonNeedsToBe0360(
+                  gridDimensionData[po][0], gridDimensionData[po][gridNLonValues - 1]);
+        }
       }
       Test.ensureEqual(
           dad.getStop() + 1,
@@ -472,7 +376,7 @@ public class Opendap {
     double timeArray[] = gridDimensionData[gridTimeDimension];
 
     // generateTimeOptions (convert time_series values into human readable date or datetimes)
-    GregorianCalendar gcZ = Calendar2.newGCalendarZulu();
+    ZonedDateTime gcZ = ZonedDateTime.now(ZoneOffset.UTC);
     StringArray timeOptionsSA = new StringArray();
     IntArray timeOptionsIndexIA = new IntArray();
     int nTimeValues = timeArray.length;
@@ -490,17 +394,23 @@ public class Opendap {
         //    if (verbose) String2.log("Reject timeIndex = " + i + ": numberOfObservations = 0.");
       } else {
         // format the value     (rounded to nearest second)
-        gcZ.setTimeInMillis(
-            1000
-                * Math.round(
-                    Calendar2.unitsSinceToEpochSeconds(baseSeconds, factorToGetSeconds, d)));
+        gcZ =
+            ZonedDateTime.ofInstant(
+                Instant.ofEpochMilli(
+                    1000
+                        * Math.round(
+                            Calendar2.unitsSinceToEpochSeconds(
+                                baseSeconds, factorToGetSeconds, d))),
+                ZoneOffset.UTC);
 
         // adjust erd's old-style time "End Time" to centered time
         if (timeLongName != null && timeLongName.equals("End Time")) {
           try {
             // fix old-style (pre-Dec 2006) nDay and 1 month end times  so 00:00
-            if (timePeriodNHours > 1 && timePeriodNHours % 24 == 0) gcZ.add(Calendar2.SECOND, 1);
-            TimePeriods.endCalendarToCenteredTime(timePeriodNHours, gcZ, errorInMethod);
+            if (timePeriodNHours > 1 && timePeriodNHours % 24 == 0) {
+              gcZ = gcZ.plusSeconds(1);
+            }
+            gcZ = TimePeriods.endCalendarToCenteredTime(timePeriodNHours, gcZ, errorInMethod);
           } catch (Exception e) {
             String2.log(e.toString());
             continue;
@@ -599,7 +509,6 @@ public class Opendap {
     double getMinY = minY;
     double getMaxY = maxY;
     int getNLon = desiredNLon;
-    int getNLat = desiredNLat;
     double originalDesiredLonIncrement =
         Math.max(gridLonIncrement, (maxX - minX) / (desiredNLon - 1));
     boolean getAllX = false;
@@ -797,7 +706,7 @@ public class Opendap {
     // getNLat changes because file range may be less than desired range
     //  and this is important optimization because it reduces the number of rows of data read
     // getNLon was modified above
-    getNLat = DataHelper.adjustNPointsNeeded(desiredNLat, maxY - minY, getMaxY - getMinY);
+    int getNLat = DataHelper.adjustNPointsNeeded(desiredNLat, maxY - minY, getMaxY - getMinY);
     if (verbose && getNLat != desiredNLat)
       String2.log(
           "  getMinY="
@@ -839,8 +748,6 @@ public class Opendap {
       // offset is usually e.g., 0, but perhaps e.g., .25
       double offset = lonDim[centerIndex] - centerAt;
       // makeLonPM180 will match up lowIndex and highIndex
-      double lowAt = (lonIsPM180 ? -180 : 0) + offset;
-      double highAt = lowAt + 360;
       int lowIndex = centerIndex - Math2.roundToInt(180 / gridLonIncrement); // may be theoretical
       int highIndex = lowIndex + Math2.roundToInt(360 / gridLonIncrement);
       // find first real index above lowIndex
@@ -1203,106 +1110,6 @@ public class Opendap {
 
     return grid;
   }
-
-  /**
-   * If bt instanceOf DArray and one of the dimensions is named dimensionName, this returns the
-   * length of that dimension.
-   *
-   * @param bt a BaseType that might be a DArray
-   * @param dimensionName the desired dimensionName
-   * @return the length of the matching dimension (or -1 if not found)
-   */
-  private static int getDArrayLength(BaseType bt, String dimensionName) {
-    if (bt instanceof DArray da) {
-      // bt is read-only so no need to use sychronized(bt)
-      Enumeration e = da.getDimensions();
-      while (e.hasMoreElements()) {
-        DArrayDimension dam = (DArrayDimension) e.nextElement();
-        if (dam.getName().equals(dimensionName)) {
-          return dam.getStop() + 1; // start = 0; stop is inclusive; so nValues = getStop()+1
-        }
-      }
-    }
-    return -1;
-  }
-
-  /* *
-   * Find the last element (if you go from min to max)
-   * which is <= x in an ascending or descending sorted array.
-   *
-   * @param pv a numeric, sorted PrimitiveVector which may not have duplicate values
-   * @param x
-   * @return the last element which is <= x in a sorted array.
-   *   If x < the smallest element, this returns -1  (no element is appropriate).
-   *   If x > the largest element, this returns pv.length-1.
-   */
-  /*out of date and maybe not exactly right. see DataHelper.binaryFindStartIndex
-   public static int findLastLE(PrimitiveVector pv, double x) {
-      //since pv doubles are hard to get at, use a linear search
-
-      //array is ascending?
-      int i, n = pv.getLength();
-      if (getDouble(pv, n - 1) > getDouble(pv, 0)) {
-          i = n - 1;
-          while (i >= 0) {
-              double d = getDouble(pv, i);
-              if (Math2.almostEqual(5, d, x) || d <= x)
-                  return i;
-              i--;
-          }
-      } else {
-          i = 0;
-          while (i < n) {
-              double d = getDouble(pv, i);
-              if (Math2.almostEqual(5, d, x) || d <= x)
-                  return i;
-              i++;
-          }
-      }
-
-      return i;
-
-
-  }
-
-
-  /* *
-   * Find the first element (if you go from min to max)
-   * which is >= x in an ascending or descending sorted array.
-   *
-   * @param pv a numeric, sorted PrimitiveVector which may not have duplicate values
-   * @param x
-   * @return the first element which is >= x in a sorted array.
-   *   If x < the smallest element, this returns 0.
-   *   If x > the largest element, this returns pv.length (no element is appropriate).
-   */
-  /*out of date and maybe not exactly right. see DataHelper.findEndIndex
-   public static int findFirstGE(PrimitiveVector pv, double x) {
-
-       //array is ascending?
-       int i, n = pv.getLength();
-       if (getDouble(pv, n - 1) > getDouble(pv, 0)) {
-           i = 0;
-           while (i < n) {
-               double d = getDouble(pv, i);
-               if (Math2.almostEqual(5, d, x) || d >= x)
-                   return i;
-               i++;
-           }
-       } else {
-           i = n - 1;
-           while (i >= 0) {
-               double d = getDouble(pv, i);
-               if (Math2.almostEqual(5, d, x) || d >= x)
-                   return i;
-               i--;
-           }
-       }
-
-       return i;
-   }
-
-  */
 
   /**
    * This performs some diagnostic tests of Opendap.

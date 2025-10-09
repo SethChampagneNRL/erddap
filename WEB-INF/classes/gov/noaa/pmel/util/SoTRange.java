@@ -57,10 +57,6 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
       this(ustart, uend, java.lang.Long.MAX_VALUE);
     }
 
-    public Time(gov.noaa.pmel.util.GeoDate ustart, gov.noaa.pmel.util.GeoDate uend) {
-      this(ustart.getTime(), uend.getTime(), java.lang.Long.MAX_VALUE);
-    }
-
     /**
      * <code>SoTRange</code> constructor.
      *
@@ -72,30 +68,6 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
       start = ustart;
       end = uend;
       delta = udel;
-    }
-
-    public Time(
-        gov.noaa.pmel.util.GeoDate ustart,
-        gov.noaa.pmel.util.GeoDate uend,
-        gov.noaa.pmel.util.GeoDate udel) {
-      this(ustart.getTime(), uend.getTime(), udel.getTime());
-    }
-
-    /**
-     * @Deprecated use SoTRange
-     */
-    public Time(TimeRange trange) {
-      start = trange.start.getTime();
-      end = trange.end.getTime();
-      if (trange.delta != null) {
-        delta = trange.delta.getTime();
-      } else {
-        delta = java.lang.Long.MAX_VALUE;
-      }
-    }
-
-    public Time(SoTRange.Time trange) {
-      this(trange.start, trange.end, trange.delta);
     }
 
     /** Get start value */
@@ -133,17 +105,17 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
 
     @Override
     public Object getStartObject() {
-      return java.lang.Long.valueOf(start);
+      return start;
     }
 
     @Override
     public Object getEndObject() {
-      return java.lang.Long.valueOf(end);
+      return end;
     }
 
     @Override
     public Object getDeltaObject() {
-      return java.lang.Long.valueOf(delta);
+      return delta;
     }
 
     /**
@@ -154,38 +126,34 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
     @Override
     public void add(SoTRange range) {
       if (!range.isTime()) return;
-      if ((start <= end) && ((SoTRange.Time) range).start <= ((SoTRange.Time) range).end) {
-        start = Math.min(start, ((SoTRange.Time) range).start);
-        end = Math.max(end, ((SoTRange.Time) range).end);
+      SoTRange.Time timeRange = (SoTRange.Time) range;
+      if ((start <= end) && timeRange.start <= timeRange.end) {
+        start = Math.min(start, timeRange.start);
+        end = Math.max(end, timeRange.end);
       } else {
-        start = Math.max(start, ((SoTRange.Time) range).start);
-        end = Math.min(end, ((SoTRange.Time) range).end);
+        start = Math.max(start, timeRange.start);
+        end = Math.min(end, timeRange.end);
       }
     }
 
     /** Test for equality. For equality start, end, and delta must all be equal. */
     @Override
     public boolean equals(Object r) {
-      if (!(r instanceof Time)) {
+      if (!(r instanceof Time rt)) {
         return false;
       }
-      long rstart = ((SoTRange.Time) r).start;
-      long rend = ((SoTRange.Time) r).end;
-      long rdelta = ((SoTRange.Time) r).delta;
+      long rstart = rt.start;
+      long rend = rt.end;
+      long rdelta = rt.delta;
 
       if (!(start == java.lang.Long.MAX_VALUE) && !(rstart == java.lang.Long.MAX_VALUE)) {
-        if ((start == java.lang.Long.MAX_VALUE) || (rstart == java.lang.Long.MAX_VALUE))
-          return false;
         if (start != rstart) return false;
       }
       if (!(end == java.lang.Long.MAX_VALUE) && !(rend == java.lang.Long.MAX_VALUE)) {
-        if ((end == java.lang.Long.MAX_VALUE) || (rend == java.lang.Long.MAX_VALUE)) return false;
         if (end != rend) return false;
       }
       if (!(delta == java.lang.Long.MAX_VALUE) && !(rdelta == java.lang.Long.MAX_VALUE)) {
-        if ((delta == java.lang.Long.MAX_VALUE) || (rdelta == java.lang.Long.MAX_VALUE))
-          return false;
-        if (delta != rdelta) return false;
+        return delta == rdelta;
       }
       return true;
     }
@@ -215,7 +183,7 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
 
     @Override
     public String toString() {
-      StringBuffer buf = new StringBuffer(50);
+      StringBuilder buf = new StringBuilder(50);
       buf.append("[").append(start).append(";").append(end);
       if (delta == java.lang.Long.MAX_VALUE) {
         buf.append("]");
@@ -327,17 +295,17 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
 
     @Override
     public Object getStartObject() {
-      return java.lang.Double.valueOf(start);
+      return start;
     }
 
     @Override
     public Object getEndObject() {
-      return java.lang.Double.valueOf(end);
+      return end;
     }
 
     @Override
     public Object getDeltaObject() {
-      return java.lang.Double.valueOf(delta);
+      return delta;
     }
 
     /**
@@ -348,24 +316,25 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
     @Override
     public void add(SoTRange range) {
       if (range.isTime()) return;
-      if ((start <= end) && ((SoTRange.Double) range).start <= ((SoTRange.Double) range).end) {
-        start = Math.min(start, ((SoTRange.Double) range).start);
-        end = Math.max(end, ((SoTRange.Double) range).end);
+      SoTRange.Double doubleRange = (SoTRange.Double) range;
+      if ((start <= end) && doubleRange.start <= doubleRange.end) {
+        start = Math.min(start, doubleRange.start);
+        end = Math.max(end, doubleRange.end);
       } else {
-        start = Math.max(start, ((SoTRange.Double) range).start);
-        end = Math.min(end, ((SoTRange.Double) range).end);
+        start = Math.max(start, doubleRange.start);
+        end = Math.min(end, doubleRange.end);
       }
     }
 
     /** Test for equality. For equality start, end, and delta must all be equal. */
     @Override
     public boolean equals(Object r) {
-      if (!(r instanceof Double)) {
+      if (!(r instanceof Double dr)) {
         return false;
       }
-      double rstart = ((SoTRange.Double) r).start;
-      double rend = ((SoTRange.Double) r).end;
-      double rdelta = ((SoTRange.Double) r).delta;
+      double rstart = dr.start;
+      double rend = dr.end;
+      double rdelta = dr.delta;
 
       if (!java.lang.Double.isNaN(start) && !java.lang.Double.isNaN(rstart)) {
         if (java.lang.Double.isNaN(start) || java.lang.Double.isNaN(rstart)) return false;
@@ -377,7 +346,7 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
       }
       if (!java.lang.Double.isNaN(delta) && !java.lang.Double.isNaN(rdelta)) {
         if (java.lang.Double.isNaN(delta) || java.lang.Double.isNaN(rdelta)) return false;
-        if (delta != rdelta) return false;
+        return delta == rdelta;
       }
       return true;
     }
@@ -407,7 +376,7 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
 
     @Override
     public String toString() {
-      StringBuffer buf = new StringBuffer(50);
+      StringBuilder buf = new StringBuilder(50);
       buf.append("[").append(start).append(";").append(end);
       if (java.lang.Double.isNaN(delta)) {
         buf.append("]");
@@ -439,7 +408,9 @@ public abstract class SoTRange implements java.io.Serializable, Cloneable {
    * subclasses are available for instantiation and provide a number of formats for storing the
    * information necessary to satisfy the various accessor methods below.
    */
-  protected SoTRange() {}
+  protected SoTRange() {
+    // Intentional empty constructor
+  }
 
   public abstract boolean isTime();
 

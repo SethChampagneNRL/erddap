@@ -9,7 +9,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDGridLonPM180Handler extends BaseGridHandler {
-  private SaxParsingContext context;
+  private final SaxParsingContext context;
 
   public EDDGridLonPM180Handler(
       SaxHandler saxHandler, String datasetID, State completeState, SaxParsingContext context) {
@@ -18,7 +18,7 @@ public class EDDGridLonPM180Handler extends BaseGridHandler {
   }
 
   private EDDGrid tChildDataset = null;
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
   private int tUpdateEveryNMillis = Integer.MAX_VALUE;
 
   @Override

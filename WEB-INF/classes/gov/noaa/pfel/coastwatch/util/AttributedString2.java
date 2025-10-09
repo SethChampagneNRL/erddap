@@ -14,6 +14,7 @@ import java.awt.font.TextLayout;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class facilitates building an AttributedString in chunks. To use it: you
@@ -32,18 +33,18 @@ public class AttributedString2 {
    * Set this to true (by calling verbose=true in your program, not by changing the code here) if
    * you want lots of diagnostic messages sent to String2.log.
    */
-  public static boolean verbose = false;
+  public static final boolean verbose = false;
 
-  protected StringBuilder cumulative = new StringBuilder();
+  protected final StringBuilder cumulative = new StringBuilder();
   protected int lastStart = 0;
 
-  protected ArrayList baseAttributes = new ArrayList();
-  protected ArrayList baseObjects = new ArrayList();
+  protected final List<AttributedCharacterIterator.Attribute> baseAttributes = new ArrayList<>();
+  protected final List<Object> baseObjects = new ArrayList<>();
 
-  protected ArrayList attributes = new ArrayList();
-  protected ArrayList objects = new ArrayList();
-  protected IntArray start = new IntArray();
-  protected IntArray end = new IntArray();
+  protected final List<AttributedCharacterIterator.Attribute> attributes = new ArrayList<>();
+  protected final List<Object> objects = new ArrayList<>();
+  protected final IntArray start = new IntArray();
+  protected final IntArray end = new IntArray();
 
   /**
    * A constructor.
@@ -56,7 +57,7 @@ public class AttributedString2 {
    */
   public AttributedString2(String family, double size, Color color) {
     addBaseAttribute(TextAttribute.FAMILY, family);
-    addBaseAttribute(TextAttribute.SIZE, Float.valueOf((float) size));
+    addBaseAttribute(TextAttribute.SIZE, (float) size);
     addBaseAttribute(TextAttribute.FOREGROUND, color);
   }
 
@@ -70,16 +71,6 @@ public class AttributedString2 {
   public void addBaseAttribute(AttributedCharacterIterator.Attribute attribute, Object object) {
     baseAttributes.add(attribute);
     baseObjects.add(object);
-  }
-
-  /**
-   * This adds a chunk of text and resets lastStart.
-   *
-   * @param text
-   */
-  public void addText(String text) {
-    lastStart = cumulative.length();
-    cumulative.append(text);
   }
 
   /**
@@ -98,21 +89,6 @@ public class AttributedString2 {
    */
   public void addChars(String s) {
     cumulative.append(s);
-  }
-
-  /**
-   * This adds attributes for the last addText text to the cumulative String. Note that italic is
-   * done with TextAttribute.POSTURE and Float.valueOf(0.2).
-   *
-   * @param attribute e.g., TextAttribute.BACKGROUND
-   * @param object e.g., color
-   */
-  public void addAttributesForLastAddText(
-      AttributedCharacterIterator.Attribute attribute, Object object) {
-    attributes.add(attribute);
-    objects.add(object);
-    start.add(lastStart);
-    end.add(cumulative.length());
   }
 
   /**
@@ -152,7 +128,6 @@ public class AttributedString2 {
 
     // apply styles to text
     AttributedString as = new AttributedString(cumulative.toString());
-    int nChar = size();
 
     // apply the base attributes
     int n = baseAttributes.size();
@@ -223,8 +198,6 @@ public class AttributedString2 {
     Color color = null; // initialColor;
     int italicStart = -1;
     int underlineStart = -1;
-    float weight = 1;
-    int weightStart = -1;
 
     // go through the htmlText
     AttributedString2 as2 = new AttributedString2(family, (float) fontSize, initialColor);
@@ -251,7 +224,7 @@ public class AttributedString2 {
             if (boldStart == as2.size()) {
               // do nothing
             } else if (boldStart >= 0) {
-              as2.addAttribute(TextAttribute.WEIGHT, Float.valueOf(2), boldStart, as2.size());
+              as2.addAttribute(TextAttribute.WEIGHT, 2F, boldStart, as2.size());
               boldStart = -1;
             } else String2.log(errorInMethod + "unexpected /b or /strong at position " + po);
 
@@ -277,7 +250,7 @@ public class AttributedString2 {
             if (italicStart == as2.size()) {
               // do nothing
             } else if (italicStart >= 0) {
-              as2.addAttribute(TextAttribute.POSTURE, Float.valueOf(0.2f), italicStart, as2.size());
+              as2.addAttribute(TextAttribute.POSTURE, 0.2f, italicStart, as2.size());
               italicStart = -1;
             } else String2.log(errorInMethod + "unexpected /i or /em at position " + po);
 
@@ -318,11 +291,11 @@ public class AttributedString2 {
 
     // close out unclosed attributes
     if (boldStart >= 0 && boldStart < as2.size())
-      as2.addAttribute(TextAttribute.WEIGHT, Float.valueOf(2), boldStart, as2.size());
+      as2.addAttribute(TextAttribute.WEIGHT, 2F, boldStart, as2.size());
     if (colorStart >= 0 && colorStart < as2.size())
       as2.addAttribute(TextAttribute.FOREGROUND, color, colorStart, as2.size());
     if (italicStart >= 0 && italicStart < as2.size())
-      as2.addAttribute(TextAttribute.POSTURE, Float.valueOf(0.2f), italicStart, as2.size());
+      as2.addAttribute(TextAttribute.POSTURE, 0.2f, italicStart, as2.size());
     if (underlineStart >= 0 && underlineStart < as2.size())
       as2.addAttribute(
           TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON, underlineStart, as2.size());

@@ -32,7 +32,9 @@ public abstract class SoTValue implements Serializable {
     long value_;
 
     /** Default constructor. */
-    public Time() {}
+    public Time() {
+      // Intentional empty constructor
+    }
 
     /** Construct and initialize value. */
     public Time(long value) {
@@ -48,14 +50,9 @@ public abstract class SoTValue implements Serializable {
       return value_;
     }
 
-    /** Set the value */
-    public void setValue(long value) {
-      value_ = value;
-    }
-
     @Override
     public Object getObjectValue() {
-      return java.lang.Long.valueOf(value_);
+      return value_;
     }
 
     /** Test if <code>SoTValue</code> is time */
@@ -67,10 +64,10 @@ public abstract class SoTValue implements Serializable {
     /** Test for equality */
     @Override
     public boolean equals(Object val) {
-      if (!(val instanceof Time)) {
+      if (!(val instanceof Time tv)) {
         return false;
       }
-      return value_ == ((SoTValue.Time) val).getValue();
+      return value_ == tv.getValue();
     }
 
     @Override
@@ -126,7 +123,9 @@ public abstract class SoTValue implements Serializable {
     double value_;
 
     /** Default constructor. */
-    public Double() {}
+    public Double() {
+      // Intentional empty constructor
+    }
 
     /** Construct and initialize value. */
     public Double(double value) {
@@ -138,14 +137,9 @@ public abstract class SoTValue implements Serializable {
       return value_;
     }
 
-    /** Set the value */
-    public void setValue(double value) {
-      value_ = value;
-    }
-
     @Override
     public Object getObjectValue() {
-      return java.lang.Double.valueOf(value_);
+      return value_;
     }
 
     /** Test if <code>SoTValue</code> is time */
@@ -157,10 +151,10 @@ public abstract class SoTValue implements Serializable {
     /** Test for equality */
     @Override
     public boolean equals(Object val) {
-      if (!(val instanceof Double)) {
+      if (!(val instanceof Double dval)) {
         return false;
       }
-      return value_ == ((SoTValue.Double) val).getValue();
+      return value_ == dval.getValue();
     }
 
     @Override
@@ -211,7 +205,9 @@ public abstract class SoTValue implements Serializable {
    * subclasses are available for instantiation and provide a number of formats for storing the
    * information necessary to satisfy the various accessor methods below.
    */
-  protected SoTValue() {}
+  protected SoTValue() {
+    // Intentional empty constructor
+  }
 
   public abstract boolean isTime();
 

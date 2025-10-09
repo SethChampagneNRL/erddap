@@ -93,11 +93,11 @@ Sau đó, ERDDAP sẽ thêm tất cả
 <advl_institution>Tổ chức</advl_institution>
 <advc_dataStructure>ERDDAP xử lý từng tập dữ liệu dưới dạng tập dữ liệu &#39;lưới&#39; hoặc &#39;bảng&#39;.</advc_dataStructure>
 <advl_dataStructure>Cấu trúc dữ liệu</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>Loại mô hình dữ liệu chung</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>Lớp ERDDAP</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>Tiêu đề</advl_title>
 <advl_minLongitude>Kinh độ tối thiểu</advl_minLongitude>
 <advl_maxLongitude>Kinh độ tối đa</advl_maxLongitude>
@@ -142,7 +142,7 @@ Sau đó, ERDDAP sẽ thêm tất cả
 <advn_outOfDate><![CDATA[
 
 Rõ ràng, không có bộ dữ liệu nào có thuộc tính
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> .
 Có lẽ không có bộ dữ liệu gần thời gian thực nào trong ERDDAP này.
 
@@ -1952,7 +1952,7 @@ dữ liệu nhiệt độ mặt nước biển Cấp 3 (từ vệ tinh) với ba
 <ul>
 <li><a class="selfLink" id="databases" href="#databases" rel="bookmark">Dữ liệu</a> hiện được lưu trữ trong cơ sở dữ liệu quan hệ.
 <br>Vui lòng đọc thông tin về loại tập dữ liệu
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> trong ERDDAP, đặc biệt là ~2 màn hình thông tin ban đầu nói về nhu cầu tạo bảng không chuẩn hóa.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> trong ERDDAP, đặc biệt là ~2 màn hình thông tin ban đầu nói về nhu cầu tạo bảng không chuẩn hóa.
 Điều đó nghe có vẻ điên rồ.
 Hãy tin tưởng đủ để đọc lý do cho việc này.
 <br>&nbsp;
@@ -3028,6 +3028,9 @@ Ví dụ:
 <fileHelp_html>Xem Biểu mẫu truy cập dữ liệu HTML kiểu OPeNDAP.</fileHelp_html>
 <fileHelp_htmlTable>Xem trang web UTF-8 .html với dữ liệu trong bảng. Thời gian là chuỗi ISO 8601.</fileHelp_htmlTable>
 <fileHelp_iso19115>Xem siêu dữ liệu .xml ISO 19115-2/19139 UTF-8 của tập dữ liệu.</fileHelp_iso19115>
+<fileHelp_iso19115_2>View the dataset's ISO 19115-2/19139 UTF-8 .xml metadata.</fileHelp_iso19115_2>
+<fileHelp_iso191392007>View the dataset's ISO 19139:2007 UTF-8 .xml metadata.</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>View the dataset's ISO 19115-3:2016 UTF-8 .xml metadata.</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>Tải xuống tệp văn bản Igor ISO-8859-1. Mỗi biến trục và mỗi biến dữ liệu sẽ trở thành một làn sóng.</fileHelp_itxGrid>
 <fileHelp_itxTable>Tải xuống tệp văn bản Igor ISO-8859-1. Mỗi cột phản hồi sẽ trở thành một làn sóng.</fileHelp_itxTable>
 <fileHelp_json>Xem tệp JSON UTF-8 giống như bảng (thiếu giá trị = &#39;null&#39;; thời gian là chuỗi ISO 8601).</fileHelp_json>
@@ -3349,7 +3352,7 @@ Tệp của cả hai phiên bản đều có phần mở rộng .nc và có th�
 <a rel="help" href="https://anaconda.org/eumetsat/ncview">qua Conda <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Liên kết này đến một trang web bên ngoài không cấu thành sự chứng thực."></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, một công cụ dòng lệnh mạnh mẽ để sửa đổi vĩnh viễn các tệp .nc .
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, một công cụ dòng lệnh mạnh mẽ để sửa đổi vĩnh viễn các tệp .nc .
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C và NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Liên kết này đến một trang web bên ngoài không cấu thành sự chứng thực."></a>, các thư viện phần mềm chính dành cho C, C++, Fortran hoặc Java để đọc và ghi tệp .nc .
@@ -3780,7 +3783,7 @@ Như đã mô tả ở trên, vì các chương trình Java có thể truy cập
 <p>Hoặc, vì ERDDAP là một chương trình mã nguồn mở hoàn toàn, bạn cũng có thể thiết lập bản sao ERDDAP của riêng mình trên máy chủ của riêng bạn (có thể truy cập công khai hoặc không) để phục vụ dữ liệu của riêng bạn.
 Các chương trình Java của bạn có thể lấy dữ liệu từ bản sao ERDDAP đó.
 Xem
-<a rel="help" href="https://erddap.github.io/setup.html">Thiết lập ERDDAP của riêng bạn</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">Thiết lập ERDDAP của riêng bạn</a> .
   
 ]]></javaProgramsHTML>
 
@@ -3867,7 +3870,7 @@ Nhiều bản cài đặt ERDDAP không kích hoạt xác thực và do đó kh�
 Hiện tại, ERDDAP chỉ hỗ trợ xác thực qua tài khoản email do Google quản lý, bao gồm tài khoản email tại NOAA và nhiều trường đại học.
 Nếu ERDDAP đã bật xác thực thì bất kỳ ai có tài khoản email do Google quản lý đều có thể đăng nhập nhưng họ sẽ chỉ có quyền truy cập vào tập dữ liệu riêng tư mà quản trị viên ERDDAP đã ủy quyền rõ ràng cho họ truy cập.
 Để biết hướng dẫn đăng nhập vào ERDDAP từ trình duyệt hoặc thông qua tập lệnh, hãy xem
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">Truy cập vào Bộ dữ liệu riêng tư trong ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">Truy cập vào Bộ dữ liệu riêng tư trong ERDDAP</a> .
   
 ]]></loginHTML>
 <loginAttemptBlocked>LỖI: Các nỗ lực đăng nhập vào {0} đang tạm thời bị chặn sau 3 lần thử không thành công.
@@ -4560,7 +4563,7 @@ con người có thể sử dụng URL này để thực hiện Tìm kiếm toà
 Có nhiều tính năng trong ERDDAP có thể được sử dụng bởi các chương trình máy tính hoặc tập lệnh mà bạn viết.
 Bạn có thể sử dụng chúng để xây dựng các ứng dụng web hoặc dịch vụ web khác trên ERDDAP, giúp ERDDAP thực hiện hầu hết công việc! Vì vậy, nếu bạn có ý tưởng về giao diện tốt hơn cho dữ liệu mà ERDDAP phục vụ hoặc một trang web cần một cách dễ dàng để truy cập dữ liệu, chúng tôi khuyến khích bạn xây dựng ứng dụng web, dịch vụ web hoặc trang web của riêng mình và sử dụng ERDDAP làm sự thành lập.
 Hệ thống của bạn có thể lấy dữ liệu, đồ thị và thông tin khác từ ERDDAP của ERD hoặc từ các bản cài đặt ERDDAP khác hoặc bạn có thể<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">thiết lập máy chủ ERDDAP của riêng bạn</a>, có thể truy cập công khai hoặc chỉ truy cập riêng tư.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">thiết lập máy chủ ERDDAP của riêng bạn</a>, có thể truy cập công khai hoặc chỉ truy cập riêng tư.
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">Yêu cầu URL RESTful</a></h3>
 Yêu cầu thông tin giao diện người dùng từ ERDDAP (ví dụ:
 kết quả tìm kiếm) sử dụng tiêu chuẩn chung của web cho các yêu cầu:
@@ -4628,7 +4631,7 @@ Giá trị.
 <li>.nc - một tệp nhị phân NetCDF -3 phẳng, giống như bảng.
 (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">hơn&nbsp;thông tin &externalLinkHtml;</a>)
 <li>.nccsv - một tệp CSV ASCII phẳng, giống như bảng, giống NetCDF .
-(<a rel="help" href="https://erddap.github.io/NCCSV.html">hơn&nbsp;thông tin &externalLinkHtml;</a>)
+(<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">hơn&nbsp;thông tin &externalLinkHtml;</a>)
 <li>.tsv - bảng văn bản ASCII được phân tách bằng tab.
 (<a rel="help" href="https://jkorpela.fi/TSV.html">hơn&nbsp;thông tin &externalLinkHtml;</a>)
 <li>.xhtml - tệp XHTML (XML) có dữ liệu trong bảng.
@@ -5359,7 +5362,7 @@ khi tìm kiếm tập dữ liệu, không sử dụng <kbd>AND</kbd> giữa các
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>Tìm hiểu thêm về ERDDAP .</strong></a>
 <p><strong>Nhà cung cấp dữ liệu:
 Bạn có thể
-<a rel="help" href="https://erddap.github.io/setup.html">thiết lập máy chủ ERDDAP của riêng mình</a> và cung cấp dữ liệu của riêng bạn.</strong> ERDDAP là nguồn mở và miễn phí.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">thiết lập máy chủ ERDDAP của riêng mình</a> và cung cấp dữ liệu của riêng bạn.</strong> ERDDAP là nguồn mở và miễn phí.
 Nó sử dụng các giấy phép giống như Apache nên bạn có thể làm bất cứ điều gì bạn muốn với nó.
 Giao diện của ERDDAP có thể tùy chỉnh được, do đó ERDDAP sẽ phản ánh tổ chức của bạn chứ không phải NOAA .
 Nỗ lực nhỏ để thiết lập ERDDAP mang lại nhiều lợi ích.
@@ -5719,7 +5722,7 @@ khi tìm kiếm tập dữ liệu, không sử dụng <kbd>AND</kbd> giữa các
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP có thể lấy dữ liệu từ các nguồn dữ liệu cục bộ (trên ổ cứng của máy chủ) và từ xa (truy cập qua web).</a></strong>
 <br>Xem
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">danh sách các loại nguồn dữ liệu</a> mà ERDDAP có thể truy cập.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">danh sách các loại nguồn dữ liệu</a> mà ERDDAP có thể truy cập.
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP có thể phục vụ nhiều loại dữ liệu khoa học, không chỉ dữ liệu hải dương học.</a></strong>
 <br>ERDDAP là một máy chủ dữ liệu được viết tại
@@ -5878,8 +5881,8 @@ Khi bạn yêu cầu dữ liệu hoặc biểu đồ từ
       title="Liên kết này đến một trang web bên ngoài không cấu thành sự chứng thực."></a>) mô tả dữ liệu.
 ERDDAP cho phép (và khuyến khích) quản trị viên mô tả siêu dữ liệu sẽ được thêm vào tập dữ liệu và các biến của chúng một cách nhanh chóng.
 Xem
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">phần addAttribut</a> trong
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">hướng dẫn dành cho quản trị viên</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">phần addAttribut</a> trong
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">hướng dẫn dành cho quản trị viên</a> .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP cho phép bạn yêu cầu tệp hình ảnh .png và .pdf kèm theo biểu đồ và bản đồ</a></strong>
@@ -6036,7 +6039,7 @@ Người dùng đã đăng nhập có thể truy cập các tập dữ liệu c�
 Người dùng phải sử dụng https:
 (Lớp cổng bảo mật) để đăng nhập và truy cập các tập dữ liệu riêng tư.
 Các bộ dữ liệu có thể được định cấu hình để có các biểu đồ và bản đồ có thể truy cập công khai nhưng chỉ những người dùng được ủy quyền mới có thể truy cập dữ liệu.
-(<a rel="help" href="https://erddap.github.io/setup.html#security">thêm thông tin</a>)
+(<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">thêm thông tin</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP xử lý dữ liệu theo khối.</a></strong>
 <br>Để tiết kiệm bộ nhớ (một vấn đề lớn) và khiến phản hồi bắt đầu sớm hơn, ERDDAP xử lý các yêu cầu dữ liệu theo từng khối — liên tục lấy một đoạn dữ liệu từ nguồn, dọn dẹp nó (ví dụ:
@@ -6063,15 +6066,15 @@ nhận yêu cầu từ người dùng; lấy dữ liệu từ nguồn dữ liệ
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Liên kết này đến một trang web bên ngoài không cấu thành sự chứng thực."></a> :
 Nhưng ERDDAP cũng có khả năng chủ động lấy tất cả dữ liệu có sẵn từ nguồn dữ liệu từ xa và
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">lưu trữ bản sao dữ liệu cục bộ</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">lưu trữ bản sao dữ liệu cục bộ</a> .
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Công nghệ Push <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Liên kết này đến một trang web bên ngoài không cấu thành sự chứng thực."></a> :
 Bằng cách sử dụng
 <a href="#subscriptions">các dịch vụ đăng ký</a> của ERDDAP, các máy chủ dữ liệu khác có thể được thông báo ngay khi có dữ liệu mới để chúng có thể yêu cầu dữ liệu (bằng cách lấy dữ liệu).
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> và
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> của ERDDAP sử dụng các dịch vụ đăng ký và
-<a rel="help" href="https://erddap.github.io/setup.html#flag">hệ thống cờ</a> của ERDDAP để chúng sẽ được thông báo ngay lập tức khi có dữ liệu mới.
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> và
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> của ERDDAP sử dụng các dịch vụ đăng ký và
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">hệ thống cờ</a> của ERDDAP để chúng sẽ được thông báo ngay lập tức khi có dữ liệu mới.
 Bạn có thể kết hợp những điều này để tạo ra hiệu quả tuyệt vời:
 nếu bạn bọc Bản sao EDDGrid xung quanh tập dữ liệu EDDGrid FromErddap (hoặc bọc EDDTableCopy xung quanh tập dữ liệu EDDTableFromErddap), ERDDAP sẽ tự động tạo và duy trì bản sao cục bộ của tập dữ liệu khác của ERDDAP .
 Bởi vì các dịch vụ đăng ký hoạt động ngay khi có dữ liệu mới nên công nghệ đẩy sẽ phổ biến dữ liệu rất nhanh (trong vòng vài giây).
@@ -6163,10 +6166,10 @@ Chỉ riêng lý do đó đã biện minh cho chi phí phát triển ERDDAP .
 (Tôi nghĩ có thể chứng minh rằng ERDDAP đã tiết kiệm thời gian của các nhà khoa học NOAA nhiều hơn thời gian tôi đã dành để phát triển ERDDAP .
 Thời gian = Tiền.) Nhưng lợi ích phụ là bất kỳ tổ chức nào khác cũng có thể
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">tải xuống, cài đặt và sử dụng ERDDAP</a> <strong>miễn phí</strong> để phân phối chúng.
+href="https://erddap.github.io/docs/server-admin/deploy-install">tải xuống, cài đặt và sử dụng ERDDAP</a> <strong>miễn phí</strong> để phân phối chúng.
 dữ liệu khoa học.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >Hơn 90 tổ chức ở ít nhất 14 quốc gia sử dụng ERDDAP</a> .
 Có lẽ có một thứ gọi là bữa trưa miễn phí.
 <p>ERDDAP là một chương trình Java .
@@ -6279,14 +6282,14 @@ Bây giờ xin hãy coi nó như một cái tên chứ không phải một từ 
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">tại đây</a> .
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">Bạn có thể</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>Thiết lập Máy chủ ERDDAP của riêng mình</strong></a> và cung cấp dữ liệu của riêng bạn.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>Thiết lập Máy chủ ERDDAP của riêng mình</strong></a> và cung cấp dữ liệu của riêng bạn.
 <ul>
 <li>Nỗ lực nhỏ để thiết lập ERDDAP mang lại nhiều lợi ích.
 <li>Nếu bạn đã có dịch vụ web để phân phối dữ liệu của mình, bạn có thể thiết lập ERDDAP để truy cập dữ liệu của mình qua dịch vụ hiện có hoặc qua tệp nguồn hoặc cơ sở dữ liệu.
 Sau đó, mọi người sẽ có một cách khác để truy cập dữ liệu của bạn và có thể tải xuống dữ liệu ở các định dạng tệp bổ sung hoặc dưới dạng biểu đồ hoặc bản đồ.
 <li>Nếu bạn có bộ dữ liệu có nhu cầu cao, bạn có thể cài đặt
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >nhiều ERDDAP hoạt động cùng nhau</a> để mở rộng quy mô và đáp ứng nhu cầu của một trung tâm phân phối dữ liệu lớn.
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">Liên hệ chúng tôi</a></h2>
@@ -7908,7 +7911,7 @@ Có
 <li>Biến dữ liệu PHẢI có các biến trục kinh độ và vĩ độ.
 (Các biến trục khác là TÙY CHỌN.)
 <li>PHẢI có một số giá trị kinh độ trong khoảng từ -180 đến 180.
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">Các thuộc tính colorBarMinimum và colorBarMaximum</a> PHẢI được chỉ định.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">Các thuộc tính colorBarMinimum và colorBarMaximum</a> PHẢI được chỉ định.
 (Các thuộc tính thanh màu khác là TÙY CHỌN.)
 </ul>
 <li><strong>Các lớp dữ liệu lưới:</strong> Trong WMS của ERDDAP, tất cả các biến dữ liệu trong bộ dữ liệu lưới sử dụng các kích thước kinh độ và vĩ độ đều có sẵn thông qua WMS .

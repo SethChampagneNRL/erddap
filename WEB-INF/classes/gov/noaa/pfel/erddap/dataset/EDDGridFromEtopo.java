@@ -21,17 +21,25 @@ import gov.noaa.pfel.coastwatch.griddata.DataHelper;
 import gov.noaa.pfel.coastwatch.griddata.FileNameUtility;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.coastwatch.sgt.SgtMap;
+import gov.noaa.pfel.coastwatch.util.BufferedReadRandomAccessFile;
+import gov.noaa.pfel.coastwatch.util.FileVisitorDNLS;
 import gov.noaa.pfel.coastwatch.util.SimpleXMLReader;
 import gov.noaa.pfel.erddap.Erddap;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
 import gov.noaa.pfel.erddap.handlers.EDDGridFromEtopoHandler;
 import gov.noaa.pfel.erddap.handlers.SaxHandlerClass;
+import gov.noaa.pfel.erddap.util.EDMessages;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.*;
+import gov.noaa.pfel.erddap.variable.EDV;
+import gov.noaa.pfel.erddap.variable.EDVGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVLatGridAxis;
+import gov.noaa.pfel.erddap.variable.EDVLonGridAxis;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
-import java.io.RandomAccessFile;
 import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -46,25 +54,24 @@ import java.util.concurrent.locks.ReentrantLock;
 @SaxHandlerClass(EDDGridFromEtopoHandler.class)
 public class EDDGridFromEtopo extends EDDGrid {
 
+  private static final String etopoFileName = "etopo1_ice_g_i2.bin";
+
   /** Properties of the datafile */
-  protected static String fileName =
-      EDStatic.getWebInfParentDirectory() + "WEB-INF/ref/etopo1_ice_g_i2.bin";
+  protected static final String fileName = File2.getRefDirectory() + etopoFileName;
 
   protected static final double fileMinLon = -180, fileMaxLon = 180;
   protected static final double fileMinLat = -90, fileMaxLat = 90;
   protected static final int fileNLons = 21601, fileNLats = 10801;
   protected static final int bytesPerValue = 2;
-  protected static double fileLonSpacing = (fileMaxLon - fileMinLon) / (fileNLons - 1);
-  protected static double fileLatSpacing = (fileMaxLat - fileMinLat) / (fileNLats - 1);
-  protected static double fileLons[] =
+  protected static final double fileLonSpacing = (fileMaxLon - fileMinLon) / (fileNLons - 1);
+  protected static final double fileLatSpacing = (fileMaxLat - fileMinLat) / (fileNLats - 1);
+  protected static final double[] fileLons =
       DataHelper.getRegularArray(fileNLons, fileMinLon, fileLonSpacing);
-  protected static double fileLats[] =
+  protected static final double[] fileLats =
       DataHelper.getRegularArray(fileNLats, fileMinLat, fileLatSpacing);
 
   /** Set by the constructor */
-  protected boolean is180;
-
-  private int nCoarse = 0, nReadFromCache = 0, nWrittenToCache = 0, nFailed = 0;
+  protected final boolean is180;
 
   /**
    * This constructs an EDDGridFromEtopo based on the information in an .xml file.
@@ -83,7 +90,7 @@ public class EDDGridFromEtopo extends EDDGrid {
     if (verbose) String2.log("\n*** constructing EDDGridFromEtopo(xmlReader)...");
     String tDatasetID = xmlReader.attributeValue("datasetID");
     boolean tAccessibleViaWMS = true;
-    boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+    boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
     int tnThreads = -1; // interpret invalid values (like -1) as EDStatic.nGridThreads
     boolean tDimensionValuesInMemory = true;
 
@@ -103,18 +110,18 @@ public class EDDGridFromEtopo extends EDDGrid {
       // no support for active, since always active
       // no support for accessibleTo, since accessible to all
       // no support for onChange since dataset never changes
-      if (localTags.equals("<accessibleViaWMS>")) {
-      } else if (localTags.equals("</accessibleViaWMS>"))
-        tAccessibleViaWMS = String2.parseBoolean(content);
-      else if (localTags.equals("<accessibleViaFiles>")) {
-      } else if (localTags.equals("</accessibleViaFiles>"))
-        tAccessibleViaFiles = String2.parseBoolean(content);
-      else if (localTags.equals("<nThreads>")) {
-      } else if (localTags.equals("</nThreads>")) tnThreads = String2.parseInt(content);
-      else if (localTags.equals("<dimensionValuesInMemory>")) {
-      } else if (localTags.equals("</dimensionValuesInMemory>"))
-        tDimensionValuesInMemory = String2.parseBoolean(content);
-      else xmlReader.unexpectedTagException();
+      switch (localTags) {
+        case "<accessibleViaWMS>",
+            "<dimensionValuesInMemory>",
+            "<nThreads>",
+            "<accessibleViaFiles>" -> {}
+        case "</accessibleViaWMS>" -> tAccessibleViaWMS = String2.parseBoolean(content);
+        case "</accessibleViaFiles>" -> tAccessibleViaFiles = String2.parseBoolean(content);
+        case "</nThreads>" -> tnThreads = String2.parseInt(content);
+        case "</dimensionValuesInMemory>" ->
+            tDimensionValuesInMemory = String2.parseBoolean(content);
+        default -> xmlReader.unexpectedTagException();
+      }
     }
 
     return new EDDGridFromEtopo(
@@ -135,6 +142,7 @@ public class EDDGridFromEtopo extends EDDGrid {
       throws Throwable {
 
     if (verbose) String2.log("\n*** constructing EDDGridFromEtopo " + tDatasetID);
+    int language = EDMessages.DEFAULT_LANGUAGE;
     long constructionStartMillis = System.currentTimeMillis();
     String errorInMethod = "Error in EDDGridFromEtopo(" + tDatasetID + ") constructor:\n";
 
@@ -145,8 +153,9 @@ public class EDDGridFromEtopo extends EDDGrid {
         is180 || datasetID.equals("etopo360"),
         errorInMethod + "datasetID must be \"etopo180\" or \"etopo360\".");
     if (!tAccessibleViaWMS)
-      accessibleViaWMS = String2.canonical(MessageFormat.format(EDStatic.noXxxAr[0], "WMS"));
-    accessibleViaFiles = EDStatic.filesActive && tAccessibleViaFiles;
+      accessibleViaWMS =
+          String2.canonical(MessageFormat.format(EDStatic.messages.get(Message.NO_XXX, 0), "WMS"));
+    accessibleViaFiles = EDStatic.config.filesActive && tAccessibleViaFiles;
     nThreads = tnThreads; // interpret invalid values (like -1) as EDStatic.nGridThreads
     dimensionValuesInMemory = tDimensionValuesInMemory;
 
@@ -172,7 +181,7 @@ public class EDDGridFromEtopo extends EDDGrid {
     sourceGlobalAttributes.add("institution", "NOAA NGDC");
     sourceGlobalAttributes.add("keywords", "Oceans > Bathymetry/Seafloor Topography > Bathymetry");
     sourceGlobalAttributes.add("keywords_vocabulary", "GCMD Science Keywords");
-    sourceGlobalAttributes.add("license", EDStatic.standardLicense);
+    sourceGlobalAttributes.add("license", EDStatic.messages.standardLicense);
     sourceGlobalAttributes.add("naming_authority", "gov.noaa.pfeg.coastwatch");
     sourceGlobalAttributes.add("project", "NOAA NGDC ETOPO");
     sourceGlobalAttributes.add("projection", "geographic");
@@ -188,9 +197,9 @@ public class EDDGridFromEtopo extends EDDGrid {
             + (is180 ? "-180 to 180)" : "0 to 360)")
             + ", (Ice Sheet Surface)");
 
-    addGlobalAttributes = new Attributes();
+    addGlobalAttributes = new LocalizedAttributes();
     combinedGlobalAttributes =
-        new Attributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
+        new LocalizedAttributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
     combinedGlobalAttributes.removeValue("\"null\"");
 
     // make the axisVariables
@@ -201,7 +210,7 @@ public class EDDGridFromEtopo extends EDDGrid {
             tDatasetID,
             EDV.LAT_NAME,
             new Attributes(),
-            new Attributes(),
+            new LocalizedAttributes(),
             new DoubleArray(DataHelper.getRegularArray(fileNLats, -90, 1 / 60.0)));
     lonIndex = 1;
     axisVariables[lonIndex] =
@@ -209,7 +218,7 @@ public class EDDGridFromEtopo extends EDDGrid {
             tDatasetID,
             EDV.LON_NAME,
             new Attributes(),
-            new Attributes(),
+            new LocalizedAttributes(),
             new DoubleArray(DataHelper.getRegularArray(fileNLons, is180 ? -180 : 0, 1 / 60.0)));
 
     // make the dataVariable
@@ -231,8 +240,8 @@ public class EDDGridFromEtopo extends EDDGrid {
     dAtt.set("colorBarPalette", "Topography");
     dAtt.set("units", "m");
     dataVariables = new EDV[1];
-    dataVariables[0] = new EDV(datasetID, "altitude", "", dAtt, new Attributes(), "short");
-    dataVariables[0].setActualRangeFromDestinationMinMax();
+    dataVariables[0] = new EDV(datasetID, "altitude", "", dAtt, new LocalizedAttributes(), "short");
+    dataVariables[0].setActualRangeFromDestinationMinMax(language);
 
     // ensure the setup is valid
     ensureValid();
@@ -241,7 +250,7 @@ public class EDDGridFromEtopo extends EDDGrid {
     long cTime = System.currentTimeMillis() - constructionStartMillis;
     if (verbose)
       String2.log(
-          (debugMode ? "\n" + toString() : "")
+          (debugMode ? "\n" + this : "")
               + "\n*** EDDGridFromEtopo "
               + datasetID
               + " constructor finished. TIME="
@@ -269,7 +278,7 @@ public class EDDGridFromEtopo extends EDDGrid {
   /**
    * This gets data (not yet standardized) from the data source for this EDDGrid. Because this is
    * called by GridDataAccessor, the request won't be the full user's request, but will be a partial
-   * request (for less than EDStatic.partialRequestMaxBytes).
+   * request (for less than EDStatic.config.partialRequestMaxBytes).
    *
    * @param language the index of the selected language
    * @param tDirTable If EDDGridFromFiles, this MAY be the dirTable, else null.
@@ -344,16 +353,13 @@ public class EDDGridFromEtopo extends EDDGrid {
         if (File2.isFile(cacheName)) {
           // this dataset doesn't change, so keep files that are recently used
           File2.touch(cacheName);
-          DataInputStream dis = null;
-          try {
-            dis = new DataInputStream(File2.getDecompressedBufferedInputStream(cacheName));
+          try (DataInputStream dis =
+              new DataInputStream(File2.getDecompressedBufferedInputStream(cacheName))) {
             for (int i = 0; i < nLatsLons; i++) {
               data[i] = dis.readShort();
               // if (i < 10) String2.log(i + "=" + data[i]);
             }
             dis.close();
-            dis = null;
-            nReadFromCache++;
             if (verbose)
               String2.log(
                   datasetID
@@ -362,13 +368,6 @@ public class EDDGridFromEtopo extends EDDGrid {
                       + "ms");
             return results;
           } catch (Throwable t) {
-            if (dis != null) {
-              try {
-                dis.close();
-              } catch (Throwable t2) {
-              }
-            }
-            nFailed++;
             File2.delete(cacheName);
             String2.log(
                 String2.ERROR
@@ -398,7 +397,6 @@ public class EDDGridFromEtopo extends EDDGrid {
           dos.close();
           dos = null;
           File2.rename(cacheName + random, cacheName);
-          nWrittenToCache++;
           if (verbose)
             String2.log(
                 datasetID + " writeToCache.  totalTime=" + (System.currentTimeMillis() - eTime));
@@ -410,7 +408,6 @@ public class EDDGridFromEtopo extends EDDGrid {
             }
           }
           File2.delete(cacheName + random);
-          nFailed++;
           String2.log(
               String2.ERROR
                   + " while writing "
@@ -430,7 +427,6 @@ public class EDDGridFromEtopo extends EDDGrid {
     } else {
 
       // Don't use cahce system. Coarse source files are small, so gain would be minimal.
-      nCoarse++;
       rawGetSourceData(lons, lats, data);
       if (verbose)
         String2.log(
@@ -491,8 +487,9 @@ public class EDDGridFromEtopo extends EDDGrid {
     }
 
     // open the file  (reading is thread safe)
-    RandomAccessFile raf = new RandomAccessFile(fileName, "r");
-    try {
+    try (BufferedReadRandomAccessFile raf =
+        new BufferedReadRandomAccessFile(
+            fileName, nLons >= 2 ? lonOffsets[1] - lonOffsets[0] : 2, nLons)) {
       // fill data array
       // lat is outer loop because file is lat major
       // and loop is backwards since stored top to bottom
@@ -501,26 +498,27 @@ public class EDDGridFromEtopo extends EDDGrid {
       for (int lati = nLats - 1; lati >= 0; lati--) {
         int po = lati * nLons;
         for (int loni = 0; loni < nLons; loni++) {
-          raf.seek(latOffsets[lati] + lonOffsets[loni]);
-          data[po++] = Short.reverseBytes(raf.readShort());
+          data[po++] = Short.reverseBytes(raf.readShort(latOffsets[lati] + lonOffsets[loni]));
         }
       }
-    } finally {
-      raf.close();
     }
   }
 
-  /** This returns the cache statistics String for this dataset. */
-  public String statsString() {
-    return datasetID
-        + ": nCoarse="
-        + nCoarse
-        + ", nWrittenToCache="
-        + nWrittenToCache
-        + ", nReadFromCache="
-        + nReadFromCache
-        + ", nFailed="
-        + nFailed;
+  @Override
+  public Table getFilesUrlList(HttpServletRequest request, String loggedInAs, int language)
+      throws Throwable {
+    Table table = FileVisitorDNLS.makeEmptyTable();
+    table.addStringData(0, etopoFileName);
+    table.addStringData(
+        1,
+        EDStatic.erddapUrl(request, loggedInAs, language)
+            + "/files/"
+            + datasetID()
+            + "/"
+            + etopoFileName);
+    table.addLongData(2, File2.getLastModified(fileName));
+    table.addLongData(3, File2.length(fileName));
+    return table;
   }
 
   /**

@@ -11,9 +11,14 @@
 
 package dods.dap;
 
-import dods.util.SortedTable;
-import java.io.*;
-import java.util.Enumeration;
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * An <code>AttributeTable</code> stores a set of names and, for each name, an <code>Attribute
@@ -64,20 +69,20 @@ public class AttributeTable implements Cloneable {
   private static final boolean _Debug = false;
 
   /** A table of Attributes with their names as a key */
-  private SortedTable attr;
+  private LinkedHashMap<String, Attribute> attr;
 
   /** What's the name of this table? */
   private String name;
 
   /** Create a new empty <code>AttributeTable</code>. @Deprecated */
   public AttributeTable() {
-    attr = new SortedTable();
+    attr = new LinkedHashMap<>();
   }
 
   /** Create a new empty <code>AttributeTable</code>. */
   public AttributeTable(String name) {
     this.name = name;
-    attr = new SortedTable();
+    attr = new LinkedHashMap<>();
   }
 
   /**
@@ -88,16 +93,14 @@ public class AttributeTable implements Cloneable {
    * @return a clone of this <code>AttributeTable</code>.
    */
   @Override
-  public Object clone() {
+  public AttributeTable clone() {
     try {
       AttributeTable at = (AttributeTable) super.clone();
       at.name = name;
-      at.attr = new SortedTable();
-      for (int i = 0; i < attr.size(); i++) {
-        String key = (String) attr.getKey(i);
-        Attribute element = (Attribute) attr.elementAt(i);
+      at.attr = new LinkedHashMap<>();
+      for (Map.Entry<String, Attribute> entry : attr.entrySet()) {
         // clone element (don't clone key because it's a read-only String)
-        at.attr.put(key, element.clone());
+        at.attr.put(entry.getKey(), entry.getValue().clone());
       }
       return at;
     } catch (CloneNotSupportedException e) {
@@ -118,8 +121,8 @@ public class AttributeTable implements Cloneable {
    * @return an <code>Enumeration</code> of <code>String</code>.
    * @see AttributeTable#getAttribute(String)
    */
-  public final Enumeration getNames() {
-    return attr.keys();
+  public final Iterator<String> getNames() {
+    return attr.sequencedKeySet().iterator();
   }
 
   /**
@@ -131,7 +134,7 @@ public class AttributeTable implements Cloneable {
    * @see Attribute
    */
   public final Attribute getAttribute(String name) {
-    return (Attribute) attr.get(name);
+    return attr.get(name);
   }
 
   /**
@@ -155,7 +158,7 @@ public class AttributeTable implements Cloneable {
   public final void appendAttribute(String name, int type, String value, boolean check)
       throws AttributeExistsException, AttributeBadValueException {
 
-    Attribute a = (Attribute) attr.get(name);
+    Attribute a = attr.get(name);
 
     if (a != null && (type != a.getType())) {
 
@@ -230,57 +233,12 @@ public class AttributeTable implements Cloneable {
       throw new AttributeExistsException("Could not alias `" + name + "' and `" + alias + "'.");
 
     // Make sure name exists.
-    Attribute a = (Attribute) attr.get(name);
+    Attribute a = attr.get(name);
     if (a == null)
       throw new NoSuchAttributeException("Could not alias `" + name + "' and `" + alias + "'.");
 
     Attribute newAttr = new Attribute(name, a);
     attr.put(alias, newAttr);
-  }
-
-  /**
-   * Delete the attribute named <code>name</code>.
-   *
-   * @param name The name of the attribute to delete. This can be an attribute of any type,
-   *     including containers.
-   */
-  public final void delAttribute(String name) {
-    attr.remove(name);
-  }
-
-  /**
-   * Delete the attribute named <code>name</code>. If the attribute has a vector value, delete the
-   * <code>i</code>'th element of the vector.
-   *
-   * @param name The name of the attribute to delete. This can be an attribute of any type,
-   *     including containers.
-   * @param i If the named attribute is a vector, and <code>i</code> is non-negative, the <code>i
-   *     </code>'th entry in the vector is deleted. If <code>i</code> equals -1, the entire
-   *     attribute is deleted.
-   * @see AttributeTable#delAttribute(String)
-   */
-  public final void delAttribute(String name, int i) {
-
-    if (i == -1) { // delete the whole attribute
-
-      attr.remove(name);
-
-    } else {
-
-      Attribute a = (Attribute) attr.get(name);
-
-      if (a != null) {
-
-        if (a.isContainer()) {
-
-          attr.remove(name); // delete the entire container
-
-        } else {
-
-          a.deleteValueAt(i);
-        }
-      }
-    }
   }
 
   /**
@@ -293,9 +251,9 @@ public class AttributeTable implements Cloneable {
 
     if (_Debug) System.out.println("Entered AttributeTable.print()");
 
-    for (Enumeration e = getNames(); e.hasMoreElements(); ) {
+    for (Iterator<String> e = getNames(); e.hasNext(); ) {
 
-      String name = (String) e.nextElement();
+      String name = e.next();
       Attribute a = getAttribute(name);
 
       if (a.isAlias()) {
@@ -308,18 +266,18 @@ public class AttributeTable implements Cloneable {
         if (a.isContainer()) {
           if (_Debug) System.out.println("  Attribute \"" + name + "\" is a Container.");
           os.println(pad + name + " {");
-          ((AttributeTable) a.getContainer()).print(os, pad + "    ");
+          a.getContainer().print(os, pad + "    ");
           os.println(pad + "}");
         } else {
           if (_Debug) System.out.println("    Printing Attribute \"" + name + "\".");
 
           os.print(pad + a.getTypeString() + " " + name + " ");
-          Enumeration es = a.getValues();
-          String val = (String) es.nextElement(); // get first element
+          Iterator<String> es = a.getValues();
+          String val = es.next(); // get first element
 
-          while (es.hasMoreElements()) { // lookahead one element
+          while (es.hasNext()) { // lookahead one element
             os.print(val + ", ");
-            val = (String) es.nextElement();
+            val = es.next();
           }
           os.println(val + ";"); // print last element
         }
@@ -336,7 +294,9 @@ public class AttributeTable implements Cloneable {
    * @param pad the number of spaces to indent each line.
    */
   public final void print(OutputStream os, String pad) {
-    print(new PrintWriter(new BufferedWriter(new OutputStreamWriter(os))), pad);
+    print(
+        new PrintWriter(new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8))),
+        pad);
   }
 
   /**

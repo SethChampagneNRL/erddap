@@ -30,26 +30,43 @@ import gov.noaa.pfel.coastwatch.util.RegexFilenameFilter;
 import gov.noaa.pfel.coastwatch.util.SSR;
 import gov.noaa.pfel.coastwatch.util.SharedWatchService;
 import gov.noaa.pfel.coastwatch.util.SimpleXMLReader;
-import gov.noaa.pfel.coastwatch.util.WatchDirectory;
 import gov.noaa.pfel.coastwatch.util.WatchUpdateHandler;
 import gov.noaa.pfel.erddap.Erddap;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
 import gov.noaa.pfel.erddap.handlers.EDDTableFromFilesHandler;
 import gov.noaa.pfel.erddap.handlers.SaxHandlerClass;
+import gov.noaa.pfel.erddap.util.EDMessages;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
 import gov.noaa.pfel.erddap.util.ThreadedWorkManager;
-import gov.noaa.pfel.erddap.variable.*;
+import gov.noaa.pfel.erddap.variable.DataVariableInfo;
+import gov.noaa.pfel.erddap.variable.EDV;
+import gov.noaa.pfel.erddap.variable.EDVAlt;
+import gov.noaa.pfel.erddap.variable.EDVDepth;
+import gov.noaa.pfel.erddap.variable.EDVLat;
+import gov.noaa.pfel.erddap.variable.EDVLon;
+import gov.noaa.pfel.erddap.variable.EDVTime;
+import gov.noaa.pfel.erddap.variable.EDVTimeStamp;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigInteger;
 import java.nio.file.Path;
-import java.nio.file.WatchEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.regex.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class represents a virtual table of data from by aggregating a collection of data files.
@@ -66,7 +83,7 @@ import java.util.regex.*;
 public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateHandler {
 
   public static final String MF_FIRST = "first", MF_LAST = "last";
-  public static int suggestedUpdateEveryNMillis = 10000;
+  public static final int suggestedUpdateEveryNMillis = 10000;
 
   public static int suggestUpdateEveryNMillis(String tFileDir) {
     return String2.isTrulyRemote(tFileDir) ? 0 : suggestedUpdateEveryNMillis;
@@ -117,7 +134,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
   protected StringArray sourceDataNames;
   protected StringArray safeSourceDataNames;
   protected String sourceDataTypes[];
-  protected HashMap<String, HashSet<String>> scriptNeedsColumns = new HashMap(); // <sourceName,
+  protected final Map<String, Set<String>> scriptNeedsColumns = new HashMap<>(); // <sourceName,
   // otherSourceColumnNames>
 
   // arrays to hold expected source add_offset, fillValue, missingValue,
@@ -155,7 +172,6 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       0; // either don't have matching data or do ('distinct' and 1 value matches)
   protected long cumNReadHaveMatch = 0,
       cumNReadNoMatch = 0; // read the data file to look for matching data
-  protected WatchDirectory watchDirectory;
 
   // dirTable and fileTable inMemory (default=false)
   protected boolean fileTableInMemory = false;
@@ -169,7 +185,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
   protected String[] httpGetRequiredVariableNames; // e.g., stationID, time
   protected String[] httpGetRequiredVariableTypes; // e.g., String, double
-  protected HashSet<String> httpGetKeys = new HashSet();
+  protected HashSet<String> httpGetKeys = new HashSet<>();
 
   // this has the parsed httpGetDirectoryStructure specification
   // with 1 item per directory and the last item being for the file names
@@ -182,7 +198,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
   protected String cachePartialPathRegex = null; // null if inactive
 
   /** When threshold size is reached, prune the cache to fraction*threshold. */
-  protected double cacheFraction = FileVisitorDNLS.PRUNE_CACHE_DEFAULT_FRACTION;
+  protected static final double cacheFraction = FileVisitorDNLS.PRUNE_CACHE_DEFAULT_FRACTION;
 
   /**
    * This returns the default value for standardizeWhat for this subclass. See
@@ -204,14 +220,13 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
   @EDDFromXmlMethod
   public static EDDTableFromFiles fromXml(Erddap erddap, SimpleXMLReader xmlReader)
       throws Throwable {
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // data to be obtained (or not)
     if (verbose) String2.log("\n*** constructing EDDTableFromFiles(xmlReader)...");
-    boolean tIsLocal = false; // not actually used
     String tDatasetID = xmlReader.attributeValue("datasetID");
     String tType = xmlReader.attributeValue("type");
-    Attributes tGlobalAttributes = null;
-    ArrayList tDataVariables = new ArrayList();
+    LocalizedAttributes tGlobalAttributes = null;
+    List<DataVariableInfo> tDataVariables = new ArrayList<>();
     int tReloadEveryNMinutes = Integer.MAX_VALUE;
     int tUpdateEveryNMillis = 0;
     String tAccessibleTo = null;
@@ -225,7 +240,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     String tFileNameRegex = ".*";
     boolean tRecursive = false;
     String tPathRegex = ".*";
-    boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+    boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
     String tMetadataFrom = MF_LAST;
     String tPreExtractRegex = "", tPostExtractRegex = "", tExtractRegex = "";
     String tColumnNameForExtract = "";
@@ -261,895 +276,893 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       String localTags = tags.substring(startOfTagsLength);
 
       // try to make the tag names as consistent, descriptive and readable as possible
-      if (localTags.equals("<addAttributes>")) tGlobalAttributes = getAttributesFromXml(xmlReader);
-      else if (localTags.equals("<altitudeMetersPerSourceUnit>"))
-        throw new SimpleException(EDVAlt.stopUsingAltitudeMetersPerSourceUnit);
-      else if (localTags.equals("<dataVariable>"))
-        tDataVariables.add(getSDADVariableFromXml(xmlReader));
-      else if (localTags.equals("<accessibleTo>")) {
-      } else if (localTags.equals("</accessibleTo>")) tAccessibleTo = content;
-      else if (localTags.equals("<graphsAccessibleTo>")) {
-      } else if (localTags.equals("</graphsAccessibleTo>")) tGraphsAccessibleTo = content;
-      else if (localTags.equals("<reloadEveryNMinutes>")) {
-      } else if (localTags.equals("</reloadEveryNMinutes>"))
-        tReloadEveryNMinutes = String2.parseInt(content);
-      else if (localTags.equals("<updateEveryNMillis>")) {
-      } else if (localTags.equals("</updateEveryNMillis>"))
-        tUpdateEveryNMillis = String2.parseInt(content);
-      else if (localTags.equals("<fileDir>")) {
-      } else if (localTags.equals("</fileDir>")) tFileDir = content;
-      else if (localTags.equals("<fileNameRegex>")) {
-      } else if (localTags.equals("</fileNameRegex>")) tFileNameRegex = content;
-      else if (localTags.equals("<recursive>")) {
-      } else if (localTags.equals("</recursive>")) tRecursive = String2.parseBoolean(content);
-      else if (localTags.equals("<pathRegex>")) {
-      } else if (localTags.equals("</pathRegex>")) tPathRegex = content;
-      else if (localTags.equals("<accessibleViaFiles>")) {
-      } else if (localTags.equals("</accessibleViaFiles>"))
-        tAccessibleViaFiles = String2.parseBoolean(content);
-      else if (localTags.equals("<metadataFrom>")) {
-      } else if (localTags.equals("</metadataFrom>")) tMetadataFrom = content;
-      else if (localTags.equals("<nDimensions>")) {
-      } else if (localTags.equals("</nDimensions>")) {
-      } // tNDimensions = String2.parseInt(content);
-      else if (localTags.equals("<preExtractRegex>")) {
-      } else if (localTags.equals("</preExtractRegex>")) tPreExtractRegex = content;
-      else if (localTags.equals("<postExtractRegex>")) {
-      } else if (localTags.equals("</postExtractRegex>")) tPostExtractRegex = content;
-      else if (localTags.equals("<extractRegex>")) {
-      } else if (localTags.equals("</extractRegex>")) tExtractRegex = content;
-      else if (localTags.equals("<columnNameForExtract>")) {
-      } else if (localTags.equals("</columnNameForExtract>")) tColumnNameForExtract = content;
-      else if (localTags.equals("<sortedColumnSourceName>")) {
-      } else if (localTags.equals("</sortedColumnSourceName>")) tSortedColumnSourceName = content;
-      else if (localTags.equals("<sortFilesBySourceNames>")) {
-      } else if (localTags.equals("</sortFilesBySourceNames>")) tSortFilesBySourceNames = content;
-      else if (localTags.equals("<charset>")) {
-      } else if (localTags.equals("</charset>")) tCharset = content;
-      else if (localTags.equals("<skipHeaderToRegex>")) {
-      } else if (localTags.equals("</skipHeaderToRegex>")) tSkipHeaderToRegex = content;
-      else if (localTags.equals("<skipLinesRegex>")) {
-      } else if (localTags.equals("</skipLinesRegex>")) tSkipLinesRegex = content;
-      else if (localTags.equals("<columnNamesRow>")) {
-      } else if (localTags.equals("</columnNamesRow>")) tColumnNamesRow = String2.parseInt(content);
-      else if (localTags.equals("<firstDataRow>")) {
-      } else if (localTags.equals("</firstDataRow>")) tFirstDataRow = String2.parseInt(content);
-      else if (localTags.equals("<columnSeparator>")) {
-      } else if (localTags.equals("</columnSeparator>")) tColumnSeparator = content;
-      else if (localTags.equals("<sourceNeedsExpandedFP_EQ>")) {
-      } else if (localTags.equals("</sourceNeedsExpandedFP_EQ>"))
-        tSourceNeedsExpandedFP_EQ = String2.parseBoolean(content);
-      else if (localTags.equals("<specialMode>")) {
-      } else if (localTags.equals("</specialMode>")) tSpecialMode = content;
-      else if (localTags.equals("<fileTableInMemory>")) {
-      } else if (localTags.equals("</fileTableInMemory>"))
-        tFileTableInMemory = String2.parseBoolean(content);
-      else if (localTags.equals("<onChange>")) {
-      } else if (localTags.equals("</onChange>")) tOnChange.add(content);
-      else if (localTags.equals("<fgdcFile>")) {
-      } else if (localTags.equals("</fgdcFile>")) tFgdcFile = content;
-      else if (localTags.equals("<iso19115File>")) {
-      } else if (localTags.equals("</iso19115File>")) tIso19115File = content;
-      else if (localTags.equals("<sosOfferingPrefix>")) {
-      } else if (localTags.equals("</sosOfferingPrefix>")) tSosOfferingPrefix = content;
-      else if (localTags.equals("<defaultDataQuery>")) {
-      } else if (localTags.equals("</defaultDataQuery>")) tDefaultDataQuery = content;
-      else if (localTags.equals("<defaultGraphQuery>")) {
-      } else if (localTags.equals("</defaultGraphQuery>")) tDefaultGraphQuery = content;
-      else if (localTags.equals("<addVariablesWhere>")) {
-      } else if (localTags.equals("</addVariablesWhere>")) tAddVariablesWhere = content;
-      else if (localTags.equals("<isLocal>")) {
-      } else if (localTags.equals("</isLocal>")) tIsLocal = String2.parseBoolean(content);
-      else if (localTags.equals("<removeMVRows>")) {
-      } else if (localTags.equals("</removeMVRows>")) tRemoveMVRows = String2.parseBoolean(content);
-      else if (localTags.equals("<standardizeWhat>")) {
-      } else if (localTags.equals("</standardizeWhat>"))
-        tStandardizeWhat = String2.parseInt(content);
-      else if (localTags.equals("<nThreads>")) {
-      } else if (localTags.equals("</nThreads>")) tNThreads = String2.parseInt(content);
-      else if (localTags.equals("<cacheFromUrl>")) {
-      } else if (localTags.equals("</cacheFromUrl>")) tCacheFromUrl = content;
-      else if (localTags.equals("<cacheSizeGB>")) {
-      } else if (localTags.equals("</cacheSizeGB>")) tCacheSizeGB = String2.parseInt(content);
-      else if (localTags.equals("<cachePartialPathRegex>")) {
-      } else if (localTags.equals("</cachePartialPathRegex>")) tCachePartialPathRegex = content;
-      else xmlReader.unexpectedTagException();
+      switch (localTags) {
+        case "<addAttributes>" -> tGlobalAttributes = getAttributesFromXml(xmlReader);
+        case "<altitudeMetersPerSourceUnit>" ->
+            throw new SimpleException(EDVAlt.stopUsingAltitudeMetersPerSourceUnit);
+        case "<dataVariable>" -> tDataVariables.add(getSDADVariableFromXml(xmlReader));
+        case "<accessibleTo>",
+            "<cachePartialPathRegex>",
+            "<cacheSizeGB>",
+            "<cacheFromUrl>",
+            "<nThreads>",
+            "<standardizeWhat>",
+            "<removeMVRows>",
+            "</isLocal>",
+            "<isLocal>",
+            "<addVariablesWhere>",
+            "<defaultGraphQuery>",
+            "<defaultDataQuery>",
+            "<sosOfferingPrefix>",
+            "<iso19115File>",
+            "<fgdcFile>",
+            "<onChange>",
+            "<fileTableInMemory>",
+            "<specialMode>",
+            "<sourceNeedsExpandedFP_EQ>",
+            "<columnSeparator>",
+            "<firstDataRow>",
+            "<columnNamesRow>",
+            "<skipLinesRegex>",
+            "<skipHeaderToRegex>",
+            "<charset>",
+            "<sortFilesBySourceNames>",
+            "<sortedColumnSourceName>",
+            "<columnNameForExtract>",
+            "<extractRegex>",
+            "<postExtractRegex>",
+            "<preExtractRegex>",
+            "</nDimensions>",
+            "<nDimensions>",
+            "<metadataFrom>",
+            "<accessibleViaFiles>",
+            "<pathRegex>",
+            "<recursive>",
+            "<fileNameRegex>",
+            "<fileDir>",
+            "<updateEveryNMillis>",
+            "<reloadEveryNMinutes>",
+            "<graphsAccessibleTo>" -> {}
+        case "</accessibleTo>" -> tAccessibleTo = content;
+        case "</graphsAccessibleTo>" -> tGraphsAccessibleTo = content;
+        case "</reloadEveryNMinutes>" -> tReloadEveryNMinutes = String2.parseInt(content);
+        case "</updateEveryNMillis>" -> tUpdateEveryNMillis = String2.parseInt(content);
+        case "</fileDir>" -> tFileDir = content;
+        case "</fileNameRegex>" -> tFileNameRegex = content;
+        case "</recursive>" -> tRecursive = String2.parseBoolean(content);
+        case "</pathRegex>" -> tPathRegex = content;
+        case "</accessibleViaFiles>" -> tAccessibleViaFiles = String2.parseBoolean(content);
+        case "</metadataFrom>" -> tMetadataFrom = content;
+        case "</preExtractRegex>" -> tPreExtractRegex = content;
+        case "</postExtractRegex>" -> tPostExtractRegex = content;
+        case "</extractRegex>" -> tExtractRegex = content;
+        case "</columnNameForExtract>" -> tColumnNameForExtract = content;
+        case "</sortedColumnSourceName>" -> tSortedColumnSourceName = content;
+        case "</sortFilesBySourceNames>" -> tSortFilesBySourceNames = content;
+        case "</charset>" -> tCharset = content;
+        case "</skipHeaderToRegex>" -> tSkipHeaderToRegex = content;
+        case "</skipLinesRegex>" -> tSkipLinesRegex = content;
+        case "</columnNamesRow>" -> tColumnNamesRow = String2.parseInt(content);
+        case "</firstDataRow>" -> tFirstDataRow = String2.parseInt(content);
+        case "</columnSeparator>" -> tColumnSeparator = content;
+        case "</sourceNeedsExpandedFP_EQ>" ->
+            tSourceNeedsExpandedFP_EQ = String2.parseBoolean(content);
+        case "</specialMode>" -> tSpecialMode = content;
+        case "</fileTableInMemory>" -> tFileTableInMemory = String2.parseBoolean(content);
+        case "</onChange>" -> tOnChange.add(content);
+        case "</fgdcFile>" -> tFgdcFile = content;
+        case "</iso19115File>" -> tIso19115File = content;
+        case "</sosOfferingPrefix>" -> tSosOfferingPrefix = content;
+        case "</defaultDataQuery>" -> tDefaultDataQuery = content;
+        case "</defaultGraphQuery>" -> tDefaultGraphQuery = content;
+        case "</addVariablesWhere>" -> tAddVariablesWhere = content;
+        case "</removeMVRows>" -> tRemoveMVRows = String2.parseBoolean(content);
+        case "</standardizeWhat>" -> tStandardizeWhat = String2.parseInt(content);
+        case "</nThreads>" -> tNThreads = String2.parseInt(content);
+        case "</cacheFromUrl>" -> tCacheFromUrl = content;
+        case "</cacheSizeGB>" -> tCacheSizeGB = String2.parseInt(content);
+        case "</cachePartialPathRegex>" -> tCachePartialPathRegex = content;
+        default -> xmlReader.unexpectedTagException();
+      }
     }
-    int ndv = tDataVariables.size();
-    Object ttDataVariables[][] = new Object[ndv][];
-    for (int i = 0; i < tDataVariables.size(); i++)
-      ttDataVariables[i] = (Object[]) tDataVariables.get(i);
 
     if (tType == null) tType = "";
-    if (tType.equals("EDDTableFromAsciiFiles")) {
-      return new EDDTableFromAsciiFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromAudioFiles")) {
-      return new EDDTableFromAudioFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromAwsXmlFiles")) {
-      return new EDDTableFromAwsXmlFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromColumnarAsciiFiles")) {
-      return new EDDTableFromColumnarAsciiFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromHttpGet")) {
-      return new EDDTableFromHttpGet(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromInvalidCRAFiles")) {
-      return new EDDTableFromInvalidCRAFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromJsonlCSVFiles")) {
-      return new EDDTableFromJsonlCSVFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromMultidimNcFiles")) {
-      return new EDDTableFromMultidimNcFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromNcFiles")) {
-      return new EDDTableFromNcFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromNcCFFiles")) {
-      return new EDDTableFromNcCFFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-      /*
-       * } else if (tType.equals("EDDTableFromPostNcFiles")) {
-       * return new EDDTableFromNcFiles(tDatasetID,
-       * tAccessibleTo, tGraphsAccessibleTo,
-       * tOnChange, tFgdcFile, tIso19115File, tSosOfferingPrefix,
-       * tDefaultDataQuery, tDefaultGraphQuery,
-       * tGlobalAttributes,
-       * ttDataVariables,
-       * tReloadEveryNMinutes, tUpdateEveryNMillis,
-       * tFileDir, tFileNameRegex, tRecursive, tPathRegex, tMetadataFrom,
-       * tCharset, tSkipHeaderToRegex, tSkipLinesRegex,
-       * tColumnNamesRow, tFirstDataRow, tColumnSeparator,
-       * tPreExtractRegex, tPostExtractRegex, tExtractRegex, tColumnNameForExtract,
-       * tSortedColumnSourceName, tSortFilesBySourceNames,
-       * tSourceNeedsExpandedFP_EQ, tFileTableInMemory,
-       * tAccessibleViaFiles, tRemoveMVRows, tStandardizeWhat,
-       * tNThreads, tCacheFromUrl, tCacheSizeGB, tCachePartialPathRegex,
-       * tAddVariablesWhere);
-       */
-
-    } else if (tType.equals("EDDTableFromNccsvFiles")) {
-      return new EDDTableFromNccsvFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
-
-    } else if (tType.equals("EDDTableFromHyraxFiles")) {
-
-      String qrName = quickRestartFullFileName(tDatasetID);
-      long tCreationTime = System.currentTimeMillis(); // used below
-      if (EDStatic.quickRestart && EDStatic.initialLoadDatasets() && File2.isFile(qrName)) {
-
-        // quickRestart
-        // set creationTimeMillis to time of previous creation, so next time
-        // to be reloaded will be same as if ERDDAP hadn't been restarted.
-        tCreationTime = File2.getLastModified(qrName); // 0 if trouble
-        if (verbose)
-          String2.log(
-              "  quickRestart "
-                  + tDatasetID
-                  + " previous="
-                  + Calendar2.millisToIsoStringTZ(tCreationTime));
-
-      } else {
-        // make downloadFileTasks
-        EDDTableFromHyraxFiles.makeDownloadFileTasks(
+    switch (tType) {
+      case "EDDTableFromAsciiFiles" -> {
+        return new EDDTableFromAsciiFiles(
             tDatasetID,
-            tGlobalAttributes.getString("sourceUrl"),
-            tFileNameRegex,
-            tRecursive,
-            tPathRegex);
-
-        // save quickRestartFile (file's timestamp is all that matters)
-        Attributes qrAtts = new Attributes();
-        qrAtts.add("datasetID", tDatasetID);
-        File2.makeDirectory(File2.getDirectory(qrName));
-        NcHelper.writeAttributesToNc3(qrName, qrAtts);
-      }
-
-      EDDTableFromFiles tEDDTable =
-          new EDDTableFromHyraxFiles(
-              tDatasetID,
-              tAccessibleTo,
-              tGraphsAccessibleTo,
-              tOnChange,
-              tFgdcFile,
-              tIso19115File,
-              tSosOfferingPrefix,
-              tDefaultDataQuery,
-              tDefaultGraphQuery,
-              tGlobalAttributes,
-              ttDataVariables,
-              tReloadEveryNMinutes,
-              tUpdateEveryNMillis,
-              tFileDir,
-              tFileNameRegex,
-              tRecursive,
-              tPathRegex,
-              tMetadataFrom,
-              tCharset,
-              tSkipHeaderToRegex,
-              tSkipLinesRegex,
-              tColumnNamesRow,
-              tFirstDataRow,
-              tColumnSeparator,
-              tPreExtractRegex,
-              tPostExtractRegex,
-              tExtractRegex,
-              tColumnNameForExtract,
-              tSortedColumnSourceName,
-              tSortFilesBySourceNames,
-              tSourceNeedsExpandedFP_EQ,
-              tFileTableInMemory,
-              tAccessibleViaFiles,
-              tRemoveMVRows,
-              tStandardizeWhat,
-              tNThreads,
-              tCacheFromUrl,
-              tCacheSizeGB,
-              tCachePartialPathRegex,
-              tAddVariablesWhere);
-
-      tEDDTable.creationTimeMillis = tCreationTime;
-      return tEDDTable;
-
-    } else if (tType.equals("EDDTableFromThreddsFiles")) {
-
-      String qrName = quickRestartFullFileName(tDatasetID);
-      long tCreationTime = System.currentTimeMillis(); // used below
-      if (EDStatic.quickRestart && EDStatic.initialLoadDatasets() && File2.isFile(qrName)) {
-
-        // quickRestart
-        // set creationTimeMillis to time of previous creation, so next time
-        // to be reloaded will be same as if ERDDAP hadn't been restarted.
-        tCreationTime = File2.getLastModified(qrName); // 0 if trouble
-        if (verbose)
-          String2.log(
-              "  quickRestart "
-                  + tDatasetID
-                  + " previous="
-                  + Calendar2.millisToIsoStringTZ(tCreationTime));
-
-      } else {
-        // make downloadFileTasks
-        EDDTableFromThreddsFiles.makeDownloadFileTasks(
-            tDatasetID,
-            tGlobalAttributes.getString("sourceUrl"),
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
             tFileNameRegex,
             tRecursive,
             tPathRegex,
-            tSpecialMode);
-
-        // save quickRestartFile (file's timestamp is all that matters)
-        Attributes qrAtts = new Attributes();
-        qrAtts.add("datasetID", tDatasetID);
-        File2.makeDirectory(File2.getDirectory(qrName));
-        NcHelper.writeAttributesToNc3(qrName, qrAtts);
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromAudioFiles" -> {
+        return new EDDTableFromAudioFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromAwsXmlFiles" -> {
+        return new EDDTableFromAwsXmlFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromColumnarAsciiFiles" -> {
+        return new EDDTableFromColumnarAsciiFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromHttpGet" -> {
+        return new EDDTableFromHttpGet(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromInvalidCRAFiles" -> {
+        return new EDDTableFromInvalidCRAFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromJsonlCSVFiles" -> {
+        return new EDDTableFromJsonlCSVFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromMultidimNcFiles" -> {
+        return new EDDTableFromMultidimNcFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromNcFiles" -> {
+        return new EDDTableFromNcFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromNcCFFiles" -> {
+        return new EDDTableFromNcCFFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
       }
 
-      EDDTableFromFiles tEDDTable =
-          new EDDTableFromThreddsFiles(
+        /*
+         * } else if (tType.equals("EDDTableFromPostNcFiles")) {
+         * return new EDDTableFromNcFiles(tDatasetID,
+         * tAccessibleTo, tGraphsAccessibleTo,
+         * tOnChange, tFgdcFile, tIso19115File, tSosOfferingPrefix,
+         * tDefaultDataQuery, tDefaultGraphQuery,
+         * tGlobalAttributes,
+         * ttDataVariables,
+         * tReloadEveryNMinutes, tUpdateEveryNMillis,
+         * tFileDir, tFileNameRegex, tRecursive, tPathRegex, tMetadataFrom,
+         * tCharset, tSkipHeaderToRegex, tSkipLinesRegex,
+         * tColumnNamesRow, tFirstDataRow, tColumnSeparator,
+         * tPreExtractRegex, tPostExtractRegex, tExtractRegex, tColumnNameForExtract,
+         * tSortedColumnSourceName, tSortFilesBySourceNames,
+         * tSourceNeedsExpandedFP_EQ, tFileTableInMemory,
+         * tAccessibleViaFiles, tRemoveMVRows, tStandardizeWhat,
+         * tNThreads, tCacheFromUrl, tCacheSizeGB, tCachePartialPathRegex,
+         * tAddVariablesWhere);
+         */
+
+      case "EDDTableFromNccsvFiles" -> {
+        return new EDDTableFromNccsvFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      case "EDDTableFromHyraxFiles" -> {
+        String qrName = quickRestartFullFileName(tDatasetID);
+        long tCreationTime = System.currentTimeMillis(); // used below
+
+        if (EDStatic.config.quickRestart
+            && EDStatic.initialLoadDatasets()
+            && File2.isFile(qrName)) {
+
+          // quickRestart
+          // set creationTimeMillis to time of previous creation, so next time
+          // to be reloaded will be same as if ERDDAP hadn't been restarted.
+          tCreationTime = File2.getLastModified(qrName); // 0 if trouble
+          if (verbose)
+            String2.log(
+                "  quickRestart "
+                    + tDatasetID
+                    + " previous="
+                    + Calendar2.millisToIsoStringTZ(tCreationTime));
+
+        } else {
+          // make downloadFileTasks
+          EDDTableFromHyraxFiles.makeDownloadFileTasks(
               tDatasetID,
-              tAccessibleTo,
-              tGraphsAccessibleTo,
-              tOnChange,
-              tFgdcFile,
-              tIso19115File,
-              tSosOfferingPrefix,
-              tDefaultDataQuery,
-              tDefaultGraphQuery,
-              tGlobalAttributes,
-              ttDataVariables,
-              tReloadEveryNMinutes,
-              tUpdateEveryNMillis,
-              tFileDir,
+              tGlobalAttributes.getString(language, "sourceUrl"),
+              tFileNameRegex,
+              tRecursive,
+              tPathRegex);
+
+          // save quickRestartFile (file's timestamp is all that matters)
+          Attributes qrAtts = new Attributes();
+          qrAtts.add("datasetID", tDatasetID);
+          File2.makeDirectory(File2.getDirectory(qrName));
+          NcHelper.writeAttributesToNc3(qrName, qrAtts);
+        }
+
+        EDDTableFromFiles tEDDTable =
+            new EDDTableFromHyraxFiles(
+                tDatasetID,
+                tAccessibleTo,
+                tGraphsAccessibleTo,
+                tOnChange,
+                tFgdcFile,
+                tIso19115File,
+                tSosOfferingPrefix,
+                tDefaultDataQuery,
+                tDefaultGraphQuery,
+                tGlobalAttributes,
+                tDataVariables,
+                tReloadEveryNMinutes,
+                tUpdateEveryNMillis,
+                tFileDir,
+                tFileNameRegex,
+                tRecursive,
+                tPathRegex,
+                tMetadataFrom,
+                tCharset,
+                tSkipHeaderToRegex,
+                tSkipLinesRegex,
+                tColumnNamesRow,
+                tFirstDataRow,
+                tColumnSeparator,
+                tPreExtractRegex,
+                tPostExtractRegex,
+                tExtractRegex,
+                tColumnNameForExtract,
+                tSortedColumnSourceName,
+                tSortFilesBySourceNames,
+                tSourceNeedsExpandedFP_EQ,
+                tFileTableInMemory,
+                tAccessibleViaFiles,
+                tRemoveMVRows,
+                tStandardizeWhat,
+                tNThreads,
+                tCacheFromUrl,
+                tCacheSizeGB,
+                tCachePartialPathRegex,
+                tAddVariablesWhere);
+
+        tEDDTable.creationTimeMillis = tCreationTime;
+        return tEDDTable;
+      }
+      case "EDDTableFromThreddsFiles" -> {
+        String qrName = quickRestartFullFileName(tDatasetID);
+        long tCreationTime = System.currentTimeMillis(); // used below
+
+        if (EDStatic.config.quickRestart
+            && EDStatic.initialLoadDatasets()
+            && File2.isFile(qrName)) {
+
+          // quickRestart
+          // set creationTimeMillis to time of previous creation, so next time
+          // to be reloaded will be same as if ERDDAP hadn't been restarted.
+          tCreationTime = File2.getLastModified(qrName); // 0 if trouble
+          if (verbose)
+            String2.log(
+                "  quickRestart "
+                    + tDatasetID
+                    + " previous="
+                    + Calendar2.millisToIsoStringTZ(tCreationTime));
+
+        } else {
+          // make downloadFileTasks
+          EDDTableFromThreddsFiles.makeDownloadFileTasks(
+              tDatasetID,
+              tGlobalAttributes.getString(language, "sourceUrl"),
               tFileNameRegex,
               tRecursive,
               tPathRegex,
-              tMetadataFrom,
-              tCharset,
-              tSkipHeaderToRegex,
-              tSkipLinesRegex,
-              tColumnNamesRow,
-              tFirstDataRow,
-              tColumnSeparator,
-              tPreExtractRegex,
-              tPostExtractRegex,
-              tExtractRegex,
-              tColumnNameForExtract,
-              tSortedColumnSourceName,
-              tSortFilesBySourceNames,
-              tSourceNeedsExpandedFP_EQ,
-              tFileTableInMemory,
-              tAccessibleViaFiles,
-              tRemoveMVRows,
-              tStandardizeWhat,
-              tNThreads,
-              tCacheFromUrl,
-              tCacheSizeGB,
-              tCachePartialPathRegex,
-              tAddVariablesWhere);
+              tSpecialMode);
 
-      tEDDTable.creationTimeMillis = tCreationTime;
-      return tEDDTable;
+          // save quickRestartFile (file's timestamp is all that matters)
+          Attributes qrAtts = new Attributes();
+          qrAtts.add("datasetID", tDatasetID);
+          File2.makeDirectory(File2.getDirectory(qrName));
+          NcHelper.writeAttributesToNc3(qrName, qrAtts);
+        }
 
-    } else if (tType.equals("EDDTableFromWFSFiles")) {
+        EDDTableFromFiles tEDDTable =
+            new EDDTableFromThreddsFiles(
+                tDatasetID,
+                tAccessibleTo,
+                tGraphsAccessibleTo,
+                tOnChange,
+                tFgdcFile,
+                tIso19115File,
+                tSosOfferingPrefix,
+                tDefaultDataQuery,
+                tDefaultGraphQuery,
+                tGlobalAttributes,
+                tDataVariables,
+                tReloadEveryNMinutes,
+                tUpdateEveryNMillis,
+                tFileDir,
+                tFileNameRegex,
+                tRecursive,
+                tPathRegex,
+                tMetadataFrom,
+                tCharset,
+                tSkipHeaderToRegex,
+                tSkipLinesRegex,
+                tColumnNamesRow,
+                tFirstDataRow,
+                tColumnSeparator,
+                tPreExtractRegex,
+                tPostExtractRegex,
+                tExtractRegex,
+                tColumnNameForExtract,
+                tSortedColumnSourceName,
+                tSortFilesBySourceNames,
+                tSourceNeedsExpandedFP_EQ,
+                tFileTableInMemory,
+                tAccessibleViaFiles,
+                tRemoveMVRows,
+                tStandardizeWhat,
+                tNThreads,
+                tCacheFromUrl,
+                tCacheSizeGB,
+                tCachePartialPathRegex,
+                tAddVariablesWhere);
 
-      String fileDir = EDStatic.fullCopyDirectory + tDatasetID + "/";
-      String fileName = "data.tsv";
-      long tCreationTime = System.currentTimeMillis(); // used below
-      if (EDStatic.quickRestart
-          && EDStatic.initialLoadDatasets()
-          && File2.isFile(fileDir + fileName)) {
-
-        // quickRestart
-        // set creationTimeMillis to time of previous creation, so next time
-        // to be reloaded will be same as if ERDDAP hadn't been restarted.
-        tCreationTime = File2.getLastModified(fileDir + fileName); // 0 if trouble
-        if (verbose)
-          String2.log(
-              "  quickRestart "
-                  + tDatasetID
-                  + " previous="
-                  + Calendar2.millisToIsoStringTZ(tCreationTime));
-
-      } else {
-        // download the file (its timestamp will be *now*)
-        File2.makeDirectory(fileDir);
-        String error =
-            EDDTableFromWFSFiles.downloadData(
-                tGlobalAttributes.getString("sourceUrl"),
-                tGlobalAttributes.getString("rowElementXPath"),
-                fileDir + fileName);
-        if (error.length() > 0) String2.log(error);
+        tEDDTable.creationTimeMillis = tCreationTime;
+        return tEDDTable;
       }
+      case "EDDTableFromWFSFiles" -> {
+        String fileDir = EDStatic.config.fullCopyDirectory + tDatasetID + "/";
+        String fileName = "data.tsv";
+        long tCreationTime = System.currentTimeMillis(); // used below
 
-      return new EDDTableFromWFSFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          fileDir, // force fileDir
-          ".*\\.tsv", // force fileNameRegex
-          false, // force !recursive,
-          ".*", // irrelevant pathRegex
-          tMetadataFrom,
-          File2.UTF_8, // force charset
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          1, // force columnNamesRow,
-          3, // force firstDataRow,
-          "", // force tColumnSeparator
-          "",
-          "",
-          "",
-          "", // force tPreExtractRegex, tPostExtractRegex, tExtractRegex,
-          // tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
+        if (EDStatic.config.quickRestart
+            && EDStatic.initialLoadDatasets()
+            && File2.isFile(fileDir + fileName)) {
 
-      // } else if (tType.equals("EDDTableFrom???Files")) {
-      // return new EDDTableFromFiles(tDatasetID,
-      // tAccessibleTo, tGraphsAccessibleTo,
-      // tOnChange, tFgdcFile, tIso19115File, tSosOfferingPrefix,
-      // tDefaultDataQuery, tDefaultGraphQuery,
-      // tGlobalAttributes,
-      // ttDataVariables,
-      // tReloadEveryNMinutes, tUpdateEveryNMillis,
-      // tFileDir, tFileNameRegex, tRecursive, tPathRegex, tMetadataFrom,
-      // tCharset, tSkipHeaderToRegex, tSkipLinesRegex,
-      // tColumnNamesRow, tFirstDataRow, tColumnSeparator,
-      // tPreExtractRegex, tPostExtractRegex, tExtractRegex, tColumnNameForExtract,
-      // tSortedColumnSourceName, tSortFilesBySourceNames,
-      // tSourceNeedsExpandedFP_EQ, tFileTableInMemory,
-      // tAccessibleViaFiles, tRemoveMVRows, tStandardizeWhat,
-      // tNThreads, tCacheFromUrl, tCacheSizeGB, tCachePartialPathRegex,
-      // tAddVariablesWhere);
-    } else if (tType.equals("EDDTableFromParquetFiles")) {
-      return new EDDTableFromParquetFiles(
-          tDatasetID,
-          tAccessibleTo,
-          tGraphsAccessibleTo,
-          tOnChange,
-          tFgdcFile,
-          tIso19115File,
-          tSosOfferingPrefix,
-          tDefaultDataQuery,
-          tDefaultGraphQuery,
-          tGlobalAttributes,
-          ttDataVariables,
-          tReloadEveryNMinutes,
-          tUpdateEveryNMillis,
-          tFileDir,
-          tFileNameRegex,
-          tRecursive,
-          tPathRegex,
-          tMetadataFrom,
-          tCharset,
-          tSkipHeaderToRegex,
-          tSkipLinesRegex,
-          tColumnNamesRow,
-          tFirstDataRow,
-          tColumnSeparator,
-          tPreExtractRegex,
-          tPostExtractRegex,
-          tExtractRegex,
-          tColumnNameForExtract,
-          tSortedColumnSourceName,
-          tSortFilesBySourceNames,
-          tSourceNeedsExpandedFP_EQ,
-          tFileTableInMemory,
-          tAccessibleViaFiles,
-          tRemoveMVRows,
-          tStandardizeWhat,
-          tNThreads,
-          tCacheFromUrl,
-          tCacheSizeGB,
-          tCachePartialPathRegex,
-          tAddVariablesWhere);
+          // quickRestart
+          // set creationTimeMillis to time of previous creation, so next time
+          // to be reloaded will be same as if ERDDAP hadn't been restarted.
+          tCreationTime = File2.getLastModified(fileDir + fileName); // 0 if trouble
+          if (verbose)
+            String2.log(
+                "  quickRestart "
+                    + tDatasetID
+                    + " previous="
+                    + Calendar2.millisToIsoStringTZ(tCreationTime));
 
-    } else {
-      throw new Exception(
-          "type=\"" + tType + "\" needs to be added to EDDTableFromFiles.fromXml at end.");
+        } else {
+          // download the file (its timestamp will be *now*)
+          File2.makeDirectory(fileDir);
+          String error =
+              EDDTableFromWFSFiles.downloadData(
+                  tGlobalAttributes.getString(language, "sourceUrl"),
+                  tGlobalAttributes.getString(language, "rowElementXPath"),
+                  fileDir + fileName);
+          if (error.length() > 0) String2.log(error);
+        }
+
+        return new EDDTableFromWFSFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            fileDir, // force fileDir
+            ".*\\.tsv", // force fileNameRegex
+            false, // force !recursive,
+            ".*", // irrelevant pathRegex
+            tMetadataFrom,
+            File2.UTF_8, // force charset
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            1, // force columnNamesRow,
+            3, // force firstDataRow,
+            "", // force tColumnSeparator
+            "",
+            "",
+            "",
+            "", // force tPreExtractRegex, tPostExtractRegex, tExtractRegex,
+            // tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+
+        // } else if (tType.equals("EDDTableFrom???Files")) {
+        // return new EDDTableFromFiles(tDatasetID,
+        // tAccessibleTo, tGraphsAccessibleTo,
+        // tOnChange, tFgdcFile, tIso19115File, tSosOfferingPrefix,
+        // tDefaultDataQuery, tDefaultGraphQuery,
+        // tGlobalAttributes,
+        // ttDataVariables,
+        // tReloadEveryNMinutes, tUpdateEveryNMillis,
+        // tFileDir, tFileNameRegex, tRecursive, tPathRegex, tMetadataFrom,
+        // tCharset, tSkipHeaderToRegex, tSkipLinesRegex,
+        // tColumnNamesRow, tFirstDataRow, tColumnSeparator,
+        // tPreExtractRegex, tPostExtractRegex, tExtractRegex, tColumnNameForExtract,
+        // tSortedColumnSourceName, tSortFilesBySourceNames,
+        // tSourceNeedsExpandedFP_EQ, tFileTableInMemory,
+        // tAccessibleViaFiles, tRemoveMVRows, tStandardizeWhat,
+        // tNThreads, tCacheFromUrl, tCacheSizeGB, tCachePartialPathRegex,
+        // tAddVariablesWhere);
+      }
+      case "EDDTableFromParquetFiles" -> {
+        return new EDDTableFromParquetFiles(
+            tDatasetID,
+            tAccessibleTo,
+            tGraphsAccessibleTo,
+            tOnChange,
+            tFgdcFile,
+            tIso19115File,
+            tSosOfferingPrefix,
+            tDefaultDataQuery,
+            tDefaultGraphQuery,
+            tGlobalAttributes,
+            tDataVariables,
+            tReloadEveryNMinutes,
+            tUpdateEveryNMillis,
+            tFileDir,
+            tFileNameRegex,
+            tRecursive,
+            tPathRegex,
+            tMetadataFrom,
+            tCharset,
+            tSkipHeaderToRegex,
+            tSkipLinesRegex,
+            tColumnNamesRow,
+            tFirstDataRow,
+            tColumnSeparator,
+            tPreExtractRegex,
+            tPostExtractRegex,
+            tExtractRegex,
+            tColumnNameForExtract,
+            tSortedColumnSourceName,
+            tSortFilesBySourceNames,
+            tSourceNeedsExpandedFP_EQ,
+            tFileTableInMemory,
+            tAccessibleViaFiles,
+            tRemoveMVRows,
+            tStandardizeWhat,
+            tNThreads,
+            tCacheFromUrl,
+            tCacheSizeGB,
+            tCachePartialPathRegex,
+            tAddVariablesWhere);
+      }
+      default ->
+          throw new Exception(
+              "type=\"" + tType + "\" needs to be added to EDDTableFromFiles.fromXml at end.");
     }
   }
 
@@ -1183,7 +1196,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
    *     </ul>
    *     Special case: value="null" causes that item to be removed from combinedGlobalAttributes.
    *     Special case: if combinedGlobalAttributes name="license", any instance of
-   *     value="[standard]" will be converted to the EDStatic.standardLicense.
+   *     value="[standard]" will be converted to the EDStatic.messages.standardLicense.
    * @param tDataVariables is an Object[nDataVariables][3 or 4]: <br>
    *     [0]=String sourceName (the name of the data variable in the dataset source, without the
    *     outer or inner sequence name), <br>
@@ -1272,8 +1285,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       String tSosOfferingPrefix,
       String tDefaultDataQuery,
       String tDefaultGraphQuery,
-      Attributes tAddGlobalAttributes,
-      Object[][] tDataVariables,
+      LocalizedAttributes tAddGlobalAttributes,
+      List<DataVariableInfo> tDataVariables,
       int tReloadEveryNMinutes,
       int tUpdateEveryNMillis,
       String tFileDir,
@@ -1304,7 +1317,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       String tCachePartialPathRegex,
       String tAddVariablesWhere)
       throws Throwable {
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     if (verbose) String2.log("\n*** constructing EDDTableFromFiles " + tDatasetID);
     long constructionStartMillis = System.currentTimeMillis();
     String errorInMethod = "Error in EDDTableFromFiles(" + tDatasetID + ") constructor:\n";
@@ -1329,7 +1342,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     sosOfferingPrefix = tSosOfferingPrefix;
     defaultDataQuery = tDefaultDataQuery;
     defaultGraphQuery = tDefaultGraphQuery;
-    if (tAddGlobalAttributes == null) tAddGlobalAttributes = new Attributes();
+    if (tAddGlobalAttributes == null) tAddGlobalAttributes = new LocalizedAttributes();
     addGlobalAttributes = tAddGlobalAttributes;
     setReloadEveryNMinutes(tReloadEveryNMinutes);
     setUpdateEveryNMillis(tUpdateEveryNMillis);
@@ -1349,7 +1362,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
         tStandardizeWhat < 0 || tStandardizeWhat == Integer.MAX_VALUE
             ? defaultStandardizeWhat()
             : tStandardizeWhat;
-    accessibleViaFiles = EDStatic.filesActive && tAccessibleViaFiles;
+    accessibleViaFiles = EDStatic.config.filesActive && tAccessibleViaFiles;
     nThreads = tNThreads;
 
     preExtractRegex = tPreExtractRegex;
@@ -1358,7 +1371,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     columnNameForExtract = tColumnNameForExtract;
 
     sortedColumnSourceName = tSortedColumnSourceName;
-    int ndv = tDataVariables.length;
+    int ndv = tDataVariables.size();
 
     removeMVRows = tRemoveMVRows;
 
@@ -1373,33 +1386,6 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
             tCacheSizeGB * Math2.BytesPerGB;
     cachePartialPathRegex =
         String2.isSomething(tCachePartialPathRegex) ? tCachePartialPathRegex : null;
-
-    // class-specific things
-    if (className.equals("EDDTableFromHttpGet")) {
-      setHttpGetRequiredVariableNames(tAddGlobalAttributes.getString(HTTP_GET_REQUIRED_VARIABLES));
-      setHttpGetDirectoryStructure(tAddGlobalAttributes.getString(HTTP_GET_DIRECTORY_STRUCTURE));
-      setHttpGetKeys(tAddGlobalAttributes.getString(HTTP_GET_KEYS));
-      tAddGlobalAttributes.remove(HTTP_GET_KEYS);
-
-    } else if (className.equals("EDDTableFromMultidimNcFiles")) {
-      String ts = tAddGlobalAttributes.getString(TREAT_DIMENSIONS_AS);
-      if (String2.isSomething(ts)) {
-        String parts[] = String2.split(ts, ';');
-        int nParts = parts.length;
-        treatDimensionsAs = new String[nParts][];
-        for (int part = 0; part < nParts; part++) {
-          treatDimensionsAs[part] = String2.split(parts[part], ',');
-          if (reallyVerbose)
-            String2.log(
-                TREAT_DIMENSIONS_AS
-                    + "["
-                    + part
-                    + "] was set to "
-                    + String2.toCSSVString(treatDimensionsAs[part]));
-        }
-      }
-      tAddGlobalAttributes.remove(TREAT_DIMENSIONS_AS);
-    }
 
     if (!String2.isSomething(fileDir))
       throw new IllegalArgumentException(errorInMethod + "fileDir wasn't specified.");
@@ -1465,20 +1451,20 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       stopColumn = new int[ndv]; // all 0's
     }
     for (int dv = 0; dv < ndv; dv++) {
-      String tSourceName = (String) tDataVariables[dv][0];
+      String tSourceName = tDataVariables.get(dv).sourceName();
       sourceDataNames.add(tSourceName);
       safeSourceDataNames.add(String2.encodeVariableNameSafe(tSourceName));
-      sourceDataTypes[dv] = (String) tDataVariables[dv][3];
+      sourceDataTypes[dv] = tDataVariables.get(dv).dataType();
       if (sourceDataTypes[dv] == null || sourceDataTypes[dv].length() == 0)
         throw new IllegalArgumentException("Unspecified data type for var#" + dv + ".");
 
       // note timeIndex
-      String tDestName = (String) tDataVariables[dv][1];
+      String tDestName = tDataVariables.get(dv).destinationName();
       if (EDV.TIME_NAME.equals(tDestName)
           || ((tDestName == null || tDestName.trim().length() == 0)
               && EDV.TIME_NAME.equals(tSourceName))) timeIndex = dv;
 
-      Attributes atts = (Attributes) tDataVariables[dv][2];
+      LocalizedAttributes atts = tDataVariables.get(dv).attributes();
 
       // do things for special variable types
       if (tSourceName.startsWith("=")) {
@@ -1504,8 +1490,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       } else {
         if (isColumnarAscii) {
           // required
-          startColumn[dv] = atts.getInt("startColumn");
-          stopColumn[dv] = atts.getInt("stopColumn");
+          startColumn[dv] = atts.getInt(language, "startColumn");
+          stopColumn[dv] = atts.getInt(language, "stopColumn");
           Test.ensureBetween(
               startColumn[dv],
               0,
@@ -1532,6 +1518,9 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
               + "\nsourceDataTypes="
               + String2.toCSSVString(sourceDataTypes));
 
+    // This is intended to be overridden by subclasses so they can handle early initialization.
+    earlyInitialization();
+
     if (sortedColumnSourceName.length() > 0) {
       sortedDVI = sourceDataNames.indexOf(sortedColumnSourceName);
       if (sortedDVI < 0)
@@ -1539,10 +1528,11 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
             "sortedColumnSourceName="
                 + sortedColumnSourceName
                 + " isn't among the source data variable names.");
-      String tName = (String) tDataVariables[sortedDVI][1]; // destName
-      if (!String2.isSomething(tName)) tName = (String) tDataVariables[sortedDVI][0]; // sourceName
-      Attributes tAtts = (Attributes) tDataVariables[sortedDVI][2];
-      String tUnits = tAtts == null ? null : tAtts.getString("units");
+      String tName = tDataVariables.get(sortedDVI).destinationName(); // destName
+      if (!String2.isSomething(tName))
+        tName = tDataVariables.get(sortedDVI).sourceName(); // sourceName
+      LocalizedAttributes tAtts = tDataVariables.get(sortedDVI).attributes();
+      String tUnits = tAtts == null ? null : tAtts.getString(language, "units");
       if (tName.equals("time")
           || Calendar2.isTimeUnits(tUnits)
           || !"String".equals(sourceDataTypes[sortedDVI])) {
@@ -1644,7 +1634,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     }
 
     // load badFileMap
-    ConcurrentHashMap badFileMap = readBadFileMap();
+    ConcurrentHashMap<String, Object[]> badFileMap = readBadFileMap();
 
     // if trouble reading any, recreate all
     if (dirTable == null || fileTable == null || badFileMap == null) {
@@ -1685,7 +1675,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     }
 
     // skip loading until after intial loadDatasets?
-    if (!EDStatic.forceSynchronousLoading
+    if (!EDStatic.config.forceSynchronousLoading
         && fileTable.nRows() == 0
         && EDStatic.initialLoadDatasets()) {
       requestReloadASAP();
@@ -1698,23 +1688,19 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     StringArray ftFileList = (StringArray) fileTable.getColumn(FT_FILE_LIST_COL); // 1
     LongArray ftLastMod = (LongArray) fileTable.getColumn(FT_LAST_MOD_COL); // 2
     LongArray ftSize = (LongArray) fileTable.getColumn(FT_SIZE_COL); // 3
-    DoubleArray ftSortedSpacing = (DoubleArray) fileTable.getColumn(FT_SORTED_SPACING_COL); // 4
     String msg = "";
 
     // set up WatchDirectory
     if (updateEveryNMillis > 0) {
       try {
-        if (EDStatic.useSharedWatchService) {
-          SharedWatchService.watchDirectory(fileDir, recursive, pathRegex, this, datasetID);
-        } else {
-          watchDirectory = WatchDirectory.watchDirectoryAll(fileDir, recursive, pathRegex);
-        }
+        SharedWatchService.watchDirectory(fileDir, recursive, pathRegex, this, datasetID);
       } catch (Throwable t) {
         updateEveryNMillis = 0; // disable the inotify system for this instance
         String subject = String2.ERROR + " in " + datasetID + " constructor (inotify)";
         msg = MustBe.throwableToString(t);
-        if (msg.indexOf("inotify instances") >= 0) msg += EDStatic.inotifyFixAr[0];
-        EDStatic.email(EDStatic.adminEmail, subject, msg);
+        if (msg.indexOf("inotify instances") >= 0)
+          msg += EDStatic.messages.get(Message.INOTIFY_FIX, 0);
+        EDStatic.email(EDStatic.config.adminEmail, subject, msg);
         msg = "";
       }
     }
@@ -1722,7 +1708,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     // doQuickRestart?
     boolean doQuickRestart =
         fileTable.nRows() > 0
-            && (testQuickRestart || (EDStatic.quickRestart && EDStatic.initialLoadDatasets()));
+            && (testQuickRestart
+                || (EDStatic.config.quickRestart && EDStatic.initialLoadDatasets()));
     if (verbose) String2.log("doQuickRestart=" + doQuickRestart);
 
     if (doQuickRestart) {
@@ -1823,7 +1810,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       // remove "badFiles" if they no longer exist (in tFileNames)
       if (badFileMap.size() > 0) {
         // make hashset with all tFileNames
-        HashSet<String> tFileSet = new HashSet(Math2.roundToInt(1.4 * ntft));
+        HashSet<String> tFileSet = new HashSet<>(Math2.roundToInt(1.4 * ntft));
         for (int i = 0; i < ntft; i++) {
           tFileSet.add(tFileDirIndexPA.get(i) + "/" + tFileNamePA.get(i));
           // String2.log("tFileSet add: " + tFileDirIndexPA.get(i) + "/" +
@@ -1833,8 +1820,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
         Object badFileNames[] = badFileMap.keySet().toArray();
         int nMissing = 0;
         int nbfn = badFileNames.length;
-        for (int i = 0; i < nbfn; i++) {
-          Object name = badFileNames[i];
+        for (Object name : badFileNames) {
           if (!tFileSet.contains(name)) {
             if (reallyVerbose) String2.log("previously bad file now missing: " + name);
             nMissing++;
@@ -1901,12 +1887,12 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       int tFileListPo = 0; // next one to look at
       int nReadFile = 0, nNoLastMod = 0, nNoSize = 0;
       long readFileCumTime = 0;
-      long removeCumTime = 0;
       int nUnchanged = 0, nRemoved = 0, nDifferentModTime = 0, nNew = 0;
       elapsedTime = System.currentTimeMillis();
       while (tFileListPo < tFileNamePA.size()) {
         if (Thread.currentThread().isInterrupted())
-          throw new SimpleException("EDDTableFromFiles.init" + EDStatic.caughtInterruptedAr[0]);
+          throw new SimpleException(
+              "EDDTableFromFiles.init" + EDStatic.messages.get(Message.CAUGHT_INTERRUPTED, 0));
 
         int tDirI = tFileDirIndexPA.get(tFileListPo);
         String tFileS = tFileNamePA.get(tFileListPo);
@@ -1915,7 +1901,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
               tFileNameRegex.contains("zarr")
                   || (tPathRegex != null && tPathRegex.contains("zarr"));
           if (isZarr) {
-            if (!isZarr || tDirI == Integer.MAX_VALUE) {
+            if (tDirI == Integer.MAX_VALUE) {
               tFileListPo++;
               // Skipping file name that is null or empty string and not in zarr.
               continue;
@@ -1971,7 +1957,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
         if (bfi != null) {
           // tFile is in badFileMap
           Object bfia[] = (Object[]) bfi;
-          long bfLastMod = ((Long) bfia[0]).longValue();
+          long bfLastMod = (Long) bfia[0];
           if (bfLastMod == tLastMod) {
             // file hasn't been changed; it is still bad
             tFileListPo++;
@@ -1979,9 +1965,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
               // remove it from cached info (Yes, a file may be marked bad (recently) and so
               // still be in cache)
               nRemoved++;
-              removeCumTime -= System.currentTimeMillis();
               fileTable.removeRow(fileListPo);
-              removeCumTime += System.currentTimeMillis();
             }
             // go on to next tFile
             if (logThis) String2.log(tFileListPo + " already in badFile list");
@@ -2015,9 +1999,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
                     + dirList.get(dirI)
                     + fileS);
           nRemoved++;
-          removeCumTime -= System.currentTimeMillis();
           fileTable.removeRow(fileListPo); // may be slow
-          removeCumTime += System.currentTimeMillis();
           // tFileListPo isn't incremented, so it will be considered again in next
           // iteration
           continue;
@@ -2083,9 +2065,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
               || t instanceof InterruptedException
               || msg.indexOf(Math2.TooManyOpenFiles) >= 0) throw t; // stop loading this dataset
           nRemoved++;
-          removeCumTime -= System.currentTimeMillis();
           fileTable.removeRow(fileListPo);
-          removeCumTime += System.currentTimeMillis();
           tFileListPo++;
           if (System.currentTimeMillis() - tLastMod > 30 * Calendar2.MILLIS_PER_MINUTE
               && !(t instanceof TimeoutException
@@ -2178,8 +2158,11 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
               + (readFileCumTime / Math.max(1, nReadFile))
               + "ms";
       if (verbose || fileTable.nRows() == 0) String2.log(msg);
-      if (fileTable.nRows() == 0) throw new RuntimeException("No valid files!");
-
+      if (fileTable.nRows() == 0) {
+        if (!"EDDTableFromMqtt".equals(className) && !"EDDTableFromHttpGet".equals(className)) {
+          throw new RuntimeException("No valid files!");
+        }
+      }
       if (nReadFile > 0 || nRemoved > 0)
         filesChanged =
             "The list of aggregated files changed:\n"
@@ -2219,11 +2202,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
     // send email with bad file info
     if (!badFileMap.isEmpty()) {
-      StringBuilder emailSB = new StringBuilder();
-      emailSB.append(badFileMapToString(badFileMap, dirList));
-      emailSB.append(msg + "\n\n");
-      EDStatic.email(
-          EDStatic.emailEverythingToCsv, errorInMethod + "Bad Files", emailSB.toString());
+      String emailSB = badFileMapToString(badFileMap, dirList) + msg + "\n\n";
+      EDStatic.email(EDStatic.config.emailEverythingToCsv, errorInMethod + "Bad Files", emailSB);
     }
     // if (debugMode) String2.log(">> EDDTableFromFiles " +
     // Calendar2.getCurrentISODateTimeStringLocalTZ() + " finished sending email
@@ -2287,11 +2267,13 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
     // make combinedGlobalAttributes
     combinedGlobalAttributes =
-        new Attributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
-    String tLicense = combinedGlobalAttributes.getString("license");
+        new LocalizedAttributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
+    String tLicense = combinedGlobalAttributes.getString(language, "license");
     if (tLicense != null)
       combinedGlobalAttributes.set(
-          "license", String2.replaceAll(tLicense, "[standard]", EDStatic.standardLicense));
+          language,
+          "license",
+          String2.replaceAll(tLicense, "[standard]", EDStatic.messages.standardLicense));
     combinedGlobalAttributes.removeValue("\"null\"");
     // if (debugMode) String2.log(">> EDDTableFromFiles " +
     // Calendar2.getCurrentISODateTimeStringLocalTZ() + " finished making
@@ -2301,7 +2283,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     dataVariables = new EDV[ndv];
     for (int dv = 0; dv < ndv; dv++) {
       String tSourceName = sourceDataNames.get(dv);
-      String tDestName = (String) tDataVariables[dv][1];
+      String tDestName = tDataVariables.get(dv).destinationName();
       if (tDestName == null || tDestName.trim().length() == 0) tDestName = tSourceName;
       int tableDv = tTable.findColumnNumber(tSourceName);
       if (reallyVerbose && dv != extractedColNameIndex && tableDv < 0)
@@ -2313,7 +2295,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
                 + " colNames="
                 + tTable.getColumnNamesCSVString());
       Attributes tSourceAtt = tableDv < 0 ? new Attributes() : tTable.columnAttributes(tableDv);
-      Attributes tAddAtt = (Attributes) tDataVariables[dv][2];
+      LocalizedAttributes tAddAtt = tDataVariables.get(dv).attributes();
       // PrimitiveArray taa = tAddAtt.get("_FillValue");
       // String2.log(">>taa " + tSourceName + " _FillValue=" + taa);
       // dMin and dMax are raw source values -- scale_factor and add_offset haven't
@@ -2357,10 +2339,10 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
             new EDVDepth(datasetID, tSourceName, tSourceAtt, tAddAtt, tSourceType, tMin, tMax);
         depthIndex = dv;
 
-      } else if (EDVTimeStamp.hasTimeUnits(tSourceAtt, tAddAtt)) {
+      } else if (EDVTimeStamp.hasTimeUnits(language, tSourceAtt, tAddAtt)) {
         // for ISO strings and numeric source values:
-        if (tAddAtt == null) tAddAtt = new Attributes();
-        String tUnits = tAddAtt.getString("units");
+        if (tAddAtt == null) tAddAtt = new LocalizedAttributes();
+        String tUnits = tAddAtt.getString(language, "units");
         if (tUnits == null) tUnits = tSourceAtt.getString("units");
         if (tUnits == null) tUnits = "";
         // String2.log(">> timestamp minMaxTable min=" + minMaxTable.getStringData(dv,
@@ -2372,14 +2354,14 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
           StringArray actualRange = new StringArray();
           actualRange.add(minMaxTable.getStringData(dv, 0));
           actualRange.add(minMaxTable.getStringData(dv, 1));
-          tAddAtt.set("actual_range", actualRange);
+          tAddAtt.set(language, "actual_range", actualRange);
           // String2.log(">> timestamp actual_range=" + actualRange);
         } else if (!tSourceType.equals("String")) { // numeric times sort correctly
           PrimitiveArray actualRange =
               PrimitiveArray.factory(PAType.fromCohortString(sourceDataTypes[dv]), 2, false);
           actualRange.addPAOne(minMaxTable.getPAOneData(dv, 0));
           actualRange.addPAOne(minMaxTable.getPAOneData(dv, 1));
-          tAddAtt.set("actual_range", actualRange);
+          tAddAtt.set(language, "actual_range", actualRange);
           // String2.log(">> timestamp actual_range=" + actualRange);
         }
 
@@ -2409,7 +2391,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
         dataVariables[dv] =
             new EDV(
                 datasetID, tSourceName, tDestName, tSourceAtt, tAddAtt, tSourceType, tMin, tMax);
-        dataVariables[dv].setActualRangeFromDestinationMinMax();
+        dataVariables[dv].setActualRangeFromDestinationMinMax(language);
       }
 
       // String2.pressEnterToContinue("!!!sourceName=" +
@@ -2449,21 +2431,18 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       PrimitiveArray fLonMax =
           lonVar.toDestination(
               (PrimitiveArray) fileTable.getColumn(dv0 + lonIndex * 3 + 1).clone());
-      PrimitiveArray fLonNan = fileTable.getColumn(dv0 + lonIndex * 3 + 2);
       PrimitiveArray fLatMin =
           latVar.toDestination(
               (PrimitiveArray) fileTable.getColumn(dv0 + latIndex * 3 + 0).clone());
       PrimitiveArray fLatMax =
           latVar.toDestination(
               (PrimitiveArray) fileTable.getColumn(dv0 + latIndex * 3 + 1).clone());
-      PrimitiveArray fLatNan = fileTable.getColumn(dv0 + latIndex * 3 + 2);
       PrimitiveArray fTimeMin =
           timeVar.toDestination(
               (PrimitiveArray) fileTable.getColumn(dv0 + timeIndex * 3 + 0).clone());
       PrimitiveArray fTimeMax =
           timeVar.toDestination(
               (PrimitiveArray) fileTable.getColumn(dv0 + timeIndex * 3 + 1).clone());
-      PrimitiveArray fTimeNan = fileTable.getColumn(dv0 + timeIndex * 3 + 2);
       PrimitiveArray fOfferingMin =
           offeringVar.toDestination(
               (PrimitiveArray) fileTable.getColumn(dv0 + sosOfferingIndex * 3 + 0).clone());
@@ -2486,7 +2465,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       // Do all files contain just one value of sosOfferingIndex (e.g., 1 station)?
       // If so, easy to find min/max lon/lat/time for each station.
       int tnFiles = fLonMin.size();
-      HashMap offeringIndexHM = new HashMap(); // key=offering value=Integer.valueOf(SosXxx index)
+      HashMap<String, Integer> offeringIndexHM =
+          new HashMap<>(); // key=offering value=Integer.valueOf(SosXxx index)
       for (int f = 0; f < tnFiles; f++) {
         String offMin = fOfferingMin.getString(f);
         String offMax = fOfferingMax.getString(f);
@@ -2500,10 +2480,10 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
           // if just one offering in file (no mv), add data to sos arrays
         } else if (!offNaN && offMin.equals(offMax)) {
           // find sos PA index
-          Integer soI = (Integer) offeringIndexHM.get(offMin);
+          Integer soI = offeringIndexHM.get(offMin);
           if (soI == null) {
             // it's a new offering. add it.
-            soI = Integer.valueOf(sosOfferings.size());
+            soI = sosOfferings.size();
             offeringIndexHM.put(offMin, soI);
             sosMinLon.addFromPA(fLonMin, f);
             sosMaxLon.addFromPA(fLonMax, f);
@@ -2516,7 +2496,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
           } else {
             // a previous file had the same offering, so update its info in sos... PA
             // store the min min and the max max.
-            int soi = soI.intValue();
+            int soi = soI;
             sosMinLon.setDouble(
                 soi, Math2.finiteMin(sosMinLon.getDouble(soi), fLonMin.getDouble(f)));
             sosMaxLon.setDouble(
@@ -2577,7 +2557,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     // if cacheFromUrl is remote ERDDAP /files/, subscribe to the dataset
     // This is like code in EDDGridFromFiles but "/tabledap/"
     if (!doQuickRestart
-        && EDStatic.subscribeToRemoteErddapDataset
+        && EDStatic.config.subscribeToRemoteErddapDataset
         && cacheFromUrl != null
         && cacheFromUrl.startsWith("http")
         && cacheFromUrl.indexOf("/erddap/files/") > 0) {
@@ -2609,7 +2589,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     long cTime = System.currentTimeMillis() - constructionStartMillis;
     if (verbose)
       String2.log(
-          (debugMode ? "\n" + toString() : "")
+          (debugMode ? "\n" + this : "")
               + "\n*** EDDTableFromFiles "
               + datasetID
               + " constructor finished. TIME="
@@ -2670,13 +2650,13 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
    * @throws Throwable if serious trouble ("Too many open files")
    */
   private boolean makeExpected(
-      Object[][] tDataVariables,
+      List<DataVariableInfo> tDataVariables,
       StringArray dirList,
       ShortArray ftDirIndex,
       StringArray ftFileList,
       LongArray ftLastMod,
       LongArray ftSize) {
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // make arrays to hold addAttributes fillValue, missingValue
     // (so fake mv can be converted to NaN, so source min and max can be
     // determined exclusive of missingValue)
@@ -2686,12 +2666,12 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     Arrays.fill(addAttFillValue, Double.NaN); // 2014-07-21 now filled with NaN's
     Arrays.fill(addAttMissingValue, Double.NaN);
     for (int dv = 0; dv < sourceDataNames.size(); dv++) {
-      Attributes tAddAtt = (Attributes) tDataVariables[dv][2];
+      LocalizedAttributes tAddAtt = tDataVariables.get(dv).attributes();
       // if ("depth".equals(sourceDataNames.get(dv)))
       // String2.log("depth addAtt=" + tAddAtt);
       if (tAddAtt != null) {
-        addAttFillValue[dv] = tAddAtt.getDouble("_FillValue"); // may be NaN
-        addAttMissingValue[dv] = tAddAtt.getDouble("missing_value"); // may be NaN
+        addAttFillValue[dv] = tAddAtt.getDouble(language, "_FillValue"); // may be NaN
+        addAttMissingValue[dv] = tAddAtt.getDouble(language, "missing_value"); // may be NaN
       }
     }
 
@@ -2781,25 +2761,6 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     return false;
   }
 
-  /** The constructor for EDDTableFromHttpGet calls this to set httpGetRequiredVariableNames. */
-  private void setHttpGetRequiredVariableNames(String tRequiredVariablesCSV) {
-    if (!String2.isSomething(tRequiredVariablesCSV))
-      throw new RuntimeException(
-          String2.ERROR
-              + " in EDDTableFromHttpGet constructor for datasetID="
-              + datasetID
-              + ": "
-              + HTTP_GET_REQUIRED_VARIABLES
-              + " MUST be in globalAttributes.");
-    httpGetRequiredVariableNames = StringArray.fromCSV(tRequiredVariablesCSV).toStringArray();
-    if (verbose)
-      String2.log(
-          "  "
-              + HTTP_GET_REQUIRED_VARIABLES
-              + "="
-              + String2.toCSSVString(httpGetRequiredVariableNames));
-  }
-
   /**
    * The constructor for EDDTableFromHttpGet calls this after the variables are created to set
    * httpGetRequiredVariableTypes.
@@ -2833,77 +2794,11 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
   }
 
   /**
-   * The constructor for EDDTableFromHttpGet calls this to set httpGetDirectoryStructure variables.
+   * This is called in the constructor after the parameters are assigned to the class fields. It is
+   * intended to handle initializing anything that needs to occur before the rest of the processing
+   * in the constructor.
    */
-  private void setHttpGetDirectoryStructure(String tDirStructure) {
-
-    if (!String2.isSomething(tDirStructure))
-      throw new RuntimeException(
-          String2.ERROR
-              + " in EDDTableFromHttpGet constructor for datasetID="
-              + datasetID
-              + ": "
-              + HTTP_GET_DIRECTORY_STRUCTURE
-              + " MUST be in globalAttributes.");
-    httpGetDirectoryStructureColumnNames = new StringArray();
-    httpGetDirectoryStructureNs = new IntArray();
-    httpGetDirectoryStructureCalendars = new IntArray();
-    EDDTableFromHttpGet.parseHttpGetDirectoryStructure(
-        tDirStructure,
-        httpGetDirectoryStructureColumnNames,
-        httpGetDirectoryStructureNs,
-        httpGetDirectoryStructureCalendars);
-    if (verbose)
-      String2.log(
-          "  httpGetDirectoryStructureColumnNames="
-              + httpGetDirectoryStructureColumnNames.toString()
-              + "\n"
-              + "  httpGetDirectoryStructureNs="
-              + httpGetDirectoryStructureNs.toString()
-              + "\n"
-              + "  httpGetDirectoryStructureCalendars="
-              + httpGetDirectoryStructureCalendars.toString());
-  }
-
-  /**
-   * The constructor for EDDTableFromHttpGet calls this to set HttpGetKeys.
-   *
-   * @param tHttpGetKeys a CSV of author_key values.
-   */
-  private void setHttpGetKeys(String tHttpGetKeys) {
-
-    String msg =
-        String2.ERROR + " in EDDTableFromHttpGet constructor for datasetID=" + datasetID + ": ";
-    String inForm =
-        "Each of the httpGetKeys must be in the form author_key, with only ASCII characters (but no space, ', \", or comma), and where the key is at least 8 characters long.";
-    if (tHttpGetKeys == null
-        || tHttpGetKeys.indexOf('\"') >= 0
-        || // be safe, avoid trickery
-        tHttpGetKeys.indexOf('\'') >= 0) // be safe, avoid trickery
-    throw new RuntimeException(msg + inForm);
-    httpGetKeys = new HashSet();
-    String keyAr[] = StringArray.arrayFromCSV(tHttpGetKeys);
-    for (int i = 0; i < keyAr.length; i++) {
-      if (String2.isSomething(keyAr[i])) {
-        keyAr[i] = keyAr[i].trim();
-        int po = keyAr[i].indexOf('_');
-        if (po <= 0
-            || // can't be 0: so author must be something
-            po >= keyAr[i].length() - 8
-            || // key must be 8+ chars
-            !String2.isAsciiPrintable(keyAr[i])
-            || keyAr[i].indexOf(' ') >= 0
-            || // isAsciiPrintable allows ' ' (be safe, avoid trickery)
-            keyAr[i].indexOf(',') >= 0) { // isAsciiPrintable allows , (be safe, avoid trickery)
-          throw new RuntimeException(msg + inForm + " (key #" + i + ")");
-        } else {
-          httpGetKeys.add(keyAr[i]); // not String2.canonical, because then publicly accessible
-        }
-      }
-    }
-    if (httpGetKeys.size() == 0)
-      throw new RuntimeException(msg + HTTP_GET_KEYS + " MUST be in globalAttributes.");
-  }
+  protected void earlyInitialization() {}
 
   /**
    * This extracts data from the fileName.
@@ -3011,7 +2906,6 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     ftSortedSpacing.set(fileListPo, -1); // default, usually set below
 
     // get min,max for dataVariables
-    int tTableNCols = tTable.nColumns();
     int ndv = sourceDataTypes.length;
     for (int dv = 0; dv < ndv; dv++) {
       fileTable.setStringData(dv0 + dv * 3 + 0, fileListPo, ""); // numeric will be NaN
@@ -3141,7 +3035,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
           String2.log(
               sourceDataNames.get(dv)
                   + " minMin="
-                  + (isCharOrString ? String2.toJson(nMinMax[1], 256) : "" + nMinMax[1])
+                  + (isCharOrString ? String2.toJson(nMinMax[1], 256) : nMinMax[1])
                   + (row < 0
                       ? " (fileTable row not found)"
                       : " file=" + dirList.get(ftDirIndex.get(row)) + ftFileList.get(row)));
@@ -3160,7 +3054,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
           String2.log(
               sourceDataNames.get(dv)
                   + " maxMax="
-                  + (isCharOrString ? String2.toJson(nMinMax[2], 256) : "" + nMinMax[2])
+                  + (isCharOrString ? String2.toJson(nMinMax[2], 256) : nMinMax[2])
                   + (row < 0
                       ? " (fileTable row not found)"
                       : " file=" + dirList.get(ftDirIndex.get(row)) + ftFileList.get(row)));
@@ -3173,6 +3067,212 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     }
     if (verbose) String2.log("minMaxTable=\n" + minMaxTable.dataToString()); // it's always small
     return minMaxTable;
+  }
+
+  // TODO: This is static because EDDTableFromHttpGet doesn't handle fileTable and dirTable
+  // normally.
+  public static void updateFileTableWithStats(
+      Table fileTable,
+      String fullFileName,
+      Table dirTable,
+      int nColumns,
+      boolean[] columnIsFixed,
+      String columnNames[],
+      PAType columnPATypes[],
+      PrimitiveArray columnMvFv[],
+      PrimitiveArray columnValues[],
+      int startRow,
+      int stopRow)
+      throws InterruptedException, TimeoutException {
+
+    if (fileTable == null) {
+      return;
+    }
+
+    String columnMinString[] = new String[nColumns];
+    String columnMaxString[] = new String[nColumns];
+    long columnMinLong[] = new long[nColumns];
+    long columnMaxLong[] = new long[nColumns];
+    BigInteger columnMinULong[] = new BigInteger[nColumns];
+    BigInteger columnMaxULong[] = new BigInteger[nColumns];
+    double columnMinDouble[] = new double[nColumns];
+    double columnMaxDouble[] = new double[nColumns];
+    boolean columnHasNaN[] = new boolean[nColumns];
+
+    boolean columnIsString[] = new boolean[nColumns];
+    boolean columnIsLong[] = new boolean[nColumns];
+    boolean columnIsULong[] = new boolean[nColumns];
+    for (int col = 0; col < nColumns; col++) {
+      columnIsString[col] = columnPATypes[col] == PAType.STRING; // char treated as numeric
+      columnIsLong[col] = columnPATypes[col] == PAType.LONG;
+      columnIsULong[col] = columnPATypes[col] == PAType.ULONG;
+    }
+
+    Arrays.fill(columnMinString, "\uFFFF");
+    Arrays.fill(columnMaxString, "\u0000");
+    Arrays.fill(columnMinLong, Long.MAX_VALUE);
+    Arrays.fill(columnMaxLong, Long.MIN_VALUE);
+    Arrays.fill(columnMinDouble, Double.MAX_VALUE);
+    Arrays.fill(columnMaxDouble, -Double.MAX_VALUE);
+    Arrays.fill(columnHasNaN, false);
+
+    // calculate statistics
+    for (int tRow = startRow; tRow < stopRow; tRow++) {
+      for (int col = 0; col < nColumns; col++) {
+        if (columnIsFixed[col]) {
+          // do nothing
+        } else if (columnIsString[col]) {
+          String s = columnValues[col].getString(tRow);
+          if (s.length() == 0 || (columnMvFv[col] != null && columnMvFv[col].indexOf(s) >= 0))
+            columnHasNaN[col] = true;
+          else {
+            if (s.compareTo(columnMinString[col]) < 0) columnMinString[col] = s;
+            if (s.compareTo(columnMaxString[col]) > 0) columnMaxString[col] = s;
+          }
+        } else if (columnIsLong[col]) {
+          long d = columnValues[col].getLong(tRow);
+          if (d == Long.MAX_VALUE
+              || (columnMvFv[col] != null
+                  && columnMvFv[col].indexOf(columnValues[col].getString(tRow)) >= 0))
+            columnHasNaN[col] = true;
+          else {
+            if (d < columnMinLong[col]) columnMinLong[col] = d;
+            if (d > columnMaxLong[col]) columnMaxLong[col] = d;
+          }
+        } else if (columnIsULong[col]) {
+          BigInteger d = columnValues[col].getULong(tRow);
+          if (d.equals(Math2.ULONG_MAX_VALUE)
+              || (columnMvFv[col] != null
+                  && columnMvFv[col].indexOf(columnValues[col].getString(tRow)) >= 0))
+            columnHasNaN[col] = true;
+          else {
+            if (d.compareTo(columnMinULong[col]) < 0) columnMinULong[col] = d;
+            if (d.compareTo(columnMaxULong[col]) > 0) columnMaxULong[col] = d;
+          }
+        } else {
+          double d = columnValues[col].getDouble(tRow);
+          if (Double.isNaN(d)
+              || (columnMvFv[col] != null
+                  && columnMvFv[col].indexOf(columnValues[col].getString(tRow)) >= 0))
+            columnHasNaN[col] = true;
+          else {
+            if (d < columnMinDouble[col]) columnMinDouble[col] = d;
+            if (d > columnMaxDouble[col]) columnMaxDouble[col] = d;
+          }
+        }
+      }
+    }
+
+    ReentrantLock lock2 = String2.canonicalLock(fileTable);
+
+    if (!lock2.tryLock(String2.longTimeoutSeconds, TimeUnit.SECONDS))
+      throw new TimeoutException("Timeout waiting for lock on fileTable in EDDTableFromHttpGet.");
+    try {
+      String fileDir = File2.getDirectory(fullFileName);
+      String fileName = File2.getNameAndExtension(fullFileName);
+
+      // which row in dirTable?
+      int dirTableRow = dirTable.getColumn(0).indexOf(fileDir);
+      if (dirTableRow < 0) {
+        dirTableRow = dirTable.getColumn(0).size();
+        dirTable.getColumn(0).addString(fileDir);
+      }
+
+      // which row in the fileTable?
+      int fileTableRow = 0;
+      ShortArray fileTableDirPA = (ShortArray) fileTable.getColumn(FT_DIR_INDEX_COL);
+      StringArray fileTableNamePA = (StringArray) fileTable.getColumn(FT_FILE_LIST_COL);
+      int fileTableNRows = fileTable.nRows();
+      while (fileTableRow < fileTableNRows
+          && (fileTableDirPA.get(fileTableRow) != dirTableRow
+              || !fileTableNamePA.get(fileTableRow).equals(fileName))) {
+        fileTableRow++;
+      }
+
+      if (fileTableRow == fileTableNRows) {
+        // add row to fileTable
+        fileTableDirPA.addInt(dirTableRow);
+        fileTableNamePA.add(fileName);
+        fileTable.getColumn(FT_LAST_MOD_COL).addLong(0); // will be updated below
+        fileTable.getColumn(FT_SIZE_COL).addLong(0); // will be updated below
+        fileTable.getColumn(FT_SORTED_SPACING_COL).addDouble(1); // irrelevant
+        for (int col = 0; col < nColumns; col++) {
+          int baseFTC =
+              dv0 + col * 3; // first of 3 File Table Columns (min, max, hasNaN) for this col
+          if (columnIsFixed[col]) {
+            fileTable.getColumn(baseFTC).addString(columnNames[col].substring(1)); // ???
+            fileTable.getColumn(baseFTC + 1).addString(columnNames[col].substring(1));
+          } else if (columnIsString[col]) {
+            fileTable.getColumn(baseFTC).addString(columnMinString[col]);
+            fileTable.getColumn(baseFTC + 1).addString(columnMaxString[col]);
+          } else if (columnIsLong[col]) {
+            fileTable.getColumn(baseFTC).addLong(columnMinLong[col]);
+            fileTable.getColumn(baseFTC + 1).addLong(columnMaxLong[col]);
+          } else {
+            fileTable.getColumn(baseFTC).addDouble(columnMinDouble[col]);
+            fileTable.getColumn(baseFTC + 1).addDouble(columnMaxDouble[col]);
+          }
+          fileTable.getColumn(baseFTC + 2).addInt(columnHasNaN[col] ? 1 : 0);
+        }
+
+      } else {
+        // adjust current row:
+        // dir unchanged
+        // name unchanged
+        // lastMod will be updated below
+        // size be updated below
+        // spacing unchanged/irrelevant
+        for (int col = 0; col < nColumns; col++) {
+          int baseFTC =
+              dv0 + col * 3; // first of 3 File Table Columns (min, max, hasNaN) for this col
+          PrimitiveArray minColPA = fileTable.getColumn(baseFTC);
+          PrimitiveArray maxColPA = fileTable.getColumn(baseFTC + 1);
+          if (columnIsFixed[col]) {
+            // already has fixed value
+          } else if (columnIsString[col]) {
+            String tt = columnMinString[col];
+            if (!tt.equals("\uFFFF")) { // has data
+              if (tt.compareTo(minColPA.getString(fileTableRow)) < 0)
+                minColPA.setString(fileTableRow, tt);
+              tt = columnMaxString[col];
+              if (tt.compareTo(maxColPA.getString(fileTableRow)) > 0)
+                maxColPA.setString(fileTableRow, tt);
+            }
+          } else if (columnIsLong[col]) {
+            long tt = columnMinLong[col];
+            if (tt != Long.MAX_VALUE) { // has data
+              if (tt < minColPA.getLong(fileTableRow)) minColPA.setLong(fileTableRow, tt);
+              if (tt > maxColPA.getLong(fileTableRow)) maxColPA.setLong(fileTableRow, tt);
+            }
+          } else {
+            double tt = columnMinDouble[col];
+            if (!Double.isNaN(tt)) { // has data
+              if (tt < minColPA.getDouble(fileTableRow)) minColPA.setDouble(fileTableRow, tt);
+              if (tt > maxColPA.getDouble(fileTableRow)) maxColPA.setDouble(fileTableRow, tt);
+            }
+          }
+          if (columnHasNaN[col]) fileTable.getColumn(baseFTC + 2).setInt(fileTableRow, 1);
+        }
+      }
+
+      // update file's lastMod and size
+      long tLastMod = -1;
+      long tLength = -1;
+      try {
+        File file = new File(fullFileName);
+        tLastMod = file.lastModified();
+        tLength = file.length();
+      } catch (Exception e) {
+        String2.log(
+            String2.ERROR
+                + " in EDDTableFromHttpGet while getting lastModified and length of "
+                + fullFileName);
+      }
+      fileTable.getColumn(FT_LAST_MOD_COL).setLong(fileTableRow, tLastMod);
+      fileTable.getColumn(FT_SIZE_COL).setLong(fileTableRow, tLength);
+    } finally {
+      lock2.unlock();
+    }
   }
 
   @Override
@@ -3216,20 +3316,22 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
     // If too many events, call for reload.
     // This method isn't as nearly as efficient as full reload.
-    if (nEvents > EDStatic.updateMaxEvents) {
+    if (nEvents > EDStatic.config.updateMaxEvents) {
       if (reallyVerbose)
         String2.log(
             msg
                 + nEvents
                 + ">"
-                + EDStatic.updateMaxEvents
+                + EDStatic.config.updateMaxEvents
                 + " file events, so I called requestReloadASAP() instead of making changes here.");
       requestReloadASAP();
       return false;
     }
+    Map<String, String> snapshot = snapshot();
 
     // get BadFile and FileTable info and make local copies
-    ConcurrentHashMap badFileMap = readBadFileMap(); // already a copy of what's in file
+    ConcurrentHashMap<String, Object[]> badFileMap =
+        readBadFileMap(); // already a copy of what's in file
     Table tDirTable = getDirTableCopy(); // not null, throws Throwable
     Table tFileTable = getFileTableCopy(); // not null, throws Throwable
     if (debugMode)
@@ -3246,15 +3348,13 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     StringArray dirList = (StringArray) tDirTable.getColumn(0);
     ShortArray ftDirIndex = (ShortArray) tFileTable.getColumn(FT_DIR_INDEX_COL); // 0
     StringArray ftFileList = (StringArray) tFileTable.getColumn(FT_FILE_LIST_COL); // 1
-    LongArray ftLastMod = (LongArray) tFileTable.getColumn(FT_LAST_MOD_COL); // 2
-    LongArray ftSize = (LongArray) tFileTable.getColumn(FT_SIZE_COL); // 3
-    DoubleArray ftSortedSpacing = (DoubleArray) tFileTable.getColumn(FT_SORTED_SPACING_COL); // 4
 
     // for each changed file
     int nChanges = 0; // BadFiles or FileTable
     for (int evi = 0; evi < nEvents; evi++) {
       if (Thread.currentThread().isInterrupted())
-        throw new SimpleException("EDDTableFromFiles.lowUpdate" + EDStatic.caughtInterruptedAr[0]);
+        throw new SimpleException(
+            "EDDTableFromFiles.lowUpdate" + EDStatic.messages.get(Message.CAUGHT_INTERRUPTED, 0));
 
       String fullName = contexts.get(evi);
       String dirName = File2.getDirectory(fullName);
@@ -3455,14 +3555,9 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       }
 
       // after changes all in place
-      // Currently, update() doesn't trigger these changes.
-      // The problem is that some datasets might update every second, others every
-      // day.
-      // Even if they are done, perhaps do them in ERDDAP ((low)update return
-      // changes?)
-      // ?update rss?
-      // ?subscription and onchange actions?
-
+      if (EDStatic.config.updateSubsRssOnFileChanges) {
+        Erddap.tryToDoActions(datasetID(), this, "", changed(snapshot));
+      }
     }
 
     if (verbose)
@@ -3501,39 +3596,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
    */
   @Override
   public boolean lowUpdate(int language, String msg, long startUpdateMillis) throws Throwable {
-
-    if (EDStatic.useSharedWatchService) {
-      SharedWatchService.processEvents();
-      return false;
-    }
-
-    // Most of this lowUpdate code is identical in EDDGridFromFiles and
-    // EDDTableFromFiles
-    if (watchDirectory == null) return false; // no changes
-
-    // get the file events
-    ArrayList<WatchEvent.Kind> eventKinds = new ArrayList();
-    StringArray contexts = new StringArray();
-    int nEvents = watchDirectory.getEvents(eventKinds, contexts);
-    if (nEvents == 0) {
-      if (reallyVerbose) String2.log(msg + "found 0 events.");
-      return false; // no changes
-    }
-
-    // if any OVERFLOW, reload this dataset
-    for (int evi = 0; evi < nEvents; evi++) {
-      if (eventKinds.get(evi) == WatchDirectory.OVERFLOW) {
-        if (reallyVerbose)
-          String2.log(
-              msg
-                  + "caught OVERFLOW event in "
-                  + contexts.get(evi)
-                  + ", so I called requestReloadASAP() instead of making changes here.");
-        requestReloadASAP();
-        return false;
-      }
-    }
-    return handleEventContexts(contexts, msg);
+    SharedWatchService.processEvents();
+    return false;
   }
 
   /**
@@ -3544,6 +3608,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
    */
   protected void updateDestinationMinMax(Table tMinMaxTable) {
     int ndv = sourceDataTypes.length;
+    int language = EDMessages.DEFAULT_LANGUAGE;
     for (int dv = 0; dv < ndv; dv++) {
       PrimitiveArray minMaxPa = tMinMaxTable.getColumn(dv);
       EDV edv = dataVariables[dv];
@@ -3551,31 +3616,32 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       continue;
 
       if (minMaxPa instanceof StringArray) {
-        if (edv instanceof EDVTimeStamp) {
-          EDVTimeStamp edvts = (EDVTimeStamp) edv;
+        if (edv instanceof EDVTimeStamp edvts) {
           edvts.setDestinationMinMax(
               PAOne.fromDouble(edvts.sourceTimeToEpochSeconds(minMaxPa.getString(0))),
               PAOne.fromDouble(edvts.sourceTimeToEpochSeconds(minMaxPa.getString(1))));
-          edvts.setActualRangeFromDestinationMinMax();
+          edvts.setActualRangeFromDestinationMinMax(language);
         }
       } else { // minMaxPa is numeric
         edv.setDestinationMinMaxFromSource(minMaxPa.getPAOne(0), minMaxPa.getPAOne(1));
-        edv.setActualRangeFromDestinationMinMax();
+        edv.setActualRangeFromDestinationMinMax(language);
       }
 
       if (dv == lonIndex) {
-        combinedGlobalAttributes().set("geospatial_lon_min", edv.destinationMinDouble());
-        combinedGlobalAttributes().set("geospatial_lon_max", edv.destinationMaxDouble());
+        combinedGlobalAttributes().set(language, "geospatial_lon_min", edv.destinationMinDouble());
+        combinedGlobalAttributes().set(language, "geospatial_lon_max", edv.destinationMaxDouble());
       } else if (dv == latIndex) {
-        combinedGlobalAttributes().set("geospatial_lat_min", edv.destinationMinDouble());
-        combinedGlobalAttributes().set("geospatial_lat_max", edv.destinationMaxDouble());
+        combinedGlobalAttributes().set(language, "geospatial_lat_min", edv.destinationMinDouble());
+        combinedGlobalAttributes().set(language, "geospatial_lat_max", edv.destinationMaxDouble());
       } else if (dv == altIndex || dv == depthIndex) {
         // this works with alt and depth because positive=up|down deals with meaning
-        combinedGlobalAttributes().set("geospatial_vertical_min", edv.destinationMinDouble());
-        combinedGlobalAttributes().set("geospatial_vertical_max", edv.destinationMaxDouble());
+        combinedGlobalAttributes()
+            .set(language, "geospatial_vertical_min", edv.destinationMinDouble());
+        combinedGlobalAttributes()
+            .set(language, "geospatial_vertical_max", edv.destinationMaxDouble());
       } else if (dv == timeIndex) {
-        combinedGlobalAttributes().set("time_coverage_start", edv.destinationMinString());
-        combinedGlobalAttributes().set("time_coverage_end", edv.destinationMaxString());
+        combinedGlobalAttributes().set(language, "time_coverage_start", edv.destinationMinString());
+        combinedGlobalAttributes().set(language, "time_coverage_end", edv.destinationMaxString());
       }
     }
   }
@@ -3818,6 +3884,26 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     return super.changed(old) + filesChanged;
   }
 
+  @Override
+  public Table getFilesUrlList(HttpServletRequest request, String loggedInAs, int language)
+      throws Throwable {
+    Table table = getFileInfo(fileDir, fileNameRegex, recursive, pathRegex);
+    for (int i = 0; i < table.nRows(); i++) {
+      String dir = table.getStringData(0, i).replace(fileDir, "").replace("\\", "/");
+      String id = dir + table.getStringData(1, i);
+      String url =
+          EDStatic.erddapUrl(request, loggedInAs, language)
+              + "/files/"
+              + datasetID()
+              + "/"
+              + dir
+              + table.getStringData(1, i);
+      table.setStringData(0, i, id);
+      table.setStringData(1, i, url);
+    }
+    return table;
+  }
+
   /**
    * This is the default implementation of getFileInfo, which gets file info from a locally
    * accessible directory. This is called in the middle of the constructor. Some subclasses
@@ -3950,8 +4036,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       StringArray sourceNames,
       StringArray sourceTypes,
       SourceDataInfo sourceInfo,
-      HashSet<String> needOtherSourceNames,
-      HashSet<String> sourceNamesSet) {
+      Set<String> needOtherSourceNames,
+      Set<String> sourceNamesSet) {
     // grab any "global:..." and "variable:..." sourceDataNames
     int nSourceDataNames = sourceDataNames.size();
     for (int i = 0; i < nSourceDataNames; i++) {
@@ -4322,7 +4408,7 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
    *
    * @param language the index of the selected language
    * @param loggedInAs the user's login name if logged in (or null if not logged in).
-   * @param requestUrl the part of the user's request, after EDStatic.baseUrl, before '?'.
+   * @param requestUrl the part of the user's request, after EDStatic.config.baseUrl, before '?'.
    * @param userDapQuery the part of the user's request after the '?', still percentEncoded, may be
    *     null.
    * @param tableWriter
@@ -4358,7 +4444,6 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
                   conVars.toArray(),
                   conOps.toArray(),
                   conValues.toArray()));
-    boolean isFromHttpGet = "EDDTableFromHttpGet".equals(className);
 
     // get a local reference to dirTable and fileTable
     Table tDirTable = getDirTable();
@@ -4367,7 +4452,6 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     ShortArray ftDirIndex = (ShortArray) tFileTable.getColumn(0);
     StringArray ftFileList = (StringArray) tFileTable.getColumn(1);
     LongArray ftLastMod = (LongArray) tFileTable.getColumn(2);
-    LongArray ftSize = (LongArray) tFileTable.getColumn(3);
     DoubleArray ftSortedSpacing = (DoubleArray) tFileTable.getColumn(4);
 
     // no need to further prune constraints.
@@ -4916,14 +5000,9 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
         // Read all data from file within minSorted to maxSorted.
         // This throws Throwable if trouble. I think that's appropriate.
-        Table table;
         int tDirIndex = ftDirIndex.get(f);
         String tDir = dirList.get(tDirIndex);
         String tName = ftFileList.get(f);
-        String tExtractValue =
-            extractedColNameIndex >= 0
-                ? tFileTable.getStringData(dv0 + extractedColNameIndex * 3 + 0, f)
-                : null;
 
         if (reallyVerbose) String2.log("#" + f + " get data from " + tDir + tName);
 
@@ -4993,8 +5072,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
         throw t;
         // throw t instanceof WaitThenTryAgainException? t :
         // new WaitThenTryAgainException(
-        // EDStatic.simpleBilingual(language, EDStatic.waitThenTryAgainAr) +
-        // "\n(" + EDStatic.errorFromDataSource + tToString + ")", t);
+        // EDStatic.simpleBilingual(language, Message.WAIT_THEN_TRY_AGAIN) +
+        // "\n(" + EDStatic.messages.errorFromDataSource + tToString + ")", t);
       }
 
     } finally {
@@ -5027,21 +5106,21 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       long total = Math.max(1, nNotRead + nReadHaveMatch + nReadNoMatch);
       String2.log(
           "     notRead="
-              + String2.right("" + (nNotRead * 100 / total), 3)
+              + String2.right("" + (nNotRead * 100L / total), 3)
               + "%    readHaveMatch="
-              + String2.right("" + (nReadHaveMatch * 100 / total), 3)
+              + String2.right("" + (nReadHaveMatch * 100L / total), 3)
               + "%    readNoMatch="
-              + String2.right("" + (nReadNoMatch * 100 / total), 3)
+              + String2.right("" + (nReadNoMatch * 100L / total), 3)
               + "%    total="
               + total);
       long cumTotal = Math.max(1, cumNNotRead + cumNReadHaveMatch + cumNReadNoMatch);
       String2.log(
           "  cumNotRead="
-              + String2.right("" + (cumNNotRead * 100 / cumTotal), 3)
+              + String2.right("" + (cumNNotRead * 100L / cumTotal), 3)
               + "% cumReadHaveMatch="
-              + String2.right("" + (cumNReadHaveMatch * 100 / cumTotal), 3)
+              + String2.right("" + (cumNReadHaveMatch * 100L / cumTotal), 3)
               + "% cumReadNoMatch="
-              + String2.right("" + (cumNReadNoMatch * 100 / cumTotal), 3)
+              + String2.right("" + (cumNReadNoMatch * 100L / cumTotal), 3)
               + "% cumTotal="
               + cumTotal
               + "  "
@@ -5056,19 +5135,19 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     private int nReadHaveMatch = 0;
     private int nReadNoMatch = 0;
 
-    public void incrementMatch() {
+    private void incrementMatch() {
       nReadHaveMatch++;
     }
 
-    public void incrementNoMatch() {
+    private void incrementNoMatch() {
       nReadNoMatch++;
     }
 
-    public int getMatch() {
+    private int getMatch() {
       return nReadHaveMatch;
     }
 
-    public int getNoMatch() {
+    private int getNoMatch() {
       return nReadNoMatch;
     }
   }
@@ -5105,13 +5184,13 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
     // deal with special tests when hasNaN (where hasNaN=1 makes a difference)
     if (hasNaN == 1) {
-      if (conValue.equals("")
+      if (conValue.isEmpty()
           && // ""="" returns true
           (conOp.equals(PrimitiveArray.REGEX_OP)
               || conOp.equals("=")
               || conOp.equals(">=")
               || conOp.equals("<="))) return true;
-      else if (conOp.equals("<")) return !conValue.equals(""); // ""<"a" returns true
+      else if (conOp.equals("<")) return !conValue.isEmpty(); // ""<"a" returns true
       // ""<"" returns false
     }
 
@@ -5122,20 +5201,28 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
     int maxC = max.compareTo(conValue);
 
     // 0"!=", 1REGEX_OP, 2"<=", 3">=", 4"=", 5"<", 6">"};
-    if (conOp.equals("!=")) {
-      if (min.equals(max) && min.equals(conValue)) return false;
-    } else if (conOp.equals(PrimitiveArray.REGEX_OP)) {
-      if (min.equals(max) && !min.matches(conValue)) return false;
-    } else if (conOp.equals("<=")) {
-      return minC <= 0;
-    } else if (conOp.equals(">=")) {
-      return maxC >= 0;
-    } else if (conOp.equals("=")) {
-      return minC <= 0 && maxC >= 0;
-    } else if (conOp.equals("<")) {
-      return minC < 0;
-    } else if (conOp.equals(">")) {
-      return maxC > 0;
+    switch (conOp) {
+      case "!=" -> {
+        if (min.equals(max) && min.equals(conValue)) return false;
+      }
+      case PrimitiveArray.REGEX_OP -> {
+        if (min.equals(max) && !min.matches(conValue)) return false;
+      }
+      case "<=" -> {
+        return minC <= 0;
+      }
+      case ">=" -> {
+        return maxC >= 0;
+      }
+      case "=" -> {
+        return minC <= 0 && maxC >= 0;
+      }
+      case "<" -> {
+        return minC < 0;
+      }
+      case ">" -> {
+        return maxC > 0;
+      }
     }
 
     return true;
@@ -5172,8 +5259,8 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
 
     // file has just NaN
     if (Double.isNaN(min) && Double.isNaN(max)) { // and we know conValue isn't NaN
-      if (conOp.equals("!=")) return true; // always: NaN != 5
-      else return false; // never: NaN = 5 and other ops, too
+      // never: NaN = 5 and other ops, too
+      return conOp.equals("!="); // always: NaN != 5
     }
 
     // 0"!=", 1REGEX_OP, 2"<=", 3">=", 4"=", 5"<", 6">"};
@@ -5190,19 +5277,26 @@ public abstract class EDDTableFromFiles extends EDDTable implements WatchUpdateH
       min = Math.floor(min);
       max = Math.ceil(max);
     }
-    if (conOp.equals("!=")) {
-      if (min == max && min == conValue) return false; // be strict to reject
-      // PrimitiveArray.REGEX_OP is handled by String isOK
-    } else if (conOp.equals("<=")) {
-      return Math2.lessThanAE(p, min, conValue);
-    } else if (conOp.equals(">=")) {
-      return Math2.greaterThanAE(p, max, conValue);
-    } else if (conOp.equals("=")) {
-      return Math2.lessThanAE(p, min, conValue) && Math2.greaterThanAE(p, max, conValue);
-    } else if (conOp.equals("<")) {
-      return min < conValue;
-    } else if (conOp.equals(">")) {
-      return max > conValue;
+    switch (conOp) {
+      case "!=" -> {
+        if (min == max && min == conValue) return false; // be strict to reject
+        // PrimitiveArray.REGEX_OP is handled by String isOK
+      }
+      case "<=" -> {
+        return Math2.lessThanAE(p, min, conValue);
+      }
+      case ">=" -> {
+        return Math2.greaterThanAE(p, max, conValue);
+      }
+      case "=" -> {
+        return Math2.lessThanAE(p, min, conValue) && Math2.greaterThanAE(p, max, conValue);
+      }
+      case "<" -> {
+        return min < conValue;
+      }
+      case ">" -> {
+        return max > conValue;
+      }
     }
 
     return true;

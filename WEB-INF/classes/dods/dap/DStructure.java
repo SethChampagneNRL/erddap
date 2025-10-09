@@ -11,9 +11,14 @@
 
 package dods.dap;
 
-import java.io.*;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A <code>DStructure</code> in DODS can hold <em>N</em> instances of any of the other datatypes,
@@ -29,7 +34,7 @@ public class DStructure extends DConstructor implements ClientIO {
    * The variables in this <code>DStructure</code>, stored in a <code>Vector</code> of <code>
    * BaseType</code> objects.
    */
-  protected Vector vars;
+  protected List<BaseType> vars;
 
   /** Constructs a new <code>DStructure</code>. */
   public DStructure() {
@@ -43,7 +48,7 @@ public class DStructure extends DConstructor implements ClientIO {
    */
   public DStructure(String n) {
     super(n);
-    vars = new Vector();
+    vars = new ArrayList<>();
   }
 
   /**
@@ -53,12 +58,12 @@ public class DStructure extends DConstructor implements ClientIO {
    * @return a clone of this <code>DSequence</code>.
    */
   @Override
-  public Object clone() {
+  public DStructure clone() {
     DStructure s = (DStructure) super.clone();
-    s.vars = new Vector();
+    s.vars = new ArrayList<>();
     for (int i = 0; i < vars.size(); i++) {
-      BaseType bt = (BaseType) vars.elementAt(i);
-      s.vars.addElement(bt.clone());
+      BaseType bt = vars.get(i);
+      s.vars.add(bt.clone());
     }
     return s;
   }
@@ -87,8 +92,7 @@ public class DStructure extends DConstructor implements ClientIO {
     if (!leaves) return vars.size();
     else {
       int count = 0;
-      for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
-        BaseType bt = (BaseType) e.nextElement();
+      for (BaseType bt : vars) {
         count += bt.elementCount(leaves);
       }
       return count;
@@ -104,7 +108,7 @@ public class DStructure extends DConstructor implements ClientIO {
   @Override
   public void addVariable(BaseType v, int part) {
     v.setParent(this);
-    vars.addElement(v);
+    vars.add(v);
   }
 
   /**
@@ -122,13 +126,11 @@ public class DStructure extends DConstructor implements ClientIO {
       String field = name.substring(dotIndex + 1);
 
       BaseType aggRef = getVariable(aggregate);
-      if (aggRef instanceof DConstructor)
-        return ((DConstructor) aggRef).getVariable(field); // recurse
+      if (aggRef instanceof DConstructor dcon) return dcon.getVariable(field); // recurse
       else
         ; // fall through to throw statement
     } else {
-      for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
-        BaseType v = (BaseType) e.nextElement();
+      for (BaseType v : vars) {
         if (v.getName().equals(name)) return v;
       }
     }
@@ -146,7 +148,7 @@ public class DStructure extends DConstructor implements ClientIO {
   @Override
   public BaseType getVar(int index) throws NoSuchVariableException {
 
-    if (index < vars.size()) return ((BaseType) vars.elementAt(index));
+    if (index < vars.size()) return vars.get(index);
     else throw new NoSuchVariableException("DStructure.getVariable(" + index + " - 1)");
   }
 
@@ -158,8 +160,8 @@ public class DStructure extends DConstructor implements ClientIO {
    * @return An Enumeration
    */
   @Override
-  public Enumeration getVariables() {
-    return vars.elements();
+  public Iterator<BaseType> getVariables() {
+    return vars.iterator();
   }
 
   /**
@@ -178,8 +180,7 @@ public class DStructure extends DConstructor implements ClientIO {
     Util.uniqueNames(vars, getName(), getTypeName());
 
     if (all) {
-      for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
-        BaseType bt = (BaseType) e.nextElement();
+      for (BaseType bt : vars) {
         bt.checkSemantics(true);
       }
     }
@@ -207,8 +208,7 @@ public class DStructure extends DConstructor implements ClientIO {
     // this implementation.
 
     os.println(space + getTypeName() + " {");
-    for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
-      BaseType bt = (BaseType) e.nextElement();
+    for (BaseType bt : vars) {
       bt.printDecl(os, space + "    ", true, constrained);
     }
     os.print(space + "} " + getName());
@@ -235,10 +235,10 @@ public class DStructure extends DConstructor implements ClientIO {
     }
 
     os.print("{ ");
-    for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
-      BaseType bt = (BaseType) e.nextElement();
+    for (Iterator<BaseType> e = vars.iterator(); e.hasNext(); ) {
+      BaseType bt = e.next();
       bt.printVal(os, "", false);
-      if (e.hasMoreElements()) os.print(", ");
+      if (e.hasNext()) os.print(", ");
     }
     os.print(" }");
 
@@ -261,10 +261,10 @@ public class DStructure extends DConstructor implements ClientIO {
   @Override
   public synchronized void deserialize(DataInputStream source, ServerVersion sv, StatusUI statusUI)
       throws IOException, EOFException, DataReadException {
-    for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
+    for (BaseType v : vars) {
       if (statusUI != null && statusUI.userCancelled())
         throw new DataReadException("User cancelled");
-      ClientIO bt = (ClientIO) e.nextElement();
+      ClientIO bt = (ClientIO) v;
       bt.deserialize(source, sv, statusUI);
     }
   }
@@ -278,8 +278,8 @@ public class DStructure extends DConstructor implements ClientIO {
    */
   @Override
   public void externalize(DataOutputStream sink) throws IOException {
-    for (Enumeration e = vars.elements(); e.hasMoreElements(); ) {
-      ClientIO bt = (ClientIO) e.nextElement();
+    for (BaseType v : vars) {
+      ClientIO bt = (ClientIO) v;
       bt.externalize(sink);
     }
   }

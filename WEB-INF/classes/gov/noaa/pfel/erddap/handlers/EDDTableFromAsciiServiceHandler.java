@@ -7,7 +7,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDTableFromAsciiServiceHandler extends BaseTableHandler {
-  private String datasetType;
+  private final String datasetType;
 
   public EDDTableFromAsciiServiceHandler(
       SaxHandler saxHandler, String datasetID, State completeState, String datasetType) {
@@ -16,7 +16,7 @@ public class EDDTableFromAsciiServiceHandler extends BaseTableHandler {
   }
 
   private String tLocalSourceUrl = null;
-  private String tBeforeData[] = new String[11];
+  private final String[] tBeforeData = new String[11];
   private String tAfterData = null;
   private String tNoData = null;
 
@@ -27,10 +27,10 @@ public class EDDTableFromAsciiServiceHandler extends BaseTableHandler {
     handleDataVariables(localName);
   }
 
-  private EDD getDataset(Object[][] ttDataVariables) throws Throwable {
+  private EDD getDataset() throws Throwable {
     EDD dataset;
 
-    if (datasetType.equals("\"EDDTableFromAsciiServiceNOS\"")) {
+    if (datasetType.equals("EDDTableFromAsciiServiceNOS")) {
       dataset =
           new EDDTableFromAsciiServiceNOS(
               datasetID,
@@ -44,7 +44,7 @@ public class EDDTableFromAsciiServiceHandler extends BaseTableHandler {
               tDefaultGraphQuery,
               tAddVariablesWhere,
               tGlobalAttributes,
-              ttDataVariables,
+              tDataVariables,
               tReloadEveryNMinutes,
               tLocalSourceUrl,
               tBeforeData,
@@ -76,8 +76,7 @@ public class EDDTableFromAsciiServiceHandler extends BaseTableHandler {
               "beforeData8",
               "beforeData9",
               "beforeData10" ->
-          tBeforeData[String2.parseInt(localName.substring(10, localName.length() - 1))] =
-              contentStr;
+          tBeforeData[String2.parseInt(localName.substring(10, localName.length()))] = contentStr;
       case "afterData" -> tAfterData = contentStr;
       case "noData" -> tNoData = contentStr;
       default -> {
@@ -89,7 +88,6 @@ public class EDDTableFromAsciiServiceHandler extends BaseTableHandler {
 
   @Override
   protected EDD buildDataset() throws Throwable {
-    Object[][] ttDataVariables = convertDataVariablesToArray();
-    return getDataset(ttDataVariables);
+    return getDataset();
   }
 }

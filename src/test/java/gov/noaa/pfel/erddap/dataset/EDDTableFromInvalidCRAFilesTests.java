@@ -1,13 +1,11 @@
 package gov.noaa.pfel.erddap.dataset;
 
-import com.cohort.util.Calendar2;
 import com.cohort.util.File2;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
-import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.erddap.GenerateDatasetsXml;
+import gov.noaa.pfel.erddap.util.EDMessages;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.EDV;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeAll;
 import tags.TagSlowTests;
@@ -29,12 +27,8 @@ class EDDTableFromInvalidCRAFilesTests {
     // *****************\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    String today = Calendar2.getCurrentISODateTimeStringZulu().substring(0, 10);
-    Table table;
-    String testCacheDir = EDStatic.fullTestCacheDirectory;
+    String tName, results, expected, userDapQuery;
+    String testCacheDir = EDStatic.config.fullTestCacheDirectory;
 
     String id = "testInvalidCRAFiles";
     EDDTableFromInvalidCRAFiles.deleteCachedDatasetInfo(id);
@@ -621,6 +615,7 @@ class EDDTableFromInvalidCRAFilesTests {
   void testGenerateDatasetsXml() throws Throwable {
     // testVerboseOn();
     // debugMode = true;
+    int language = EDMessages.DEFAULT_LANGUAGE;
 
     // public static String generateDatasetsXml(
     // String tFileDir, String tFileNameRegex, String sampleFileName,
@@ -1348,7 +1343,7 @@ class EDDTableFromInvalidCRAFilesTests {
     EDD.deleteCachedDatasetInfo(tDatasetID);
     EDD edd = EDDTableFromInvalidCRAFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), tDatasetID, "");
-    Test.ensureEqual(edd.title(), "World Ocean Database, Multi-cast file", "");
+    Test.ensureEqual(edd.title(language), "World Ocean Database, Multi-cast file", "");
     Test.ensureEqual(
         String2.toCSSVString(edd.dataVariableDestinationNames()),
         "country, WOD_cruise_identifier, originators_cruise_identifier, wod_unique_cast, latitude, longitude, time, date, GMT_time, Access_no, Platform, Institute, Orig_Stat_Num, dataset, real_time, Ocean_Vehicle, Temperature_WODprofileflag, Temperature_Instrument, Salinity_WODprofileflag, Salinity_Instrument, Oxygen_WODprofileflag, Oxygen_Original_units, Primary_Investigator, Primary_Investigator_VAR, depth, z_WODflag, z_sigfigs, Temperature, Temperature_sigfigs, Temperature_WODflag, Salinity, Salinity_sigfigs, Salinity_WODflag, Pressure, Pressure_sigfigs, Oxygen, Oxygen_sigfigs, Oxygen_WODflag",

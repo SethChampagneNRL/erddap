@@ -18,6 +18,9 @@ import com.cohort.util.String2;
 import com.cohort.util.Test;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.erddap.dataset.EDD;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
+import gov.noaa.pfel.erddap.util.EDMessages;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
 
 /**
@@ -67,7 +70,7 @@ public class EDVGridAxis extends EDV {
       String tSourceName,
       String tDestinationName,
       Attributes tSourceAttributes,
-      Attributes tAddAttributes,
+      LocalizedAttributes tAddAttributes,
       PrimitiveArray tSourceValues)
       throws Throwable {
 
@@ -81,9 +84,12 @@ public class EDVGridAxis extends EDV {
         new PAOne(tSourceValues, 0).min(new PAOne(tSourceValues, tSourceValues.size() - 1)),
         new PAOne(tSourceValues, 0).max(new PAOne(tSourceValues, tSourceValues.size() - 1)));
 
+    // The attributes this gets/sets should not need to be localized (max/min
+    // value for example). Just use the default language.
+    int language = EDMessages.DEFAULT_LANGUAGE;
     parentDatasetID = tParentDatasetID;
     sourceValues = tSourceValues; // but continue to work with stable tSourceValues
-    setActualRangeFromDestinationMinMax();
+    setActualRangeFromDestinationMinMax(language);
 
     // test if ascending
     // Note that e.g., altitude might be flipped, so destination might be descending. That's ok.
@@ -102,8 +108,7 @@ public class EDVGridAxis extends EDV {
     // test for ties (after isAscending and isDescending)
     StringBuilder sb = new StringBuilder();
     if (tSourceValues.removeDuplicates(false, sb) > 0)
-      throw new RuntimeException(
-          "AxisVariable=" + destinationName + " has tied values:\n" + sb.toString());
+      throw new RuntimeException("AxisVariable=" + destinationName + " has tied values:\n" + sb);
 
     // test if evenly spaced
     resetIsEvenlySpaced();
@@ -145,7 +150,7 @@ public class EDVGridAxis extends EDV {
    * This is now defined in CF-1.7, with unpacked values, smallest and largest.
    */
   @Override
-  public void setActualRangeFromDestinationMinMax() {
+  public void setActualRangeFromDestinationMinMax(int language) {
 
     // actual_range is useful information for .das and will be replaced by actual_range of data
     // subset.
@@ -156,7 +161,7 @@ public class EDVGridAxis extends EDV {
     PrimitiveArray pa = PrimitiveArray.factory(destinationDataPAType(), 2, false);
     pa.addDouble(Math.min(firstDestinationValue(), lastDestinationValue()));
     pa.addDouble(Math.max(firstDestinationValue(), lastDestinationValue()));
-    combinedAttributes.set("actual_range", pa);
+    combinedAttributes.set(language, "actual_range", pa);
   }
 
   /**
@@ -206,17 +211,6 @@ public class EDVGridAxis extends EDV {
   }
 
   /**
-   * This is used by the EDVGridAxis constructor to determine if this EDVGridAxis is valid.
-   *
-   * @throws Throwable if this EDVGridAxis is not valid
-   */
-  public void ensureValid() throws Throwable {
-    String errorInMethod =
-        "datasets.xml/EDVGridAxis.ensureValid error for sourceName=" + sourceName + ":\n";
-    ensureValid(errorInMethod);
-  }
-
-  /**
    * This returns the PrimitiveArray with the values for this axis as stored in the source. Don't
    * change these values.
    */
@@ -239,7 +233,7 @@ public class EDVGridAxis extends EDV {
               new String[] {destinationName},
               varsRead);
       if (varsRead.size() != 1 || !varsRead.get(0).equals(destinationName))
-        throw new RuntimeException(String2.ERROR + ": unexpected varsRead=" + varsRead.toString());
+        throw new RuntimeException(String2.ERROR + ": unexpected varsRead=" + varsRead);
       sourceValues = pas[0];
       return pas[0];
     } catch (Exception e) {
@@ -346,7 +340,6 @@ public class EDVGridAxis extends EDV {
 
     // one time: generate the sliderCsvValues
     try {
-      long eTime = System.currentTimeMillis();
       PrimitiveArray tSourceValues = sourceValues(); // work with stable local reference
       int nSourceValues = tSourceValues.size();
       boolean isTimeStamp = this instanceof EDVTimeStampGridAxis;
@@ -363,8 +356,7 @@ public class EDVGridAxis extends EDV {
         double values[] =
             Calendar2.getNEvenlySpaced(
                 destinationMinDouble(), destinationMaxDouble(), SLIDER_MAX_NVALUES);
-        for (int i = 0; i < values.length; i++)
-          sliderIndices.add(destinationToClosestIndex(values[i]));
+        for (double value : values) sliderIndices.add(destinationToClosestIndex(value));
 
         // add last index
         sliderIndices.add(nSourceValues - 1);
@@ -500,14 +492,6 @@ public class EDVGridAxis extends EDV {
     return destinationCoarseMax;
   }
 
-  public void setDestinationCoarseMin(double tMin) {
-    destinationCoarseMin = tMin;
-  }
-
-  public void setDestinationCoarseMax(double tMax) {
-    destinationCoarseMax = tMax;
-  }
-
   /**
    * This returns true if the values are ascending (tied is ok); otherwise, it returns false
    * (descending or unordered).
@@ -560,14 +544,17 @@ public class EDVGridAxis extends EDV {
    */
   public String spacingDescription(int language) {
     boolean isTimeStamp = this instanceof EDVTimeStampGridAxis;
-    if (sourceValues().size() == 1) return "(" + EDStatic.EDDGridJustOneValueAr[language] + ")";
+    if (sourceValues().size() == 1)
+      return "(" + EDStatic.messages.get(Message.EDD_GRID_JUST_ONE_VALUE, language) + ")";
     String s =
         isTimeStamp
             ? Calendar2.elapsedTimeString(Math.rint(averageSpacing()) * 1000)
             : "" + Math2.floatToDouble(averageSpacing());
     return s
         + " ("
-        + (isEvenlySpaced() ? EDStatic.EDDGridEvenAr[language] : EDStatic.EDDGridUnevenAr[language])
+        + (isEvenlySpaced()
+            ? EDStatic.messages.get(Message.EDD_GRID_EVEN, language)
+            : EDStatic.messages.get(Message.EDD_GRID_UNEVEN, language))
         + ")";
   }
 
@@ -593,7 +580,7 @@ public class EDVGridAxis extends EDV {
     String tSpacing =
         isTimeStamp
             ? Calendar2.elapsedTimeString(Math.rint(averageSpacing()) * 1000)
-            : "" + Math2.floatToDouble(averageSpacing()) + " " + tUnits;
+            : Math2.floatToDouble(averageSpacing()) + " " + tUnits;
     return destinationName
         + " has "
         + tSourceValues.size()
@@ -606,7 +593,9 @@ public class EDVGridAxis extends EDV {
         + tUnits
         + "<br>"
         + "with "
-        + (isEvenlySpaced() ? EDStatic.EDDGridEvenAr[language] : EDStatic.EDDGridUnevenAr[language])
+        + (isEvenlySpaced()
+            ? EDStatic.messages.get(Message.EDD_GRID_EVEN, language)
+            : EDStatic.messages.get(Message.EDD_GRID_UNEVEN, language))
         + " spacing "
         + (isEvenlySpaced() ? "" : "~")
         + "= "

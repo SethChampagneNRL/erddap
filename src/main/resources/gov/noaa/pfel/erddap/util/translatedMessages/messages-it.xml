@@ -63,7 +63,6 @@ La richiesta di compressione è facoltativa, ma le risposte compresse sono spess
 <acronyms>Acronimi</acronyms>
 <addConstraints>Puoi aggiungere vincoli simili a tabledap alle richieste a questa pagina web,
 Per esempio,</addConstraints>
-<addVarWhereAttName>Facoltativo: specificare un nome di attributo.</addVarWhereAttName>
 <addVarWhereAttValue>Facoltativo: specificare un valore di attributo.</addVarWhereAttValue>
 <addVarWhere><![CDATA[
 
@@ -95,11 +94,11 @@ Quindi, ERDDAP aggiungerà tutto
 <advl_institution>Istituzione</advl_institution>
 <advc_dataStructure>L&#39;ERDDAP tratta ciascun set di dati come un set di dati &quot;griglia&quot; o &quot;tabella&quot;.</advc_dataStructure>
 <advl_dataStructure>Struttura dati</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>Tipo di modello di dati comune</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>Classe ERDDAP</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>Titolo</advl_title>
 <advl_minLongitude>Longitudine minima</advl_minLongitude>
 <advl_maxLongitude>Longitudine massima</advl_maxLongitude>
@@ -144,7 +143,7 @@ Quindi, ERDDAP aggiungerà tutto
 <advn_outOfDate><![CDATA[
 
 Apparentemente, nessun set di dati ha l&#39;attributo
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> .
 Forse non ci sono set di dati quasi in tempo reale in questo ERDDAP .
 
@@ -296,9 +295,6 @@ Quindi, puoi fare clic su una categoria per visualizzare un elenco di set di dat
 <categorySearchHtml><![CDATA[
 Scegli uno(n) <kbd>{0}</kbd>
 ]]></categorySearchHtml>
-<categorySearchDifferentHtml><![CDATA[
-Cerca set di dati con una <kbd>&category;</kbd> diversa
-]]></categorySearchDifferentHtml>
 <categoryClickHtml>Fare clic su una categoria (un valore di attributo) per visualizzare un elenco di set di dati pertinenti.</categoryClickHtml>
 <categoryNotAnOption>Quando attributo=&quot;{0}&quot;, valore=&quot;{1}&quot; non è un&#39;opzione.</categoryNotAnOption>
 <caughtInterrupted>rilevato currentThread().isInterrupted().</caughtInterrupted>
@@ -361,6 +357,8 @@ In alternativa,
 <a rel="help" href="#computerProgram">ignora questa pagina Web</a> ed esegui conversioni dall&#39;interno di un programma per computer, script o pagina Web.
 
 ]]></convertBypass>
+<convertCOLORs>Colori</convertCOLORs>
+<convertCOLORsMessage>Converti valore in colore da colorbar</convertCOLORsMessage>
 <convertToAFullName><![CDATA[
 <strong>Converti da {0} a un nome completo.</strong>
 ]]></convertToAFullName>
@@ -1800,9 +1798,6 @@ Ogni riga rappresenta un diverso campione di dati (ad esempio, da un momento o l
 
 ]]></dafTableTooltip>
 <dasTitle>La struttura degli attributi del set di dati (.das) per questo set di dati</dasTitle>
-
-<!--  Il messaggio da visualizzare se i dati non possono essere scaricati (ad esempio, SeaWiFS &lt;=14 giorni).  -->
-<dataAccessNotAllowed>[Scusa. Tali dati non possono essere scaricati.]</dataAccessNotAllowed>
 <databaseUnableToConnect>Impossibile connettersi al database.</databaseUnableToConnect>
 <dataProviderForm>Modulo fornitore di dati</dataProviderForm>
 <dataProviderFormP1>Modulo fornitore di dati - Parte 1</dataProviderFormP1>
@@ -1918,7 +1913,7 @@ Ciò comprende:
 <ul>
 <li><a class="selfLink" id="databases" href="#databases" rel="bookmark">Dati</a> attualmente archiviati in un database relazionale.
 <br>Si prega di leggere le informazioni sul tipo di set di dati
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> in ERDDAP, in particolare le ~2 schermate informative iniziali che parlano della necessità di creare una tabella denormalizzata.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> in ERDDAP, in particolare le ~2 schermate informative iniziali che parlano della necessità di creare una tabella denormalizzata.
 Potrebbe sembrare pazzesco.
 Per favore fidati abbastanza da leggere la logica di questo.
 <br>&nbsp;
@@ -2130,10 +2125,6 @@ Fai clic su &widgetSubmitButton; per inviare queste informazioni all&#39;amminis
 <br>Risolvi questi problemi, quindi &quot;Invia&quot; nuovamente questa parte del modulo.
 
 ]]></dpf_fixProblem>
-<dpf_yourName>Il tuo nome</dpf_yourName>
-<dpf_emailAddress>Indirizzo e-mail</dpf_emailAddress>
-<dpf_Timestamp>Timestamp</dpf_Timestamp>
-<dpf_frequency>Frequenza</dpf_frequency>
 <dpf_title>titolo</dpf_title>
 <dpf_titleTooltip><![CDATA[
 
@@ -2212,12 +2203,6 @@ Questa è la licenza e la dichiarazione di non responsabilità per l&#39;utilizz
 <br><kbd>
 
 ]]></dpf_licenseTooltip>
-<dpf_howYouStoreData><![CDATA[
-
-<br>• Errore:
-specificare (sotto) come vengono archiviati i dati grigliati o tabulari.
-
-]]></dpf_howYouStoreData>
 <dpf_provideIfAvailable>Fornisci le informazioni se sono disponibili per il tuo set di dati.</dpf_provideIfAvailable>
 <dpf_acknowledgement>riconoscimento</dpf_acknowledgement>
 <dpf_acknowledgementTooltip><![CDATA[
@@ -2518,10 +2503,8 @@ Il timestamp dell&#39;invio del set di dati è &tTimestamp; .
 <dtWMS>Fare clic per scoprire come creare mappe di questi dati tramite il servizio Web Map di questo set di dati.</dtWMS>
 <EasierAccessToScientificData>Accesso più facile ai dati scientifici</EasierAccessToScientificData>
 
-<!--  I messaggi EDD vengono visualizzati nei moduli di accesso ai dati tabledap e griddap.  -->
-<EDDClickOnSubmitHtml><![CDATA[
-Clicca su <kbd>Submit</kbd> .
-]]></EDDClickOnSubmitHtml>
+<!--I messaggi EDD vengono visualizzati sultabledape Gridap Data Access Forms.
+-->
 <EDDDatasetID>ID del set di dati</EDDDatasetID>
 <EDDFgdc>FGDC</EDDFgdc>
 <EDDFgdcMetadata>Metadati FGDC-STD-001-1998</EDDFgdcMetadata>
@@ -2534,9 +2517,7 @@ Clicca su <kbd>Submit</kbd> .
 <EDDInformation>Informazione</EDDInformation>
 <EDDSummary>Riepilogo</EDDSummary>
 <EDDDatasetTitle>Titolo del set di dati</EDDDatasetTitle>
-<EDDDownloadData>Scarica i dati</EDDDownloadData>
 <EDDMakeAGraph>Crea un grafico</EDDMakeAGraph>
-<EDDMakeAMap>Crea una mappa</EDDMakeAMap>
 <EDDMinimum>Minimo</EDDMinimum>
 <EDDMaximum>Massimo</EDDMaximum>
 <EDDFileType>Tipo di file:</EDDFileType>
@@ -2604,8 +2585,6 @@ Crea l&#39;URL per te.
 ]]></EDDGridDownloadDataTooltip>
 <EDDGridDimension>Dimensioni</EDDGridDimension>
 <EDDGridDimensionRanges>Dimensioni</EDDGridDimensionRanges>
-<EDDGridFirst>Primo</EDDGridFirst>
-<EDDGridLast>Scorso</EDDGridLast>
 <EDDGridStart>Inizio</EDDGridStart>
 <EDDGridStop>Fermare</EDDGridStop>
 <EDDGridStartStopTooltip><![CDATA[
@@ -2649,14 +2628,6 @@ questa è la spaziatura media tra i valori di una dimensione (nelle unità della
 Una spaziatura leggermente strana e irregolare spesso indica che uno o alcuni file mancano o sono danneggiati in un set di dati altrimenti perfettamente spaziato.
 
 ]]></EDDGridSpacingTooltip>
-<EDDGridDimensionFirstTooltip><![CDATA[
-Per tua informazione:
-questo è il primo valore di una dimensione.
-]]></EDDGridDimensionFirstTooltip>
-<EDDGridDimensionLastTooltip><![CDATA[
-Per tua informazione:
-questo è l&#39;ultimo valore di una dimensione.
-]]></EDDGridDimensionLastTooltip>
 <EDDGridDownloadTooltip><![CDATA[
 Seleziona le variabili che desideri scaricare:
 <br>* Per scaricare solo i dati delle dimensioni:
@@ -2931,10 +2902,6 @@ Per esempio:
 
 <!--  Questi messaggi vengono visualizzati quando viene visualizzato un messaggio di errore.  -->
 <errorTitle>Errore</errorTitle>
-<errorRequestUrl>URL della tua richiesta:</errorRequestUrl>
-<errorRequestQuery>La tua richiesta:</errorRequestQuery>
-<errorTheError>L&#39;errore:</errorTheError>
-<errorCopyFrom>Impossibile copiare da {0}.</errorCopyFrom>
 <errorFileNotFound>File non trovato: {0} .</errorFileNotFound>
 <errorFileNotFoundImage>File non trovato nella cache. Ricrea l&#39;immagine e riprova.</errorFileNotFoundImage>
 <errorInternal>Errore interno:</errorInternal>
@@ -2956,6 +2923,7 @@ Per esempio:
 <externalLink>(link esterno)</externalLink>
 <externalWebSite>Questo collegamento a un sito web esterno non costituisce un&#39;approvazione.</externalWebSite>
 <fileHelp_asc>Visualizza testo separato da virgole in stile OPeNDAP ISO-8859-1.</fileHelp_asc>
+<fileHelp_croissant>Scarica lo schema croissant dataset.</fileHelp_croissant>
 <fileHelp_csv>Scarica una tabella di testo ISO-8859-1 separata da virgole (riga 1: nomi; riga 2: unità; tempi ISO 8601).</fileHelp_csv>
 <fileHelp_csvp>Scarica un file .csv ISO-8859-1 con la riga 1: nome (unità). I tempi sono stringhe ISO 8601.</fileHelp_csvp>
 <fileHelp_csv0>Scarica un file .csv ISO-8859-1 senza nomi di colonna o unità. I tempi sono stringhe ISO 8601.</fileHelp_csv0>
@@ -2967,12 +2935,18 @@ Per esempio:
 <fileHelpTable_esriCsv>Scarica un file .csv ISO_8859_1 per ArcGIS 9.x e versioni precedenti di ESRI (colonne di data e ora separate).</fileHelpTable_esriCsv>
 <fileHelp_fgdc>Visualizza i metadati UTF-8 FGDC .xml del set di dati.</fileHelp_fgdc>
 <fileHelp_geoJson>Scarica i dati di longitudine, latitudine e altre colonne come file GeoJSON .json UTF-8.</fileHelp_geoJson>
-<fileHelp_graph>Visualizza una pagina web Crea un grafico.</fileHelp_graph>
 <fileHelpGrid_help>Visualizza una pagina web con una descrizione di griddap.</fileHelpGrid_help>
 <fileHelpTable_help>Visualizza una pagina web con una descrizione di tabledap.</fileHelpTable_help>
 <fileHelp_html>Visualizza un modulo di accesso ai dati HTML in stile OPeNDAP.</fileHelp_html>
 <fileHelp_htmlTable>Visualizza una pagina Web UTF-8 .html con i dati in una tabella. I tempi sono stringhe ISO 8601.</fileHelp_htmlTable>
-<fileHelp_iso19115>Visualizza i metadati ISO 19115-2/19139 UTF-8 .xml del set di dati.</fileHelp_iso19115>
+<fileHelp_iso19115>Visualizzare il datasetISO 19115/19139UTF-8 .xml metadati utilizzando la versione predefinita per questo server.
+</fileHelp_iso19115>
+<fileHelp_iso19115_2>Visualizzare il datasetISO 19115-2/19139metadati UTF-8 .xml.
+</fileHelp_iso19115_2>
+<fileHelp_iso191392007>Visualizzare il datasetISO 19139:2007metadati UTF-8 .xml.
+</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>Visualizzare il datasetISO 19115-3:2016metadati UTF-8 .xml.
+</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>Scarica un file di testo Igor ISO-8859-1. Ogni variabile dell&#39;asse e ogni variabile dei dati diventa un&#39;onda.</fileHelp_itxGrid>
 <fileHelp_itxTable>Scarica un file di testo Igor ISO-8859-1. Ogni colonna di risposta diventa un&#39;onda.</fileHelp_itxTable>
 <fileHelp_json>Visualizza un file JSON UTF-8 simile a una tabella (valore mancante = &#39;null&#39;; i tempi sono stringhe ISO 8601).</fileHelp_json>
@@ -2998,7 +2972,6 @@ Per esempio:
 <fileHelpTable_odvTxt>Scarica longitudine, latitudine, ora e altre colonne come file di foglio di calcolo generico ODV ISO-8859-1 (.txt).</fileHelpTable_odvTxt>
 <fileHelp_parquet>Scarica come file di parquet. I metadati contengono i nomi delle colonne (&quot;column_names&quot;) e le unità (&quot;column_units&quot;).</fileHelp_parquet>
 <fileHelp_parquet_with_meta>Scarica come file di parquet con metadati dettagliati.</fileHelp_parquet_with_meta>
-<fileHelp_subset>Visualizza un modulo HTML che utilizza la ricerca sfaccettata per semplificare la selezione di sottoinsiemi di dati.</fileHelp_subset>
 <fileHelp_timeGaps>Visualizza un elenco UTF-8 di gap nei valori temporali che sono maggiori del gap mediano.</fileHelp_timeGaps>
 <fileHelp_tsv>Scarica una tabella di testo ISO-8859-1 separata da tabulazioni (riga 1: nomi; riga 2: unità; tempi ISO 8601).</fileHelp_tsv>
 <fileHelp_tsvp>Scarica un file .tsv ISO-8859-1 con la riga 1: nome (unità). I tempi sono stringhe ISO 8601.</fileHelp_tsvp>
@@ -3018,7 +2991,6 @@ Per esempio:
 
 <!--  La formulazione della Descrizione e dell&#39;Avvertenza è vaga per consentire uno o più set di dati.  -->
 <filesDescription>Il sistema &quot;file&quot; di ERDDAP ti consente di sfogliare un file system virtuale e scaricare file di dati di origine.</filesDescription>
-<filesSort>Fare clic su un&#39;intestazione (ad esempio Nome, Ultima modifica, Dimensioni) per modificare l&#39;ordinamento.  &quot;Ultima modifica&quot; utilizza il fuso orario Zulu.</filesSort>
 <filesWarning><![CDATA[
 
 I metadati del set di dati e i nomi delle variabili in questi file di origine potrebbero essere diversi rispetto ad altri punti ERDDAP ! Potresti preferire invece utilizzare il modulo di accesso ai dati del set di dati.
@@ -3286,7 +3258,7 @@ I file di entrambe le versioni hanno l&#39;estensione .nc e possono essere letti
 <a rel="help" href="https://anaconda.org/eumetsat/ncview">tramite Conda <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Questo collegamento a un sito web esterno non costituisce un&#39;approvazione."></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, un potente strumento da riga di comando per modificare in modo permanente i file .nc .
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, un potente strumento da riga di comando per modificare in modo permanente i file .nc .
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C e NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Questo collegamento a un sito web esterno non costituisce un&#39;approvazione."></a>, le principali librerie software per C, C++, Fortran o Java per leggere e scrivere file .nc .
@@ -3453,12 +3425,6 @@ Quella riga avrà la somma di ciascuna delle altre variabili.
 Ad esempio, orderByMax(&quot;stationID, time/1day&quot;) creerà un gruppo per ogni stationID per ogni giorno e calcolerà e restituirà la somma delle altre variabili.
 
 ]]></functionOrderByTooltip>
-<functionOrderByExtra><![CDATA[
-
-Per orderByClosest, specificare qui l&#39;intervallo (utilizzando il formato n[timeUnits], ad esempio 1 ora).
-<br>Per orderByLimit, specifica qui il numero massimo di righe per gruppo.
-
-]]></functionOrderByExtra>
 <functionOrderBySort><![CDATA[
 
 Questo slot è lo slot {0} importante orderBy ....
@@ -3470,7 +3436,6 @@ Questo slot è lo slot {0} importante orderBy ....
 <functionOrderBySort3>terzo in più</functionOrderBySort3>
 <functionOrderBySort4>quarto in più</functionOrderBySort4>
 <functionOrderBySortLeast>meno</functionOrderBySortLeast>
-<functionOrderBySortRowMax>Verrà mantenuta solo la riga con il valore massimo.</functionOrderBySortRowMax>
 <generatedAt>Questa pagina web è stata generata alle {0}.</generatedAt>
 <geoServicesDescription><![CDATA[
 
@@ -3694,7 +3659,7 @@ Come descritto sopra, poiché i programmi Java possono accedere ai dati disponib
 <p>Oppure, poiché ERDDAP è un programma completamente open source, puoi anche impostare la tua copia di ERDDAP sul tuo server (accessibile al pubblico o meno) per servire i tuoi dati.
 I tuoi programmi Java possono ottenere dati da quella copia di ERDDAP .
 Vedi
-<a rel="help" href="https://erddap.github.io/setup.html">Configurare il tuo ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">Configurare il tuo ERDDAP</a> .
   
 ]]></javaProgramsHTML>
 
@@ -3770,7 +3735,6 @@ L&#39;impostazione predefinita è nulla (non utilizzato).
 <!--  ad esempio, {0}=WMS o listAll  -->
 <listOfDatasets>Elenco di {0} set di dati</listOfDatasets>
 <listAll>Tutto</listAll>
-<LogIn>Login</LogIn>
 <login>login</login>
 <loginHTML><![CDATA[
 
@@ -3781,7 +3745,7 @@ Molte installazioni ERDDAP non hanno l&#39;autenticazione abilitata e quindi non
 Attualmente, ERDDAP supporta solo l&#39;autenticazione tramite account di posta elettronica gestiti da Google, che includono account di posta elettronica presso NOAA e molte università.
 Se un ERDDAP ha l&#39;autenticazione abilitata, chiunque disponga di un account email gestito da Google può accedere, ma avrà accesso solo ai set di dati privati ​​a cui l&#39;amministratore ERDDAP gli ha esplicitamente autorizzato ad accedere.
 Per istruzioni su come accedere ERDDAP da un browser o tramite uno script, vedere
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">Accesso ai set di dati privati ​​in ERDDAP</a> .
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">Accesso ai set di dati privati ​​in ERDDAP</a> .
   
 ]]></loginHTML>
 <loginAttemptBlocked>ERRORE: i tentativi di accesso per {0} vengono temporaneamente bloccati dopo 3 tentativi falliti.
@@ -3829,22 +3793,15 @@ Chiunque abbia un account di posta elettronica Google o un iD ORCID può acceder
 Possono accedere solo le persone che hanno preso accordi con l&#39;amministratore di questo ERDDAP .
 
 ]]></loginDescribeOpenID>
-<loginErddap>Accedi all&#39;ERDDAP</loginErddap>
 <loginCanNot>Questo ERDDAP non è configurato per consentire agli utenti di accedere.</loginCanNot>
 <loginAreNot>Non hai effettuato l&#39;accesso.</loginAreNot>
 <loginToLogIn>Per accedere</loginToLogIn>
-<loginEmailAddress>indirizzo e-mail</loginEmailAddress>
 <loginYourEmailAddress>Il tuo indirizzo di posta elettronica</loginYourEmailAddress>
 <loginUserName>Nome utente</loginUserName>
 <loginPassword>Parola d&#39;ordine</loginPassword>
 <loginUserNameAndPassword>Nome utente e password</loginUserNameAndPassword>
 <loginGoogleSignIn>Autenticati con il tuo account Google.</loginGoogleSignIn>
 <loginOrcidSignIn>Autenticati con il tuo ID ORCID.</loginOrcidSignIn>
-<loginOpenID>Accedi con il tuo URL OpenID</loginOpenID>
-<loginOpenIDOr>Oppure accedi al tuo account esistente (non OpenID) su</loginOpenIDOr>
-<loginOpenIDCreate>Oppure crea un URL OpenID su</loginOpenIDCreate>
-<loginOpenIDFree>Sono tutti gratuiti!</loginOpenIDFree>
-<loginOpenIDSame>Assicurati di aver effettuato l&#39;accesso con lo stesso URL OpenID che hai fornito all&#39;amministratore ERDDAP.</loginOpenIDSame>
 <loginAs>Hai effettuato l&#39;accesso come {0}.</loginAs>
 <loginPartwayAs>Hai effettuato l&#39;accesso parzialmente come {0}.</loginPartwayAs>
 <loginFailed>ERRORE: accesso non riuscito</loginFailed>
@@ -3959,7 +3916,6 @@ Il tuo browser potrebbe aver memorizzato nella cache la pagina web prima che tu 
 ]]></loginPublicAccess>
 <LogOut>Disconnettersi</LogOut>
 <logout>disconnettersi</logout>
-<logoutOpenID>Esci dal tuo provider OpenID.</logoutOpenID>
 
 <!--  logoutSuccess ultimo aggiornamento 2019-12-19  -->
 <logoutSuccess>Ti sei disconnesso con successo. 
@@ -4260,10 +4216,6 @@ Ma dods.dap.DODSException non ha eccezioni rilevanti.
 Meglio restituire un file vuoto? Ma .nc e altri non consentono dati di lunghezza 0.
  -->
 <MustBeThereIsNoData>La tua query non ha prodotto risultati corrispondenti.</MustBeThereIsNoData>
-
-<!--  Molti tipi di file impongono un limite alla quantità di dati che un file può contenere (ad esempio, 2 GB).  -->
-<MustBeNotNull>{0} non deve essere nullo.</MustBeNotNull>
-<MustBeNotEmpty>{0} non deve essere una stringa vuota.</MustBeNotEmpty>
 <MustBeInternalError>Errore interno</MustBeInternalError>
 <MustBeOutOfMemoryError>Errore di memoria esaurita</MustBeOutOfMemoryError>
 
@@ -4304,11 +4256,9 @@ Meglio restituire un file vuoto? Ma .nc e altri non consentono dati di lunghezza
 <noXxxNoLonIn180>non ci sono valori di longitudine compresi tra -180 e 360</noXxxNoLonIn180>
 <noXxxNoNonString>non ci sono variabili non String</noXxxNoNonString>
 <noXxxNo2NonString>non ci sono almeno due variabili non String</noXxxNo2NonString>
-<noXxxNoStation>cdmDataType={0} non è &quot;TimeSeries&quot;</noXxxNoStation>
 <noXxxNoStationID>non esiste una variabile simile a stationID</noXxxNoStationID>
 <noXxxNoSubsetVariables>subsetVariables non è stato specificato</noXxxNoSubsetVariables>
 <noXxxNoOLLSubsetVariables>subsetVariables non ha le variabili di offerta, longitudine e latitudine</noXxxNoOLLSubsetVariables>
-<noXxxNoMinMax>il server dei dati di origine non fornisce valori minimi e massimi</noXxxNoMinMax>
 <noXxxItsGridded>è un set di dati su griglia</noXxxItsGridded>
 <noXxxItsTabular>è un set di dati tabellare</noXxxItsTabular>
 <oneRequestAtATime>Si prega di effettuare una sola richiesta alla volta.</oneRequestAtATime>
@@ -4335,7 +4285,6 @@ Gli sviluppatori di programmi per computer e di pagine Web con script Java posso
 <options>Opzioni</options>
 <orAListOfValues>o un elenco di valori</orAListOfValues>
 <orRefineSearchWith>Oppure affina la ricerca con</orRefineSearchWith>
-<orSearchWith>Oppure cerca set di dati con</orSearchWith>
 <orComma>O,</orComma>
 <otherFeatures>Altre caratteristiche</otherFeatures>
 <outOfDateDatasets>Set di dati non aggiornati</outOfDateDatasets>
@@ -4396,7 +4345,6 @@ Esistono
     title="Questo collegamento a un sito web esterno non costituisce un&#39;approvazione."></a> .
 
 ]]></percentEncode>
-<pickADataset>Scegli un set di dati</pickADataset>
 
 <!--  Messaggi relativi alle ricerche di set di dati basate su protocollo.  -->
 <protocolSearchHtml>Cerca set di dati per protocollo</protocolSearchHtml>
@@ -4413,7 +4361,6 @@ Protocolli diversi sono appropriati per tipi diversi di dati e per applicazioni 
 <queryError1Var>Il formato {0} può gestire solo una variabile di dati.</queryError1Var>
 <queryError2Var>Le richieste per il formato {0} devono includere almeno due variabili numeriche (per gli assi X e Y).</queryError2Var>
 <queryErrorActualRange>{0} non rientra nell&#39;intervallo_effettivo della variabile: da {1} a {2}</queryErrorActualRange>
-<queryErrorAscending>Per le richieste {0}, i valori di longitudine e latitudine devono essere ascendenti.</queryErrorAscending>
 <queryErrorAdjusted>Per le richieste {0}, i valori di longitudine modificati (da {1} a {2}) devono essere compresi tra -180 e 180.</queryErrorAdjusted>
 <queryErrorConstraintNaN>Valore vincolo=&quot;{0}&quot; restituisce NaN.  Se vuoi davvero NaN, scrivilo come NaN.</queryErrorConstraintNaN>
 <queryErrorEqualSpacing>Per le richieste {0}, la spaziatura della longitudine ({1}) deve essere uguale alla spaziatura della latitudine ({2}).</queryErrorEqualSpacing>
@@ -4445,7 +4392,6 @@ Protocolli diversi sono appropriati per tipi diversi di dati e per applicazioni 
 <queryErrorGridNoAxisVar>Una query sulla variabile dati griddap non può includere una variabile dell&#39;asse ({0}).</queryErrorGridNoAxisVar>
 <queryErrorGridNoDataVar>Una query sulla variabile dell&#39;asse griddap non può includere una variabile di dati ({0}).</queryErrorGridNoDataVar>
 <queryErrorGridNotIdentical>Il vincolo {0} per variabile={1} non è identico al vincolo {2} per variabile={2}.  Se hai bisogno di sottoinsiemi diversi, fai richieste separate.</queryErrorGridNotIdentical>
-<queryErrorGridSLessS>StartIndex={0} è maggiore di StopIndex={1}.</queryErrorGridSLessS>
 <queryErrorLastEndP>{0} inizia con &quot;(&quot;, ma non termina con &quot;)&quot;.</queryErrorLastEndP>
 <queryErrorLastExpected>&quot;last&quot; era previsto all&#39;inizio di {0}.</queryErrorLastExpected>
 <queryErrorLastUnexpected>Carattere imprevisto dopo &quot;ultimo&quot; in {0}.</queryErrorLastUnexpected>
@@ -4477,7 +4423,7 @@ Ad esempio, gli esseri umani possono utilizzare questo URL per eseguire una rice
 Ci sono molte funzionalità in ERDDAP che possono essere utilizzate dai programmi informatici o dagli script scritti dall&#39;utente.
 Puoi usarli per creare altre applicazioni web o servizi web su ERDDAP, facendo sì che ERDDAP svolga la maggior parte del lavoro! Quindi, se hai un&#39;idea per un&#39;interfaccia migliore per i dati serviti da ERDDAP o una pagina web che necessita di un modo semplice per accedere ai dati, ti invitiamo a creare la tua applicazione web, servizio web o pagina web e utilizzare ERDDAP come fondazione.
 Il tuo sistema può ottenere dati, grafici e altre informazioni ERDDAP di ERD o da altre installazioni ERDDAP, oppure puoi<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">configura il tuo server ERDDAP</a>, che può essere accessibile pubblicamente o solo privatamente.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">configura il tuo server ERDDAP</a>, che può essere accessibile pubblicamente o solo privatamente.
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">Richieste URL RESTful</a></h3>
 Le richieste di informazioni sull&#39;interfaccia utente da ERDDAP (ad esempio, risultati di ricerca) utilizzano lo standard universale del web per le richieste:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URL &externalLinkHtml;</a> inviato tramite
@@ -4546,7 +4492,7 @@ un file binario NetCDF -3 piatto, simile a una tabella.
 (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">Di più&nbsp;informazioni &externalLinkHtml;</a>)
 <li>.nccsv :
 un file CSV ASCII piatto, simile a una tabella, simile a NetCDF .
-(<a rel="help" href="https://erddap.github.io/NCCSV.html">Di più&nbsp;informazioni &externalLinkHtml;</a>)
+(<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">Di più&nbsp;informazioni &externalLinkHtml;</a>)
 <li>.tsv :
 una tabella di testo ASCII separata da tabulazioni.
 (<a rel="help" href="https://jkorpela.fi/TSV.html">Di più&nbsp;informazioni &externalLinkHtml;</a>)
@@ -4699,7 +4645,6 @@ Vedere
 <SOSDocumentation>La documentazione SOS dell&#39;ERDDAP</SOSDocumentation>
 <WCSDocumentation>Documentazione WCS dell&#39;ERDDAP</WCSDocumentation>
 <WMSDocumentation>Documentazione WMS dell&#39;ERDDAP</WMSDocumentation>
-<findOutChange>in modo che il programma del tuo computer possa scoprire se un set di dati è cambiato.</findOutChange>
 <requestFormatExamplesHtml><![CDATA[
 
 (ad esempio,
@@ -5149,14 +5094,6 @@ Richiedi invece un&#39;e-mail con l&#39;
 
 ]]></subscriptionRemoveSuccess>
 <subscriptionRSS>Iscriviti al feed RSS per questo set di dati...</subscriptionRSS>
-<subscriptionsNotAvailable><![CDATA[
-
-<p><strong>Scusa.
-Il sistema di sottoscrizione e-mail/URL non è disponibile in questa installazione ERDDAP .</strong>
-<br>Considera invece l&#39;utilizzo del servizio di abbonamento
-<a rel="help" href="{0}/information.html#subscriptions">RSS</a> .
-
-]]></subscriptionsNotAvailable>
 <subscriptionUrlHtml><![CDATA[
 
 <kbd>URL/action</kbd> è un URL facoltativo che ERDDAP contatterà invece di inviarti un&#39;e-mail.
@@ -5262,7 +5199,7 @@ durante la ricerca di set di dati, non utilizzare <kbd>AND</kbd> tra i termini d
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>Scopri di più ERDDAP .</strong></a>
 <p><strong>Fornitori di dati:
 puoi
-<a rel="help" href="https://erddap.github.io/setup.html">configurare il tuo server ERDDAP</a> e fornire i tuoi dati.</strong> ERDDAP è gratuito e open source.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">configurare il tuo server ERDDAP</a> e fornire i tuoi dati.</strong> ERDDAP è gratuito e open source.
 Utilizza licenze simili ad Apache, quindi puoi fare tutto ciò che vuoi con esso.
 L&#39;aspetto ERDDAP è personalizzabile, quindi il tuo ERDDAP rifletterà la tua istituzione, non NOAA .
 Il piccolo sforzo compiuto per istituire ERDDAP comporta numerosi vantaggi.
@@ -5421,13 +5358,6 @@ Per visualizzare {0},
 <!--  Il tag seguente è preceduto da 1 dei 2 tag precedenti. 
   {0} è il subsetViewSelectDistintCombos o il subsetViewSelectRelatedCounts.  -->
 <subsetWhenCounts>{0} per i valori {1} di &quot;{2}&quot; sono:</subsetWhenCounts>
-<subsetComboClickSelect><![CDATA[
-
-Per visualizzare i conteggi di combinazioni distinte delle variabili elencate sopra,
-<br>controlla <kbd>{0} :
-{1}</kbd> sopra e seleziona un valore per una delle variabili sopra.
-
-]]></subsetComboClickSelect>
 <subsetNVariableCombos>In totale, ci sono {0} righe di combinazioni distinte delle variabili elencate sopra.</subsetNVariableCombos>
 <subsetShowingAllRows>Tutte le righe sono mostrate sopra.</subsetShowingAllRows>
 <subsetShowingNRows>Le prime {0} righe sono mostrate sopra.  Le restanti {1} righe non vengono visualizzate.</subsetShowingNRows>
@@ -5620,7 +5550,7 @@ durante la ricerca di set di dati, non utilizzare <kbd>AND</kbd> tra i termini d
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP può ottenere dati da fonti di dati locali (sul disco rigido del server) e remote (a cui si accede tramite il web).</a></strong>
 <br>Consulta l&#39;
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">elenco dei tipi di fonti dati</a> a cui ERDDAP può accedere.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">elenco dei tipi di fonti dati</a> a cui ERDDAP può accedere.
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP può servire molti tipi di dati scientifici, non solo dati oceanografici.</a></strong>
 <br>ERDDAP è un server dati scritto presso
@@ -5772,8 +5702,8 @@ Quando richiedi dati o un grafico da un
       title="Questo collegamento a un sito web esterno non costituisce un&#39;approvazione."></a>) che descrive i dati.
 ERDDAP consente (e incoraggia) l&#39;amministratore di descrivere i metadati che verranno aggiunti ai set di dati e alle loro variabili al volo.
 Vedi la
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">sezione addAttributes</a> delle
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">indicazioni per gli amministratori</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">sezione addAttributes</a> delle
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">indicazioni per gli amministratori</a> .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP ti consente di richiedere file immagine .png e .pdf con grafici e mappe</a></strong>
@@ -5927,7 +5857,7 @@ Gli utenti che hanno effettuato l&#39;accesso possono accedere ai set di dati pu
 Gli utenti devono utilizzare https:
 (Secure Sockets Layer) per effettuare il login e accedere ai set di dati privati.
 I set di dati possono essere configurati per avere grafici e mappe accessibili pubblicamente, ma i dati sono accessibili solo agli utenti autorizzati.
-(<a rel="help" href="https://erddap.github.io/setup.html#security">maggiori informazioni</a>)
+(<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">maggiori informazioni</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP elabora i dati in blocchi.</a></strong>
 <br>Per risparmiare memoria (un grosso problema) e far sì che le risposte inizino prima, ERDDAP elabora le richieste di dati in blocchi, ottenendo ripetutamente un blocco di dati dalla fonte, ripulendolo (ad esempio, aggiungendo
@@ -5949,15 +5879,15 @@ accoglie la richiesta di un utente; ottiene i dati da un&#39;origine dati remota
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Questo collegamento a un sito web esterno non costituisce un&#39;approvazione."></a> :
 Ma ERDDAP ha anche la capacità di ottenere attivamente tutti i dati disponibili da un&#39;origine dati remota e
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">di archiviare una copia locale dei dati</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">di archiviare una copia locale dei dati</a> .
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Tecnologia Push <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Questo collegamento a un sito web esterno non costituisce un&#39;approvazione."></a> :
 Utilizzando
 <a href="#subscriptions">i servizi di abbonamento</a> ERDDAP, altri server di dati possono essere avvisati non appena sono disponibili nuovi dati in modo che possano richiederli (estraendo i dati).
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> e
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> di ERDDAP utilizzano i servizi di abbonamento e
-<a rel="help" href="https://erddap.github.io/setup.html#flag">il sistema di flag</a> di ERDDAP in modo che vengano avvisati immediatamente quando sono disponibili nuovi dati.
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> e
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> di ERDDAP utilizzano i servizi di abbonamento e
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">il sistema di flag</a> di ERDDAP in modo che vengano avvisati immediatamente quando sono disponibili nuovi dati.
 Puoi combinarli con grande effetto:
 se avvolgi una copia EDDGrid attorno a un set di dati EDDGrid FromErddap (o avvolgi una EDDTableCopy attorno a un set di dati EDDTableFromErddap), ERDDAP creerà e manterrà automaticamente una copia locale del set di dati di un altro ERDDAP .
 Poiché i servizi in abbonamento funzionano non appena sono disponibili nuovi dati, la tecnologia push diffonde i dati molto rapidamente (entro pochi secondi).
@@ -6048,9 +5978,9 @@ Questa ragione da sola giustifica la spesa per lo sviluppo ERDDAP .
 (Penso che si potrebbe dimostrare che ERDDAP ha fatto risparmiare agli scienziati NOAA più tempo di quello che io ho dedicato allo sviluppo ERDDAP .
 Tempo=Denaro.) Ma il vantaggio collaterale è che qualsiasi altra organizzazione può
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">scaricare, installare e utilizzare ERDDAP</a> <strong>gratuitamente</strong> per distribuire i propri dati scientifici.
+href="https://erddap.github.io/docs/server-admin/deploy-install">scaricare, installare e utilizzare ERDDAP</a> <strong>gratuitamente</strong> per distribuire i propri dati scientifici.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >Oltre 90 organizzazioni in almeno 14 paesi utilizzano ERDDAP</a> .
 Forse esiste il pranzo gratis.
 <p>ERDDAP è un programma Java .
@@ -6164,14 +6094,14 @@ Ora, per favore, consideralo semplicemente come un nome, non come un acronimo.
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">qui</a> .
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">Puoi</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>configurare il tuo server ERDDAP</strong></a> e fornire i tuoi dati.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>configurare il tuo server ERDDAP</strong></a> e fornire i tuoi dati.
 <ul>
 <li>Il piccolo sforzo compiuto per istituire ERDDAP comporta numerosi vantaggi.
 <li>Se disponi già di un servizio web per la distribuzione dei tuoi dati, puoi configurare ERDDAP per accedere ai tuoi dati tramite il servizio esistente o tramite i file o il database di origine.
 Quindi, le persone avranno un altro modo per accedere ai tuoi dati e potranno scaricare i dati in formati di file aggiuntivi o come grafici o mappe.
 <li>Se disponi di set di dati molto richiesti, puoi installare
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >più ERDDAP che lavorano insieme</a> per aumentare la scalabilità e soddisfare le esigenze di un grande centro di distribuzione dati.
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">Contattaci</a></h2>
@@ -6186,7 +6116,6 @@ Una volta che sei un membro, puoi pubblicare lì la tua domanda o cercare per ve
 Le opinioni contenute in questa pagina web sono opinioni personali di Bob Simons e non riflettono necessariamente alcuna posizione del governo o della National Oceanic and Atmospheric Administration .
 
 ]]></theLongDescriptionHtml>
-<Then>Poi</Then>
 <twoClickMapDefaultTooltip>Specificare un rettangolo facendo clic su due angoli diagonali.  Fallo di nuovo se necessario.</twoClickMapDefaultTooltip>
 
 <!--  Questo è un modo per sovrascrivere il convertitore Standardize UDUnits di ERDDAP
@@ -7470,7 +7399,6 @@ Questo non può essere niente. Quindi, se non vuoi nulla, inserisci una parola s
 non essere mai un nome di attributo.  -->
 <updateUrlsSkipAttributes>URL fonte</updateUrlsSkipAttributes>
 <variableNames>Nomi di variabili</variableNames>
-<viewAllDatasetsHtml>Visualizza un elenco di tutti i set di dati</viewAllDatasetsHtml>
 <waitThenTryAgain>Si è verificato un problema (temporaneo?).  Aspetta un attimo, poi riprova.  (In un browser, fare clic sul pulsante Ricarica.)</waitThenTryAgain>
 <warning>AVVERTIMENTO!</warning>
 <units>Unità</units>
@@ -7798,7 +7726,7 @@ Ci sono
 (Le altre variabili dell&#39;asse sono FACOLTATIVE.)
 <li>DEVONO esserci dei valori di longitudine compresi tra -180 e 180.
 <li>Gli
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">attributi colorBarMinimum e colorBarMaximum</a> DEVONO essere specificati.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">attributi colorBarMinimum e colorBarMaximum</a> DEVONO essere specificati.
 (Altri attributi della barra dei colori sono FACOLTATIVI.)
 </ul>
 <li><strong>Livelli dati della griglia:</strong> nel WMS ERDDAP, tutte le variabili dei dati nei set di dati della griglia che utilizzano dimensioni di longitudine e latitudine sono disponibili tramite WMS .

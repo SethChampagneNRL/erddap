@@ -23,8 +23,6 @@
 
 package gov.noaa.pmel.sgt;
 
-import java.io.*;
-
 /**
  * A class for formatting numbers that follows printf conventions. Also implements C-like atoi and
  * atof functions
@@ -44,29 +42,6 @@ public class Format {
   private boolean show_space;
   private boolean left_align;
   private char fmt;
-
-  private static long parseLong(String s, int base) {
-    int i = 0;
-    int sign = 1;
-    long r = 0;
-
-    while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++;
-    if (i < s.length() && s.charAt(i) == '-') {
-      sign = -1;
-      i++;
-    } else if (i < s.length() && s.charAt(i) == '+') {
-      i++;
-    }
-    while (i < s.length()) {
-      char ch = s.charAt(i);
-      if ('0' <= ch && ch < '0' + base) r = r * base + ch - '0';
-      else if ('A' <= ch && ch < 'A' + base - 10) r = r * base + ch - 'A' + 10;
-      else if ('a' <= ch && ch < 'a' + base - 10) r = r * base + ch - 'a' + 10;
-      else return r * sign;
-      i++;
-    }
-    return r * sign;
-  }
 
   /** a test stub for the format class */
   /*public static void main(String[] a)
@@ -132,19 +107,7 @@ public class Format {
 
   private static String repeat(char c, int n) {
     if (n <= 0) return "";
-    StringBuffer s = new StringBuffer(n);
-    for (int i = 0; i < n; i++) s.append(c);
-    return s.toString();
-  }
-
-  private static String convert(long x, int n, int m, String d) {
-    if (x == 0) return "0";
-    String r = "";
-    while (x != 0) {
-      r = d.charAt((int) (x & m)) + r;
-      x = x >>> n;
-    }
-    return r;
+    return String.valueOf(c).repeat(n);
   }
 
   private String pad(String r) {
@@ -190,16 +153,16 @@ public class Format {
     String z = "";
     if (precision > 0) {
       double factor = 1;
-      String leading_zeroes = "";
+      StringBuilder leading_zeroes = new StringBuilder();
       for (int i = 1; i <= precision && factor <= Double.MAX_VALUE; i++) {
         factor *= 10;
-        leading_zeroes = leading_zeroes + "0";
+        leading_zeroes.append("0");
       }
       // here is the second change to the code (04/03/02)
       long l = (long) (factor * fr);
       // long l = (long) (factor * fr + 0.5);
-      z = leading_zeroes + l;
-      z = z.substring(z.length() - precision, z.length());
+      z = leading_zeroes.toString() + l;
+      z = z.substring(z.length() - precision);
     }
 
     if (precision > 0 || alternate) z = "." + z;
@@ -247,7 +210,7 @@ public class Format {
       p = p + -e;
     }
 
-    return f + p.substring(p.length() - 3, p.length());
+    return f + p.substring(p.length() - 3);
   }
 
   /**
@@ -316,25 +279,26 @@ public class Format {
     left_align = false;
     fmt = ' ';
 
-    int state = 0;
     int length = s.length();
     int parse_state = 0;
     // 0 = prefix, 1 = flags, 2 = width, 3 = precision,
     // 4 = format, 5 = end
     int i = 0;
 
+    StringBuilder preBuild = new StringBuilder();
     while (parse_state == 0) {
       if (i >= length) parse_state = 5;
       else if (s.charAt(i) == '%') {
         if (i < length - 1) {
           if (s.charAt(i + 1) == '%') {
-            pre = pre + '%';
+            preBuild.append('%');
             i++;
           } else parse_state = 1;
         } else throw new IllegalArgumentException();
-      } else pre = pre + s.charAt(i);
+      } else preBuild.append(s.charAt(i));
       i++;
     }
+    pre = preBuild.toString();
     while (parse_state == 1) {
       if (i >= length) parse_state = 5;
       else if (s.charAt(i) == ' ') show_space = true;
@@ -375,75 +339,6 @@ public class Format {
   }
 
   /**
-   * prints a formatted number following printf conventions
-   *
-   * @param s a PrintStream
-   * @param fmt the format string
-   * @param x the double to print
-   */
-  public static void print(java.io.PrintStream s, String fmt, double x) {
-    s.print(new Format(fmt).form(x));
-  }
-
-  /**
-   * prints a formatted number following printf conventions
-   *
-   * @param s a PrintStream
-   * @param fmt the format string
-   * @param x the long to print
-   */
-  public static void print(java.io.PrintStream s, String fmt, long x) {
-    s.print(new Format(fmt).form(x));
-  }
-
-  /**
-   * prints a formatted number following printf conventions
-   *
-   * @param s a PrintStream
-   * @param fmt the format string
-   * @param x the character to
-   */
-  public static void print(java.io.PrintStream s, String fmt, char x) {
-    s.print(new Format(fmt).form(x));
-  }
-
-  /**
-   * prints a formatted number following printf conventions
-   *
-   * @param s a PrintStream, fmt the format string
-   * @param x a string that represents the digits to print
-   */
-  public static void print(java.io.PrintStream s, String fmt, String x) {
-    s.print(new Format(fmt).form(x));
-  }
-
-  /**
-   * Converts a string of digits (decimal, octal or hex) to an integer
-   *
-   * @param s a string
-   * @return the numeric value of the prefix of s representing a base 10 integer
-   */
-  public static int atoi(String s) {
-    return (int) atol(s);
-  }
-
-  /**
-   * Converts a string of digits (decimal, octal or hex) to a long integer
-   *
-   * @param s a string
-   * @return the numeric value of the prefix of s representing a base 10 integer
-   */
-  public static long atol(String s) {
-    int i = 0;
-    while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++;
-    if (i < s.length() && s.charAt(i) == '0') {
-      if (i + 1 < s.length() && (s.charAt(i + 1) == 'x' || s.charAt(i + 1) == 'X'))
-        return parseLong(s.substring(i + 2), 16);
-      else return parseLong(s, 8);
-    } else return parseLong(s, 10);
-  }
-
-  /**
    * Computes the format based on desired prescision and minimum, maximum values.
    *
    * @param min minimum value
@@ -452,7 +347,7 @@ public class Format {
    */
   public static String computeFormat(double min, double max, int pres) {
     double dx, xx;
-    int ip, id, ib;
+    int ip, id;
     String frmt;
 
     dx = Math.abs(max - min);
@@ -476,46 +371,6 @@ public class Format {
   }
 
   /**
-   * Converts a string of digits to an double
-   *
-   * @param s a string
-   */
-  public static double atof(String s) {
-    int i = 0;
-    int sign = 1;
-    double r = 0; // integer part
-    double f = 0; // fractional part
-    double p = 1; // exponent of fractional part
-    int state = 0; // 0 = int part, 1 = frac part
-
-    while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++;
-    if (i < s.length() && s.charAt(i) == '-') {
-      sign = -1;
-      i++;
-    } else if (i < s.length() && s.charAt(i) == '+') {
-      i++;
-    }
-    while (i < s.length()) {
-      char ch = s.charAt(i);
-      if ('0' <= ch && ch <= '9') {
-        if (state == 0) r = r * 10 + ch - '0';
-        else if (state == 1) {
-          p = p / 10;
-          r = r + p * (ch - '0');
-        }
-      } else if (ch == '.') {
-        if (state == 0) state = 1;
-        else return sign * r;
-      } else if (ch == 'e' || ch == 'E') {
-        long e = (int) parseLong(s.substring(i + 1), 10);
-        return sign * r * Math.pow(10, e);
-      } else return sign * r;
-      i++;
-    }
-    return sign * r;
-  }
-
-  /**
    * Formats a double into a string (like sprintf in C)
    *
    * @param x the number to format
@@ -535,54 +390,5 @@ public class Format {
     } else if (fmt == 'e' || fmt == 'E' || fmt == 'g' || fmt == 'G') r = exp_format(x);
     else throw new IllegalArgumentException();
     return pad(sign(s, r));
-  }
-
-  /**
-   * Formats a long integer into a string (like sprintf in C)
-   *
-   * @param x the number to format
-   * @return the formatted string
-   */
-  public String form(long x) {
-    String r;
-    int s = 0;
-    if (fmt == 'd' || fmt == 'i') {
-      s = 1;
-      if (x < 0) {
-        x = -x;
-        s = -1;
-      }
-      r = "" + x;
-    } else if (fmt == 'o') r = convert(x, 3, 7, "01234567");
-    else if (fmt == 'x') r = convert(x, 4, 15, "0123456789abcdef");
-    else if (fmt == 'X') r = convert(x, 4, 15, "0123456789ABCDEF");
-    else throw new IllegalArgumentException();
-
-    return pad(sign(s, r));
-  }
-
-  /**
-   * Formats a character into a string (like sprintf in C)
-   *
-   * @param x the value to format
-   * @return the formatted string
-   */
-  public String form(char c) {
-    if (fmt != 'c') throw new IllegalArgumentException();
-
-    String r = "" + c;
-    return pad(r);
-  }
-
-  /**
-   * Formats a string into a larger string (like sprintf in C)
-   *
-   * @param x the value to format
-   * @return the formatted string
-   */
-  public String form(String s) {
-    if (fmt != 's') throw new IllegalArgumentException();
-    if (precision >= 0) s = s.substring(0, precision);
-    return pad(s);
   }
 }

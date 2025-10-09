@@ -16,8 +16,19 @@ import com.cohort.util.MustBe;
 import com.cohort.util.String2;
 import dods.dap.parser.ParseException;
 import gov.noaa.pfel.coastwatch.util.SSR;
-import java.io.*;
-import java.net.*;
+import gov.noaa.pfel.erddap.util.EDStatic;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -34,8 +45,6 @@ public class DConnect {
   // Bob Simons added maxRetry variables
   protected int openConnectionMaxRetry = 3; // original value was 3;
   protected int getDataMaxRetry = 5; // original value was 5;
-
-  private boolean dumpStream = false, dumpDAS = false;
 
   /** InputStream to use for connection to a file instead of a remote host. */
   private InputStream fileStream;
@@ -58,9 +67,6 @@ public class DConnect {
 
   /** The selection portion of the current DODS CE (including leading "&"). */
   private String selString;
-
-  /** Whether to accept compressed documents. */
-  private boolean acceptDeflate;
 
   /** The DODS server version. */
   private ServerVersion ver;
@@ -104,16 +110,38 @@ public class DConnect {
       this.urlString = urlString;
       this.projString = this.selString = "";
     }
-    this.acceptDeflate = acceptDeflate;
 
     // Test if the URL is really a filename, and if so, open the file
     try {
-      URL testURL = new URL(urlString);
+      @SuppressWarnings("unused")
+      URL unusedTestURL = URI.create(urlString).toURL();
     } catch (MalformedURLException e) {
       try {
         fileStream = File2.getDecompressedBufferedInputStream(urlString);
       } catch (Exception e2) {
         throw new FileNotFoundException(urlString);
+      }
+    }
+
+    EDStatic.cleaner.register(this, new CleanupConnect(fileStream));
+  }
+
+  private static final class CleanupConnect implements Runnable {
+
+    private final InputStream inputStream;
+
+    private CleanupConnect(InputStream input) {
+      this.inputStream = input;
+    }
+
+    @Override
+    public void run() {
+      try {
+        if (inputStream != null) {
+          inputStream.close();
+        }
+      } catch (Throwable t1) {
+        // do nothing, so nothing can go wrong.
       }
     }
   }
@@ -147,39 +175,7 @@ public class DConnect {
    */
   public DConnect(InputStream is) {
     this.fileStream = is;
-  }
-
-  /**
-   * Returns whether a file name or <code>InputStream</code> is being used instead of a URL.
-   *
-   * @return true if a file name or <code>InputStream</code> is being used.
-   */
-  public final boolean isLocal() {
-    return (fileStream != null);
-  }
-
-  /**
-   * Returns the constraint expression supplied with the URL given to the constructor. If no CE was
-   * given this returns an empty <code>String</code>.
-   *
-   * <p>Note that the CE supplied to one of this object's constructors is "sticky"; it will be used
-   * with every data request made with this object. The CE passed to <code>getData</code>, however,
-   * is not sticky; it is used only for that specific request. This method returns the sticky CE.
-   *
-   * @return the constraint expression associated with this connection.
-   */
-  public final String CE() {
-    return projString + selString;
-  }
-
-  /**
-   * Returns the URL supplied to the constructor. If the URL contained a constraint expression that
-   * is not returned.
-   *
-   * @return the URL of this connection.
-   */
-  public final String URL() {
-    return urlString;
+    EDStatic.cleaner.register(this, new CleanupConnect(fileStream));
   }
 
   /**
@@ -345,30 +341,13 @@ public class DConnect {
    * @exception DASException on an error constructing the DAS
    * @exception DODSException if an error returned by the remote server
    */
-  public DAS getDAS()
-      throws MalformedURLException, IOException, ParseException, DASException, DODSException {
-    return getDAS(-1);
-  }
-
-  // bob simons added this variant:
-
-  /**
-   * Returns the DAS object from the dataset referenced by this object's URL. The DAS object is
-   * referred to by appending `.das' to the end of a DODS URL.
-   *
-   * @return the DAS associated with the referenced dataset.
-   * @exception MalformedURLException if the URL given to the constructor has an error
-   * @exception IOException if an error connecting to the remote server
-   * @exception ParseException if the DAS parser returned an error
-   * @exception DASException on an error constructing the DAS
-   * @exception DODSException if an error returned by the remote server
-   */
   public DAS getDAS(int timeOutMillis)
       throws MalformedURLException, IOException, ParseException, DASException, DODSException {
     InputStream is;
     if (fileStream != null) is = parseMime(fileStream);
     else { // String2.log(">> DConnect.getDAS: " + urlString + ".das" + projString + selString);
-      URL url = new URL(urlString + ".das" + projString + selString);
+      URL url = URI.create(urlString + ".das" + projString + selString).toURL();
+      boolean dumpDAS = false;
       if (dumpDAS) {
         String2.log("--DConnect.getDAS to " + url);
         copy(url.openStream(), System.out);
@@ -403,30 +382,12 @@ public class DConnect {
    * @exception DDSException on an error constructing the DDS
    * @exception DODSException if an error returned by the remote server
    */
-  public DDS getDDS()
-      throws MalformedURLException, IOException, ParseException, DDSException, DODSException {
-    return getDDS(-1);
-  }
-
-  // bob simons added this variant:
-
-  /**
-   * Returns the DDS object from the dataset referenced by this object's URL. The DDS object is
-   * referred to by appending `.dds' to the end of a DODS URL.
-   *
-   * @return the DDS associated with the referenced dataset.
-   * @exception MalformedURLException if the URL given to the constructor has an error
-   * @exception IOException if an error connecting to the remote server
-   * @exception ParseException if the DDS parser returned an error
-   * @exception DDSException on an error constructing the DDS
-   * @exception DODSException if an error returned by the remote server
-   */
   public DDS getDDS(int timeOutMillis)
       throws MalformedURLException, IOException, ParseException, DDSException, DODSException {
     InputStream is;
     if (fileStream != null) is = parseMime(fileStream);
     else {
-      URL url = new URL(urlString + ".dds" + projString + selString);
+      URL url = URI.create(urlString + ".dds" + projString + selString).toURL();
       is = openConnection(url, timeOutMillis); // bob simons added
     }
     DDS dds = new DDS();
@@ -481,7 +442,8 @@ public class DConnect {
       localSelString = "";
     }
     URL url =
-        new URL(urlString + ".dods" + projString + localProjString + selString + localSelString);
+        URI.create(urlString + ".dods" + projString + localProjString + selString + localSelString)
+            .toURL();
 
     String errorMsg = "DConnect getData failed " + url;
     int errorCode = DODSException.UNKNOWN_ERROR;
@@ -518,16 +480,14 @@ public class DConnect {
       InputStream fileStream, StatusUI statusUI, BaseTypeFactory btf)
       throws IOException, ParseException, DDSException, DODSException {
 
-    InputStream is = parseMime(fileStream);
-    try { // 2018-05-22 Bob Simons added try/finally
+    try (InputStream is = parseMime(fileStream)) { // 2018-05-22 Bob Simons added try/finally
       DataDDS dds = new DataDDS(ver, btf);
       dds.parse(new HeaderInputStream(is)); // read the DDS header
       // NOTE: the HeaderInputStream will have skipped over "Data:" line
       dds.readData(is, statusUI); // read the data!
       return dds;
-    } finally {
-      is.close(); // stream is always closed even if parse() throws exception
     }
+    // stream is always closed even if parse() throws exception
   }
 
   public DataDDS getDataFromUrl(URL url, StatusUI statusUI, BaseTypeFactory btf)
@@ -538,6 +498,7 @@ public class DConnect {
 
     // DEBUG
     ByteArrayInputStream bis = null;
+    boolean dumpStream = false;
     if (dumpStream) {
       String2.log("DConnect to " + url);
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -694,15 +655,6 @@ public class DConnect {
   }
 
   /**
-   * Returns the <code>ServerVersion</code> of the last connection.
-   *
-   * @return the <code>ServerVersion</code> of the last connection.
-   */
-  public final ServerVersion getServerVersion() {
-    return ver;
-  }
-
-  /**
    * A primitive parser for the MIME headers used by DODS. This is used when reading from local
    * sources of DODS Data objects. It is called by <code>readData</code> to simulate the important
    * actions of the <code>URLConnection</code> MIME header parsing performed in <code>openConnection
@@ -734,21 +686,20 @@ public class DConnect {
     String encoding = null;
 
     // while there are more header (non-blank) lines
-    String line;
-    while (!(line = d.readLine()).equals("")) {
+    String line = d.readLine();
+    while (!line.isEmpty()) {
       int spaceIndex = line.indexOf(' ');
       // all header lines should have a space in them, but if not, skip ahead
       if (spaceIndex == -1) continue;
       String header = line.substring(0, spaceIndex);
       String value = line.substring(spaceIndex + 1);
 
-      if (header.equals("Server:")) {
-        ver = new ServerVersion(value);
-      } else if (header.equals("Content-Description:")) {
-        description = value;
-      } else if (header.equals("Content-Encoding:")) {
-        encoding = value;
+      switch (header) {
+        case "Server:" -> ver = new ServerVersion(value);
+        case "Content-Description:" -> description = value;
+        case "Content-Encoding:" -> encoding = value;
       }
+      line = d.readLine();
     }
     handleContentDesc(is, description);
     return handleContentEncoding(is, encoding);

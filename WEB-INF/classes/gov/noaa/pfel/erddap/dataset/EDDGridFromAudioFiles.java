@@ -16,10 +16,15 @@ import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
 import com.cohort.util.XML;
+import com.google.common.collect.ImmutableList;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.coastwatch.util.FileVisitorDNLS;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.*;
+import gov.noaa.pfel.erddap.variable.AxisVariableInfo;
+import gov.noaa.pfel.erddap.variable.DataVariableInfo;
+import gov.noaa.pfel.erddap.variable.EDV;
+import java.util.List;
 
 /**
  * This class represents gridded data from an audio file where all files have the same number of
@@ -42,9 +47,9 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
       String tIso19115File,
       String tDefaultDataQuery,
       String tDefaultGraphQuery,
-      Attributes tAddGlobalAttributes,
-      Object[][] tAxisVariables,
-      Object[][] tDataVariables,
+      LocalizedAttributes tAddGlobalAttributes,
+      List<AxisVariableInfo> tAxisVariables,
+      List<DataVariableInfo> tDataVariables,
       int tReloadEveryNMinutes,
       int tUpdateEveryNMillis,
       String tFileDir,
@@ -222,7 +227,8 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
    */
   @Override
   public PrimitiveArray[] lowGetSourceDataFromFile(
-      String fullFileName, EDV tDataVariables[], IntArray tConstraints) throws Throwable {
+      String fullFileName, ImmutableList<EDV> tDataVariables, IntArray tConstraints)
+      throws Throwable {
 
     if (verbose)
       String2.log(
@@ -249,10 +255,10 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
 
     Table table = new Table();
     table.readAudioFile(fullFileName, true, false); // readData? addElapsedTime?
-    int ndv = tDataVariables.length;
+    int ndv = tDataVariables.size();
     PrimitiveArray paa[] = new PrimitiveArray[ndv];
     for (int dvi = 0; dvi < ndv; dvi++) {
-      EDV edv = tDataVariables[dvi];
+      EDV edv = tDataVariables.get(dvi);
       int col = table.findColumnNumber(edv.sourceName());
       if (col >= 0) {
         paa[dvi] = table.getColumn(col).subset(start, stride, stop);
@@ -357,7 +363,7 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
         FileVisitorDNLS.decompressIfNeeded(
             sampleFileName,
             tFileDir,
-            EDStatic.fullDecompressedGenerateDatasetsXmlDirectory,
+            EDStatic.config.fullDecompressedGenerateDatasetsXmlDirectory,
             EDStatic.decompressedCacheMaxGB,
             false); // reuseExisting
     table.readAudioFile(decomSampleFileName, false, true); // getData, addElapsedTimeColumn
@@ -406,7 +412,7 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
     varName = table.getColumnName(0); // Table.ELAPSED_TIME
     sourceAtts = table.columnAttributes(0);
     addAtts = new Attributes();
-    if (EDStatic.variablesMustHaveIoosCategory) addAtts.set("ioos_category", "Time");
+    if (EDStatic.config.variablesMustHaveIoosCategory) addAtts.set("ioos_category", "Time");
     pa = table.getColumn(0);
     axisSourceTable.addColumn(1, varName, pa, sourceAtts);
     axisAddTable.addColumn(1, varName, pa, addAtts);
@@ -417,7 +423,7 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
       pa = table.getColumn(col);
       sourceAtts = table.columnAttributes(col);
       addAtts = new Attributes();
-      if (EDStatic.variablesMustHaveIoosCategory) addAtts.set("ioos_category", "Other");
+      if (EDStatic.config.variablesMustHaveIoosCategory) addAtts.set("ioos_category", "Other");
       if (pa.isIntegerType()) {
         addAtts
             .add("colorBarMinimum", Math2.niceDouble(-pa.missingValueAsDouble(), 2))
@@ -448,8 +454,6 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
 
     // gather the results
     String tDatasetID = suggestDatasetID(tFileDir + tFileNameRegex);
-    boolean accViaFiles = false;
-    int tMatchNDigits = DEFAULT_MATCH_AXIS_N_DIGITS;
 
     ensureValidNames(dataSourceTable, dataAddTable);
 
@@ -482,7 +486,7 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
             + "    <pathRegex>.*</pathRegex>\n"
             + "    <metadataFrom>last</metadataFrom>\n"
             + "    <matchAxisNDigits>"
-            + tMatchNDigits
+            + DEFAULT_MATCH_AXIS_N_DIGITS
             + "</matchAxisNDigits>\n"
             + "    <dimensionValuesInMemory>false</dimensionValuesInMemory>\n"
             + "    <fileTableInMemory>false</fileTableInMemory>\n");
@@ -495,7 +499,10 @@ public class EDDGridFromAudioFiles extends EDDGridFromFiles {
         writeVariablesForDatasetsXml(axisSourceTable, axisAddTable, "axisVariable", false, false));
     sb.append(
         writeVariablesForDatasetsXml(dataSourceTable, dataAddTable, "dataVariable", true, false));
-    sb.append("</dataset>\n" + "\n");
+    sb.append("""
+            </dataset>
+
+            """);
 
     String2.log("\n\n*** generateDatasetsXml finished successfully.\n\n");
 

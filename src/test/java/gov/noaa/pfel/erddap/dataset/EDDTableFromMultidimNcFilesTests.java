@@ -2,15 +2,14 @@ package gov.noaa.pfel.erddap.dataset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.cohort.util.Calendar2;
 import com.cohort.util.File2;
 import com.cohort.util.Math2;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.erddap.GenerateDatasetsXml;
+import gov.noaa.pfel.erddap.util.EDMessages;
 import gov.noaa.pfel.erddap.util.EDStatic;
-import gov.noaa.pfel.erddap.variable.EDV;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Path;
@@ -35,6 +34,7 @@ class EDDTableFromMultidimNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXml() throws Throwable {
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // testVerboseOn();
     String dataDir =
         File2.addSlash(
@@ -878,7 +878,7 @@ class EDDTableFromMultidimNcFilesTests {
     EDD.deleteCachedDatasetInfo(tDatasetID);
     EDD edd = EDDTableFromMultidimNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), tDatasetID, "");
-    Test.ensureEqual(edd.title(), "Argo float vertical profile", "");
+    Test.ensureEqual(edd.title(language), "Argo float vertical profile", "");
     Test.ensureEqual(
         String2.toCSSVString(edd.dataVariableDestinationNames()),
         "fileNumber, DATA_TYPE, FORMAT_VERSION, HANDBOOK_VERSION, REFERENCE_DATE_TIME, DATE_CREATION, DATE_UPDATE, PLATFORM_NUMBER, PROJECT_NAME, PI_NAME, CYCLE_NUMBER, DIRECTION, DATA_CENTRE, DC_REFERENCE, DATA_STATE_INDICATOR, DATA_MODE, PLATFORM_TYPE, FLOAT_SERIAL_NO, FIRMWARE_VERSION, WMO_INST_TYPE, time, JULD_QC, JULD_LOCATION, latitude, longitude, POSITION_QC, POSITIONING_SYSTEM, PROFILE_PRES_QC, PROFILE_TEMP_QC, PROFILE_PSAL_QC, VERTICAL_SAMPLING_SCHEME, CONFIG_MISSION_NUMBER, PRES, PRES_QC, PRES_ADJUSTED, PRES_ADJUSTED_QC, PRES_ADJUSTED_ERROR, TEMP, TEMP_QC, TEMP_ADJUSTED, TEMP_ADJUSTED_QC, TEMP_ADJUSTED_ERROR, PSAL, PSAL_QC, PSAL_ADJUSTED, PSAL_ADJUSTED_QC, PSAL_ADJUSTED_ERROR",
@@ -897,14 +897,8 @@ class EDDTableFromMultidimNcFilesTests {
     // *****************\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
+    String tName, results, tResults, expected, userDapQuery;
+    String dir = EDStatic.config.fullTestCacheDirectory;
 
     String id = "argoFloats";
     if (deleteCachedInfo) EDD.deleteCachedDatasetInfo(id);
@@ -2084,6 +2078,7 @@ class EDDTableFromMultidimNcFilesTests {
    */
   @org.junit.jupiter.api.Test
   void testGenerateDatasetsXmlDimensions() throws Throwable {
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // testVerboseOn();
     String dataDir =
         File2.addSlash(
@@ -2531,7 +2526,7 @@ class EDDTableFromMultidimNcFilesTests {
     EDDTableFromMultidimNcFiles edd =
         (EDDTableFromMultidimNcFiles) EDDTableFromMultidimNcFiles.oneFromXmlFragment(null, results);
     Test.ensureEqual(edd.datasetID(), tDatasetID, "");
-    Test.ensureEqual(edd.title(), "Unknown institution data from a local source.", "");
+    Test.ensureEqual(edd.title(language), "Unknown institution data from a local source.", "");
     Test.ensureEqual(
         String2.toCSSVString(edd.dataVariableDestinationNames()),
         "time, TIME_QC, depth, DEPTH_QC, latitude, longitude, TEMP, TEMP_QC, TEMP_DM, ATPT, ATPT_QC, ATPT_DM, ATMS, ATMS_QC, ATMS_DM",
@@ -2556,14 +2551,8 @@ class EDDTableFromMultidimNcFilesTests {
     // EDDTableFromMultidimNcFiles.testTreatDimensionsAs() *****************\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
+    String tName, results, expected;
+    String dir = EDStatic.config.fullTestCacheDirectory;
 
     String id = "testTreatDimensionsAs";
     if (deleteCachedInfo) EDD.deleteCachedDatasetInfo(id);
@@ -2946,14 +2935,8 @@ class EDDTableFromMultidimNcFilesTests {
     // EDDTableFromMultidimNcFiles.testTreatDimensionsAs2() *****************\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
+    String tName, results, expected;
+    String dir = EDStatic.config.fullTestCacheDirectory;
 
     String id = "testTreatDimensionsAs2";
     if (deleteCachedInfo) EDD.deleteCachedDatasetInfo(id);
@@ -3506,16 +3489,8 @@ class EDDTableFromMultidimNcFilesTests {
     // EDDTableFromMultidimNcFiles.testLongAndNetcdf4() *****************\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
-
-    String id = "testLong";
+    String tName, results, expected, userDapQuery;
+    String dir = EDStatic.config.fullTestCacheDirectory;
 
     EDDTable eddTable = (EDDTable) EDDTestDataset.gettestLong();
 
@@ -3997,9 +3972,6 @@ class EDDTableFromMultidimNcFilesTests {
      *
      */
     // make nc4
-    Test.ensureTrue(
-        String2.indexOf(EDDTableFromMultidimNcFiles.dataFileTypeNames, ".nc4") >= 0,
-        "Enable .nc4?");
 
     userDapQuery = "feature_type_instance,latitude,longitude,error_flag3&time<=2016-09-28T00:03";
     tName =
@@ -4024,15 +3996,8 @@ class EDDTableFromMultidimNcFilesTests {
     // *****************\n");
     // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    int po, po2;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
+    String tName, results, expected, userDapQuery;
+    String dir = EDStatic.config.fullTestCacheDirectory;
 
     // test the floats work as expected
     float f = String2.parseFloat("-3.4E38");
@@ -4116,19 +4081,9 @@ class EDDTableFromMultidimNcFilesTests {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void testCharAsString(boolean deleteCachedInfo) throws Throwable {
-    // String2.log("\n******************
-    // EDDTableFromMultidimNcFiles.testCharAsString() *****************\n");
-    // testVerboseOn();
     int language = 0;
-    String name, tName, results, tResults, expected, userDapQuery, tQuery;
-    String error = "";
-    EDV edv;
-    String dir = EDStatic.fullTestCacheDirectory;
-    String today =
-        Calendar2.getCurrentISODateTimeStringZulu()
-            .substring(0, 14); // 14 is enough to check hour. Hard
-    // to check min:sec.
-
+    String tName, results, tResults, expected, userDapQuery;
+    String dir = EDStatic.config.fullTestCacheDirectory;
     // print dumpString of one of the data files
     // String2.log(NcHelper.ncdump(EDStatic.unitTestDataDir +
     // "nccf/testCharAsString/7900364_prof.nc", "-h"));
@@ -4872,7 +4827,7 @@ class EDDTableFromMultidimNcFilesTests {
   void testScriptOnlyRequest() throws Throwable {
 
     EDDTableFromMultidimNcFiles edd = (EDDTableFromMultidimNcFiles) EDDTestDataset.getTS_ATMP_AAD();
-    String dir = EDStatic.fullTestCacheDirectory;
+    String dir = EDStatic.config.fullTestCacheDirectory;
     // edd.makeNewFileForDapQuery(0, null, null, )
     String fileTypeExtension = ".csv";
     String fileName = "testScriptOnlyRequest" + fileTypeExtension;

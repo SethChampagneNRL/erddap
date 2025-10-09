@@ -5,7 +5,8 @@
  */
 package com.cohort.array;
 
-import com.cohort.util.*;
+import com.cohort.util.Math2;
+import com.cohort.util.String2;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -378,7 +379,7 @@ public class UIntArray extends PrimitiveArray {
   @Override
   public void addObject(final Object value) {
     // double is good intermediate because it has the idea of NaN
-    addDouble(value != null && value instanceof Number nu ? nu.doubleValue() : Double.NaN);
+    addDouble(value instanceof Number nu ? nu.doubleValue() : Double.NaN);
   }
 
   /**
@@ -1153,11 +1154,10 @@ public class UIntArray extends PrimitiveArray {
    */
   @Override
   public String testEquals(final Object o) {
-    if (!(o instanceof UIntArray))
+    if (!(o instanceof UIntArray other))
       return "The two objects aren't equal: this object is a UIntArray; the other is a "
           + (o == null ? "null" : o.getClass().getName())
           + ".";
-    final UIntArray other = (UIntArray) o;
     if (other.size() != size)
       return "The two UIntArrays aren't equal: one has "
           + size
@@ -1493,22 +1493,22 @@ public class UIntArray extends PrimitiveArray {
     }
 
     // make a hashMap with all the unique values (associated values are initially all dummy)
-    final Integer dummy = Integer.valueOf(-1);
-    final HashMap hashMap = new HashMap(Math2.roundToInt(1.4 * size));
+    final Integer dummy = -1;
+    final HashMap<Long, Integer> hashMap = new HashMap<>(Math2.roundToInt(1.4 * size));
     long lastValue = unpack(array[0]); // since lastValue often equals currentValue, cache it
-    hashMap.put(Long.valueOf(lastValue), dummy);
+    hashMap.put(lastValue, dummy);
     boolean alreadySorted = true;
     for (int i = 1; i < size; i++) {
       long currentValue = unpack(array[i]);
       if (currentValue != lastValue) {
         if (currentValue < lastValue) alreadySorted = false;
         lastValue = currentValue;
-        hashMap.put(Long.valueOf(lastValue), dummy);
+        hashMap.put(lastValue, dummy);
       }
     }
 
     // quickly deal with: all unique and already sorted
-    final Set keySet = hashMap.keySet();
+    final Set<Long> keySet = hashMap.keySet();
     final int nUnique = keySet.size();
     if (nUnique == size && alreadySorted) {
       indices.ensureCapacity(size);
@@ -1517,8 +1517,8 @@ public class UIntArray extends PrimitiveArray {
     }
 
     // store all the elements in an array
-    final Object unique[] = new Object[nUnique];
-    final Iterator iterator = keySet.iterator();
+    final long[] unique = new long[nUnique];
+    final Iterator<Long> iterator = keySet.iterator();
     int count = 0;
     while (iterator.hasNext()) unique[count++] = iterator.next();
     if (nUnique != count)
@@ -1529,24 +1529,21 @@ public class UIntArray extends PrimitiveArray {
     Arrays.sort(unique);
 
     // put the unique values back in the hashMap with the ranks as the associated values
-    // and make tUnique
-    final long tUnique[] = new long[nUnique];
     for (int i = 0; i < count; i++) {
-      hashMap.put(unique[i], Integer.valueOf(i));
-      tUnique[i] = ((Long) unique[i]).longValue();
+      hashMap.put(unique[i], i);
     }
 
     // convert original values to ranks
-    final int ranks[] = new int[size];
+    final int[] ranks = new int[size];
     lastValue = unpack(array[0]);
-    ranks[0] = ((Integer) hashMap.get(Long.valueOf(lastValue))).intValue();
+    ranks[0] = hashMap.get(lastValue);
     int lastRank = ranks[0];
     for (int i = 1; i < size; i++) {
       if (array[i] == lastValue) {
         ranks[i] = lastRank;
       } else {
         lastValue = unpack(array[i]);
-        ranks[i] = ((Integer) hashMap.get(Long.valueOf(lastValue))).intValue();
+        ranks[i] = hashMap.get(lastValue);
         lastRank = ranks[i];
       }
     }
@@ -1554,7 +1551,7 @@ public class UIntArray extends PrimitiveArray {
     // store the results in ranked
     indices.append(new UIntArray(ranks));
 
-    return new UIntArray(tUnique);
+    return new UIntArray(unique);
   }
 
   /**

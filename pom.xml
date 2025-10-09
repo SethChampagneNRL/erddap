@@ -8,7 +8,6 @@
   Website to search for maven plugins and dependencies: https://mvnrepository.com/ 
 
 * Compile in Maven and gather dependency .jar files
-  (pom.xml based on Kyle's pom from https://github.com/axiom-data-science/erddap )
 
   From DOS command line (or Bash) (after synchToMaven.sh has copied source files to Maven dir):
       //mvn -help 
@@ -26,8 +25,6 @@
 
    or: mvn clean install -U   //clears out cached information (more thoroughly than 'clean') and does it all?
 
-* Run TestAll.
-
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -35,7 +32,7 @@
 
     <groupId>gov.noaa.pfel.erddap</groupId>
     <artifactId>ERDDAP</artifactId>
-    <version>2.25_1</version>
+    <version>2.29.0-alpha</version>
     <packaging>war</packaging>
 
     <name>erddap</name>
@@ -43,12 +40,19 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <erddapcontent.download.version>content1.0.0</erddapcontent.download.version>
+        <erddapcontent.download.version>content1.0.1</erddapcontent.download.version>
         <erddapreffiles.download.version>1.0.0</erddapreffiles.download.version>
-        <netcdfJavaVersion>5.6.0</netcdfJavaVersion>
+        <netcdfJavaVersion>5.9.1</netcdfJavaVersion>
         <test.resources.version>test1.04</test.resources.version>
-        <jettyVersion>12.0.14</jettyVersion>
-        <error-prone.version>2.27.0</error-prone.version>
+        <jettyVersion>12.1.1</jettyVersion>
+        <error-prone.version>2.41.0</error-prone.version>
+        <prometheusVersion>1.4.1</prometheusVersion>
+        <parquetVersion>1.16.0</parquetVersion>
+        <awssdkVersion>2.33.7</awssdkVersion>
+        <luceneVersion>10.2.2</luceneVersion>
+        <nettyVersion>4.2.6.Final</nettyVersion>
+        <mavenTestPluginVersion>3.5.3</mavenTestPluginVersion>
+        <jacocoMavenVersion>0.8.13</jacocoMavenVersion>
         <download.unpackWhenChanged>true</download.unpackWhenChanged>
     </properties>
 
@@ -90,8 +94,17 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.19.0</version>
+                <configuration>
+                    <!-- some location that makes sense for your company/project -->
+                    <rulesUri>file:///${project.basedir}/versionrules.xml</rulesUri>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
                 <configuration>
                     <filesets>
                         <fileset>
@@ -105,7 +118,7 @@
                 <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <configuration>
                     <failOnError>true</failOnError>
                     <source>21</source>   <!-- java version -->
@@ -113,7 +126,8 @@
                     <encoding>UTF-8</encoding>
                     <compilerArgs>
                         <arg>-XDcompilePolicy=simple</arg>
-                        <arg>-Xplugin:ErrorProne -Xep:JdkObsolete:OFF -Xep:ReferenceEquality:OFF -Xep:MutablePublicArray:OFF -Xep:AlreadyChecked:OFF -Xep:NarrowCalculation:OFF -Xep:JavaUtilDate:OFF -Xep:NonApiType:OFF -Xep:StringCaseLocaleUsage:OFF -Xep:DefaultCharset:OFF -Xep:EmptyCatch:OFF -Xep:UnusedVariable:OFF -Xep:FloatingPointLiteralPrecision:OFF -Xep:LongDoubleConversion:OFF -Xep:StaticGuardedByInstance:OFF -Xep:BanJNDI:OFF -Xep:IncrementInForLoopAndHeader:OFF -Xep:StaticAssignmentInConstructor:OFF -Xep:UnicodeEscape:OFF -Xep:StringSplitter:OFF -Xep:JavaLangClash:OFF -Xep:CatchAndPrintStackTrace:OFF -Xep:FutureReturnValueIgnored:OFF -Xep:Finalize:OFF -Xep:NotJavadoc:OFF -Xep:InvalidBlockTag:OFF -Xep:MissingSummary:OFF -Xep:EmptyBlockTag:OFF -Xep:InvalidParam:OFF -Xep:InvalidThrows:OFF -Xep:ReturnFromVoid:OFF</arg>
+                        <arg>--should-stop=ifError=FLOW</arg>
+                        <arg>-Xplugin:ErrorProne -Xep:StatementSwitchToExpressionSwitch:OFF -Xep:StringCaseLocaleUsage:OFF -Xep:EmptyCatch:OFF -Xep:StringSplitter:OFF -Xep:JavaLangClash:OFF -Xep:CatchAndPrintStackTrace:OFF -Xep:NotJavadoc:OFF -Xep:InvalidBlockTag:OFF -Xep:MissingSummary:OFF -Xep:EmptyBlockTag:OFF -Xep:InvalidParam:OFF -Xep:InvalidThrows:OFF -Xep:ReturnFromVoid:OFF</arg>
                     </compilerArgs>
                     <excludes>
                         <exclude>gov/noaa/pfel/coastwatch/sgt/LandMask.javaINACTIVE</exclude>
@@ -157,7 +171,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -260,7 +274,7 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.11.2</version>
+                <version>1.13.0</version>
                 <executions>
                     <execution>
                         <id>download-content</id>
@@ -358,8 +372,9 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>${mavenTestPluginVersion}</version>
                 <configuration>
+                    <argLine>${surefire.jacoco.args}</argLine>
                     <additionalClasspathElements>
                         <additionalClasspathElement>${project.basedir}/test-data</additionalClasspathElement>
                     </additionalClasspathElements>
@@ -369,7 +384,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>${mavenTestPluginVersion}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -377,6 +392,7 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <argLine>${failsafe.jacoco.args}</argLine>
                             <additionalClasspathElements>
                                 <additionalClasspathElement>${project.basedir}/test-data</additionalClasspathElement>
                             </additionalClasspathElements>
@@ -395,36 +411,111 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.9.4.2</version>
+                <configuration>
+                    <effort>max</effort>
+                    <maxHeap>2048</maxHeap>
+                    <includeFilterFile>spotbugs-security-include.xml</includeFilterFile>
+                </configuration>
+            </plugin>
+            <!-- <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
                 <version>4.8.6.5</version>
                 <configuration>
                     <maxHeap>2048</maxHeap>
-                    <includeFilterFile>spotbugs-security-include.xml</includeFilterFile>
-                    <excludeFilterFile>spotbugs-security-exclude.xml</excludeFilterFile>
-                    <plugins>
-                        <plugin>
+                     <includeFilterFile>spotbugs-security-include.xml</includeFilterFile> -->
+                    <!-- <excludeFilterFile>spotbugs-security-exclude.xml</excludeFilterFile> -->
+                    <!-- <plugins> -->
+                        <!-- <plugin>
                             <groupId>com.h3xstream.findsecbugs</groupId>
                             <artifactId>findsecbugs-plugin</artifactId>
-                            <version>1.12.0</version>
-                        </plugin>
-                    </plugins>
+                            <version>1.13.0</version>
+                        </plugin> -->
+                        <!-- <plugin>
+                            <groupId>com.mebigfatguy.fb-contrib</groupId>
+                            <artifactId>fb-contrib</artifactId>
+                            <version>7.6.8</version>
+                        </plugin> -->
+                    <!-- </plugins>
                 </configuration>
-            </plugin>
+            </plugin> -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <version>${jacocoMavenVersion}</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
+                    <id>before-unit-test-execution</id>
+                    <goals>
+                    <goal>prepare-agent</goal>
+                    </goals>
+                    <configuration>
+                    <destFile>${project.build.directory}/jacoco-output/jacoco-unit-tests.exec</destFile>
+                    <propertyName>surefire.jacoco.args</propertyName>
+                    </configuration>
+                </execution>
+                <execution>
+                    <id>after-unit-test-execution</id>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                    <configuration>
+                        <dataFile>${project.build.directory}/jacoco-output/jacoco-unit-tests.exec</dataFile>
+                        <outputDirectory>${project.reporting.outputDirectory}/jacoco-unit-test-coverage-report</outputDirectory>
+                    </configuration>
                     </execution>
                     <execution>
-                        <id>generate-code-coverage-report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
+                    <id>before-integration-test-execution</id>
+                    <phase>pre-integration-test</phase>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                    <configuration>
+                        <destFile>${project.build.directory}/jacoco-output/jacoco-integration-tests.exec</destFile>
+                        <propertyName>failsafe.jacoco.args</propertyName>
+                    </configuration>
+                    </execution>
+                    <execution>
+                    <id>after-integration-test-execution</id>
+                    <phase>post-integration-test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                    <configuration>
+                        <dataFile>${project.build.directory}/jacoco-output/jacoco-integration-tests.exec</dataFile>
+                        <outputDirectory>${project.reporting.outputDirectory}/jacoco-integration-test-coverage-report</outputDirectory>
+                    </configuration>
+                    </execution>
+                    <execution>
+                    <id>merge-unit-and-integration</id>
+                    <phase>post-integration-test</phase>
+                    <goals>
+                        <goal>merge</goal>
+                    </goals>
+                    <configuration>
+                        <fileSets>
+                        <fileSet>
+                            <directory>${project.build.directory}/jacoco-output/</directory>
+                            <includes>
+                            <include>*.exec</include>
+                            </includes>
+                        </fileSet>
+                        </fileSets>
+                        <destFile>${project.build.directory}/jacoco-output/merged.exec</destFile>
+                    </configuration>
+                    </execution>
+                    <execution>
+                    <id>create-merged-report</id>
+                    <phase>post-integration-test</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                    <configuration>
+                        <dataFile>${project.build.directory}/jacoco-output/merged.exec</dataFile>
+                        <outputDirectory>${project.reporting.outputDirectory}/jacoco-merged-test-coverage-report</outputDirectory>
+                    </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -473,6 +564,59 @@
                     </formatterOptions>
                 </configuration>
             </plugin>
+             <plugin>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>dokka</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputDir>${project.basedir}/dokka/documentation/</outputDir>
+                    <sourceDirectories>
+                        <dir>${project.basedir}/WEB-INF/classes/com/cohort/util/</dir>
+                    </sourceDirectories>
+                    <suppressedFiles>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/Calendar2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/DoubleObject.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/File2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/HashDigest.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/Image2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/LRUCache.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/LICENSE.txt</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/MaskingThread.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/Math2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/MustBe.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/ResourceBundle2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/Script2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/SimpleException.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/String2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/String2Log.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/String2LogFactory.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/String2LogOutputStream.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/StringHolder.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/StringHolderComparator.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/StringHolderComparatorIgnoreCase.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/Test.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/Units2.java</file>
+                        <file>${project.basedir}/WEB-INF/classes/com/cohort/util/XML.java</file>
+                    </suppressedFiles>
+                    <jdkVersion>17</jdkVersion>
+                    <noStdlibLink>true</noStdlibLink> <!-- This is the Kotlin stdlib -->
+                    <dokkaPlugins>
+                        <plugin>
+                            <groupId>org.jetbrains.dokka</groupId>
+                             <artifactId>gfm-plugin</artifactId>
+                            <version>2.0.0</version>
+                        </plugin>
+                    </dokkaPlugins>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
           <plugins>
@@ -496,7 +640,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.13.0</version>
+                    <version>3.14.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -510,7 +654,7 @@
             <dependency>
               <groupId>software.amazon.awssdk</groupId>
               <artifactId>bom</artifactId>
-              <version>2.28.23</version> <!-- and same number several places below -->
+              <version>${awssdkVersion}</version> <!-- and same number several places below -->
               <type>pom</type>
               <scope>import</scope>
             </dependency>
@@ -518,7 +662,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.11.2</version>
+                <version>5.13.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -528,7 +672,7 @@
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>3.25.5</version>
+                <version>4.32.0</version>
             </dependency>
 
             <!--
@@ -546,25 +690,31 @@
             <dependency>
                 <groupId>dnsjava</groupId>
                 <artifactId>dnsjava</artifactId>
-                <version>3.6.2</version>
+                <version>3.6.3</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on -->
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
-                <version>1.78.1</version>
+                <version>1.81</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-configuration2 -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.11.0</version>
+                <version>2.12.0</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
             <dependency>
                 <groupId>com.nimbusds</groupId>
                 <artifactId>nimbus-jose-jwt</artifactId>
-                <version>9.41.2</version>
+                <version>10.4.2</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils -->
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.11.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -611,35 +761,27 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Kyle had this: 
-             https://mvnrepository.com/artifact/org.apache.ant/ant 
+        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
         <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.10.9</version>
-        </dependency>   -->
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.19.0</version>
+            <scope>test</scope>
+        </dependency>
 
        <!-- https://mvnrepository.com/artifact/com.github.librepdf/openpdf -->
         <dependency>
             <groupId>com.github.librepdf</groupId>
             <artifactId>openpdf</artifactId>
-            <version>2.0.3</version>
+            <version>3.0.0</version>
         </dependency>
 
-        <!-- Kyle had this: 
-        <dependency>
-            <groupId>wsdl4j</groupId>
-            <artifactId>wsdl4j</artifactId>
-            <version>1.6.3</version>
-        </dependency-->
-
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-core 
-             The Lucene search option uses this. 
-             2021-12-16 WARNING: Lucene 9.0.0 is available but requires Java 11(?). -->
+             The Lucene search option uses this. -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>10.0.0</version>
+            <version>${luceneVersion}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-queryparser 
@@ -647,7 +789,7 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queryparser</artifactId>
-            <version>10.0.0</version>
+            <version>${luceneVersion}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.json/json 
@@ -655,7 +797,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20240303</version>
+            <version>20250517</version>
         </dependency>
 
         <!-- I have private copy of source code in with my code.
@@ -667,26 +809,12 @@
             <version>2.0.2</version>
         </dependency-->
 
-        <!-- Kyle had this: 
-        <dependency>
-            <groupId>org.apache.axis</groupId>
-            <artifactId>axis</artifactId>
-            <version>1.4</version>
-        </dependency-->
-
-        <!-- Kyle had this: 
-        <dependency>
-            <groupId>atg.taglib.json</groupId>
-            <artifactId>json-taglib</artifactId>
-            <version>0.4.1</version>
-        </dependency-->
-
         <!-- https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail 
              Used to send emails. -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
-            <version>2.0.1</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- versions: https://mvnrepository.com/artifact/commons-codec/commons-codec
@@ -703,7 +831,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.27.1</version>
+            <version>1.28.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/commons-logging/commons-logging
@@ -720,7 +848,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
-            <version>2.1.0-alpha1</version>
+            <version>2.0.17</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -807,6 +935,25 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.sis.core/sis-metadata -->
+        <dependency>
+            <groupId>org.apache.sis.core</groupId>
+            <artifactId>sis-metadata</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.sis.storage/sis-storage -->
+        <dependency>
+            <groupId>org.apache.sis.storage</groupId>
+            <artifactId>sis-storage</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>4.0.5</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Version options: https://artifacts.unidata.ucar.edu/#browse/browse:unidata-all:edu%2Fwisc%2Fssec%2Fvisad  
              Marked as needed by dependency:analyze - ->
         <dependency>
@@ -833,7 +980,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-jexl3</artifactId>
-            <version>3.4.0</version>
+            <version>3.5.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql 
@@ -841,10 +988,8 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.4</version>
+            <version>42.7.7</version>
         </dependency>
-
-
 
         <!-- CASSANDRA 
              https://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core 
@@ -861,7 +1006,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.3.1-jre</version>
+            <version>33.4.8-jre</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/net.jpountz.lz4/lz4 
@@ -877,7 +1022,7 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>4.2.28</version>
+            <version>4.2.36</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/io.netty/netty-all 
@@ -885,7 +1030,13 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.114.Final</version>
+            <version>${nettyVersion}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-handler -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>${nettyVersion}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.xerial.snappy/snappy-java 
@@ -893,22 +1044,8 @@
         <dependency>
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
-            <version>1.1.10.7</version>
+            <version>1.1.10.8</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-jmx 
-            2021-01-25 Tried: To deal with java.lang.NoClassDefFoundError: com/codahale/metrics/JmxReporter
-            But now "metrics" option is always set to false.
-            See EDDTableFromCassandra references to JmxReporter.
-            See https://docs.datastax.com/en/developer/java-driver/3.5/manual/metrics/#metrics-4-compatibility            
-            and need for Cluster.builder().withoutJMXReporting()
-            which is probably a workable solution.           
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-jmx</artifactId>
-            <version>4.2.12</version>
-        </dependency -->
-
 
         <!-- AWS
              https://mvnrepository.com/artifact/software.amazon.awssdk/s3 
@@ -917,7 +1054,7 @@
         <dependency>
           <groupId>software.amazon.awssdk</groupId>
           <artifactId>s3</artifactId>
-          <version>2.28.23</version>
+          <version>${awssdkVersion}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/regions 
@@ -925,7 +1062,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>regions</artifactId>
-            <version>2.28.23</version>
+            <version>${awssdkVersion}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/s3-transfer-manager
@@ -933,50 +1070,53 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-transfer-manager</artifactId>
-            <version>2.28.23</version>
+            <version>${awssdkVersion}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/software.amazon.awssdk.crt/aws-crt
-            Maven compiling and dependency checking don't catch s3-transfer-manager's requirement for this.
-            (Bob says: This modern fancy programming sucks. 
-            Back in my day, if it compiled, all needed classes were present.) -->      
+            Maven compiling and dependency checking don't catch s3-transfer-manager's requirement for this. -->      
         <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
-            <version>0.31.3</version>
+            <version>0.38.12</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.google.auth/google-auth-library-oauth2-http -->
         <dependency>
             <groupId>com.google.auth</groupId>
             <artifactId>google-auth-library-oauth2-http</artifactId>
-            <version>1.28.0</version>
+            <version>1.39.0</version>
         </dependency>
 
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>prometheus-metrics-core</artifactId>
-            <version>1.3.1</version>
+            <version>${prometheusVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>prometheus-metrics-model</artifactId>
+            <version>${prometheusVersion}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>prometheus-metrics-instrumentation-jvm</artifactId>
-            <version>1.3.1</version>
+            <version>${prometheusVersion}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>prometheus-metrics-exporter-servlet-jakarta</artifactId>
-            <version>1.3.1</version>
+            <version>${prometheusVersion}</version>
         </dependency>
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.177</version>
+            <version>4.8.181</version>
         </dependency>
          <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
-            <version>3.4.0</version>
+            <version>3.4.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -987,17 +1127,36 @@
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-common</artifactId>
-            <version>1.14.3</version>
+            <version>${parquetVersion}</version>
         </dependency>
          <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-encoding</artifactId>
-            <version>1.14.3</version>
+            <version>${parquetVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-hadoop</artifactId>
-            <version>1.14.3</version>
+            <version>${parquetVersion}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.semver4j/semver4j -->
+        <dependency>
+            <groupId>org.semver4j</groupId>
+            <artifactId>semver4j</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hivemq</groupId>
+            <artifactId>hivemq-community-edition-embedded</artifactId>
+            <version>2025.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hivemq</groupId>
+            <artifactId>hivemq-mqtt-client</artifactId>
+            <version>1.3.7</version>
         </dependency>
     </dependencies>
 
@@ -1006,12 +1165,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>${mavenTestPluginVersion}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>${mavenTestPluginVersion}</version>
                 <reportSets>
                     <reportSet>
                         <id>integration-tests</id>
@@ -1024,7 +1183,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <version>${jacocoMavenVersion}</version>
                 <reportSets>
                     <reportSet>
                         <reports>

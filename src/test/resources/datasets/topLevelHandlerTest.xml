@@ -18,4 +18,7 @@
     <dataset type="EDDTableFromErddap" datasetID="CW_erdGtsppBest" active="false">
         <sourceUrl>https://coastwatch.pfeg.noaa.gov/erddap/tabledap/erdGtsppBest</sourceUrl>
     </dataset>
+    <displayAttribute>attribute1,attribute2</displayAttribute>
+    <displayInfo>info1,info2</displayInfo>
+    <displayInfo xml:lang="fr">renseignements1,renseignements2</displayInfo>
 </erddapDatasets>

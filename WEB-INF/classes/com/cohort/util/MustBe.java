@@ -6,10 +6,11 @@ package com.cohort.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.text.MessageFormat;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * This class contains static procedures generate standard error messages.
@@ -37,7 +38,7 @@ import java.util.Map;
  * </UL>
  */
 public class MustBe {
-  public static String lineSeparator = "\n"; // not String2.lineSeparator;
+  public static final String lineSeparator = "\n"; // not String2.lineSeparator;
 
   /**
    * This matches the standard DAP message (except different case) for no data found. This is NOT
@@ -45,10 +46,6 @@ public class MustBe {
    */
   public static String THERE_IS_NO_DATA = "Your query produced no matching results.";
 
-  /** These are MessageFormat-style strings that are NOT final so EDStatic can change them. */
-  public static String NotNull = "{0} must not be null.";
-
-  public static String NotEmpty = "{0} must not be an empty string.";
   public static String InternalError = "Internal Error";
   public static String OutOfMemoryError = "Out Of Memory Error";
 
@@ -62,37 +59,11 @@ public class MustBe {
     // this is (relatively) a very slow method: ~50ms.
     // so generating lots of stackTraces takes a lot of time!
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(baos);
-    try {
+    try (PrintStream ps = new PrintStream(baos)) {
       new Exception().printStackTrace(ps);
-    } finally {
-      ps.close(); // it flushes first
     }
-    return baos.toString();
-  }
-
-  /**
-   * This gets the stack trace of the thread, which can be useful for debugging. This is useful for
-   * debugging when no throwable is already available.
-   */
-  public static String getStackTrace(Thread thread) {
-    try {
-      StringBuilder sb = new StringBuilder("Stack trace for thread=" + thread.getName() + ":\n");
-      StackTraceElement st[] = thread.getStackTrace();
-      for (int i = 0; i < st.length; i++) sb.append(st[i].toString() + "\n");
-      return sb.toString();
-    } catch (Throwable t) {
-      return "ERROR while trying to get stack trace:\n" + throwableToString(t);
-    }
-  }
-
-  /**
-   * This prints the current stack trace to System.err. This is useful for debugging when no
-   * throwable is already available.
-   */
-  public static void printStackTrace() {
-    // generate the Exception
-    String2.log(throwableToString(new Exception()));
+    // it flushes first
+    return baos.toString(StandardCharsets.UTF_8);
   }
 
   /**
@@ -135,20 +106,20 @@ public class MustBe {
     for (i = 0; i < n; i++) if (ba[i] == '\t') ba[i] = (byte) 32;
 
     // convert to ArrayList of Strings
-    ArrayList<String> arrayList = String2.multiLineStringToArrayList(new String(ba));
+    List<String> arrayList =
+        String2.multiLineStringToArrayList(new String(ba, StandardCharsets.UTF_8));
 
     // remove the first nRemoveLines lines; trim strings; store results in ca
     if (nRemoveLines < 0) nRemoveLines = 0;
     if (nRemoveLines > arrayList.size()) nRemoveLines = arrayList.size();
     for (i = 0; i < nRemoveLines; i++)
-      arrayList.remove(0); // each time #0 is removed, another becomes #0
+      arrayList.removeFirst(); // each time #0 is removed, another becomes #0
     String seBase = "com.cohort.util.";
     String seName = "SimpleException";
     StringBuilder sb = new StringBuilder();
     for (i = 0; i < arrayList.size(); i++) {
       String s = arrayList.get(i);
       if (i == 0 && s.startsWith(seBase + seName)) s = s.substring(seBase.length());
-      String trims = s.trim();
       // if (removeAtJava && trims.startsWith("at java")) {}       //with Java 17, there is no "at
       // "!!! Comment out because I like seeing the java, sun, apache lines.
       // else if (removeAtSun && trims.startsWith("at sun")) {}
@@ -214,89 +185,6 @@ public class MustBe {
         3
         // , true, true, true
         );
-  }
-
-  /**
-   * This returns an error message like:
-   *
-   * <pre>
-   *   String2.toUpperCase:
-   *   's' must not be null</pre>
-   *
-   * .
-   *
-   * <UL>
-   *   <LI>E.g., MustBe.notNull("MyClass.myMethod", "Value");
-   * </UL>
-   */
-  public static String notNull(String classAndMethodName, String valueName) {
-    return classAndMethodName
-        + ":"
-        + lineSeparator
-        + MessageFormat.format(NotNull, String2.toJson(valueName))
-        + lineSeparator
-        + stackTrace();
-  }
-
-  /**
-   * This returns an error message like:
-   *
-   * <pre>
-   *   String2.toUpperCase:
-   *   's' must not be an empty string</pre>
-   *
-   * .
-   *
-   * <UL>
-   *   <LI>E.g., MustBe.notEmpty("MyClass.myMethod", "Value");
-   * </UL>
-   */
-  public static String notEmpty(String classAndMethodName, String valueName) {
-    return classAndMethodName
-        + ":"
-        + lineSeparator
-        + MessageFormat.format(NotEmpty, String2.toJson(valueName))
-        + lineSeparator
-        + stackTrace();
-  }
-
-  /**
-   * This returns an error message like:
-   *
-   * <pre>
-   *   Data.keepIf:
-   *   Internal error: f.u.n.=-1.</pre>
-   *
-   * .
-   *
-   * <UL>
-   *   <LI>E.g., MustBe.internalError("MyClass.myMethod", "message");
-   * </UL>
-   */
-  public static String internalError(String classAndMethodName, String message) {
-    return classAndMethodName
-        + ":"
-        + lineSeparator
-        + InternalError
-        + ": "
-        + message
-        + lineSeparator
-        + stackTrace();
-  }
-
-  /**
-   * This returns an error message like:
-   *
-   * <pre>
-   *   Data.keepIf:
-   *   Not enough data.</pre>
-   *
-   * <UL>
-   *   <LI>E.g., MustBe.error("MyClass.myMethod", "My message.");
-   * </UL>
-   */
-  public static String error(String classAndMethodName, String message) {
-    return classAndMethodName + ":" + lineSeparator + message + lineSeparator + stackTrace();
   }
 
   /**
@@ -383,19 +271,17 @@ public class MustBe {
     try {
       // gather info for each thread
       // long tTime = System.currentTimeMillis();
-      Thread thread = Thread.currentThread();
-      Object oar[] = thread.getAllStackTraces().entrySet().toArray();
+      Set<Entry<Thread, StackTraceElement[]>> oar = Thread.getAllStackTraces().entrySet();
       int count = 0;
       int tomcatWaiting = 0;
       int inotify = 0;
-      String sar[] = new String[oar.length];
-      for (int i = 0; i < oar.length; i++) {
+      String sar[] = new String[oar.size()];
+      for (Entry<Thread, StackTraceElement[]> me : oar) {
         try {
-          Map.Entry me = (Map.Entry) oar[i];
-          Thread t = (Thread) me.getKey();
+          Thread t = me.getKey();
           String threadName = t.getName();
           if (threadName == null) threadName = "";
-          StackTraceElement ste[] = (StackTraceElement[]) me.getValue();
+          StackTraceElement ste[] = me.getValue();
           String ste0 = ste.length < 1 ? "" : ste[0].toString();
           if (hideThisThread
               && ste0.endsWith("java.lang.Thread.dumpThreads(Native Method)")) // Java 17+
@@ -421,9 +307,9 @@ public class MustBe {
           }
 
           sar[count] =
-              t.toString()
+              t
                   + " "
-                  + t.getState().toString()
+                  + t.getState()
                   + (t.isDaemon() ? " daemon\n" : "\n")
                   + String2.toNewlineString(ste)
                   + "\n";

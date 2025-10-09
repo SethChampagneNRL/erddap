@@ -8,13 +8,14 @@ import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import gov.noaa.pfel.coastwatch.griddata.NcHelper;
 import gov.noaa.pfel.erddap.dataset.*;
+import gov.noaa.pfel.erddap.util.EDMessages;
 import gov.noaa.pfel.erddap.util.EDStatic;
 import gov.noaa.pfel.erddap.variable.EDVAlt;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDTableFromFilesHandler extends BaseTableHandler {
-  private String datasetType;
+  private final String datasetType;
 
   public EDDTableFromFilesHandler(
       SaxHandler saxHandler, String datasetID, State completeState, String datasetType) {
@@ -28,7 +29,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
   private String tFileNameRegex = ".*";
   private boolean tRecursive = false;
   private String tPathRegex = ".*";
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
   private String tMetadataFrom = MF_LAST;
   private String tPreExtractRegex = "", tPostExtractRegex = "", tExtractRegex = "";
   private String tColumnNameForExtract = "";
@@ -48,6 +49,20 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
   private int tCacheSizeGB = -1;
   private String tCachePartialPathRegex = null;
 
+  // Mqtt specific parameters
+  private String serverHost = null;
+  private Integer serverPort = null;
+  private String clientId = null;
+  private String username = null;
+  private String password = null;
+  private String[] topics = null;
+  private boolean useSsl = false;
+  private int keepAlive = 60;
+  private boolean cleanStart = true;
+  private int sessionExpiryInterval = 0;
+  private int connectionTimeout = 30;
+  private boolean automaticReconnect = true;
+
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes)
       throws SAXException {
@@ -58,9 +73,9 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
     }
   }
 
-  private EDD getDataset(Object[][] ttDataVariables) throws Throwable {
+  private EDD getDataset() throws Throwable {
     EDD dataset;
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     switch (datasetType) {
       case "EDDTableFromAsciiFiles" ->
           dataset =
@@ -75,7 +90,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -118,7 +133,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -161,7 +176,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -204,7 +219,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -247,7 +262,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -290,7 +305,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -320,6 +335,62 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tCacheSizeGB,
                   tCachePartialPathRegex,
                   tAddVariablesWhere);
+      case "EDDTableFromMqtt" ->
+          dataset =
+              new EDDTableFromMqtt(
+                  "EDDTableFromMqtt",
+                  datasetID,
+                  tAccessibleTo,
+                  tGraphsAccessibleTo,
+                  tOnChange,
+                  tFgdcFile,
+                  tIso19115File,
+                  tSosOfferingPrefix,
+                  tDefaultDataQuery,
+                  tDefaultGraphQuery,
+                  tGlobalAttributes,
+                  tDataVariables,
+                  tReloadEveryNMinutes,
+                  tUpdateEveryNMillis,
+                  tFileDir,
+                  tFileNameRegex,
+                  tPathRegex,
+                  tMetadataFrom,
+                  tCharset,
+                  tSkipHeaderToRegex,
+                  tSkipLinesRegex,
+                  tColumnNamesRow,
+                  tFirstDataRow,
+                  tColumnSeparator,
+                  tPreExtractRegex,
+                  tPostExtractRegex,
+                  tExtractRegex,
+                  tColumnNameForExtract,
+                  tSortedColumnSourceName,
+                  tSortFilesBySourceNames,
+                  tSourceNeedsExpandedFP_EQ,
+                  tFileTableInMemory,
+                  tAccessibleViaFiles,
+                  tRemoveMVRows,
+                  tStandardizeWhat,
+                  tNThreads,
+                  tCacheFromUrl,
+                  tCacheSizeGB,
+                  tCachePartialPathRegex,
+                  tAddVariablesWhere,
+                  // Mqtt specific parameters
+                  serverHost,
+                  serverPort,
+                  clientId,
+                  username,
+                  password,
+                  topics,
+                  useSsl,
+                  keepAlive,
+                  cleanStart,
+                  sessionExpiryInterval,
+                  connectionTimeout,
+                  automaticReconnect);
       case "EDDTableFromInvalidCRAFiles" ->
           dataset =
               new EDDTableFromInvalidCRAFiles(
@@ -333,7 +404,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -376,7 +447,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -419,7 +490,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -462,7 +533,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -505,7 +576,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                   tDefaultDataQuery,
                   tDefaultGraphQuery,
                   tGlobalAttributes,
-                  ttDataVariables,
+                  tDataVariables,
                   tReloadEveryNMinutes,
                   tUpdateEveryNMillis,
                   tFileDir,
@@ -539,12 +610,14 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
         String qrName = quickRestartFullFileName(datasetID);
         long tCreationTime = System.currentTimeMillis();
 
-        if (EDStatic.quickRestart && EDStatic.initialLoadDatasets() && File2.isFile(qrName)) {
+        if (EDStatic.config.quickRestart
+            && EDStatic.initialLoadDatasets()
+            && File2.isFile(qrName)) {
           tCreationTime = File2.getLastModified(qrName);
         } else {
           EDDTableFromHyraxFiles.makeDownloadFileTasks(
               datasetID,
-              tGlobalAttributes.getString("sourceUrl"),
+              tGlobalAttributes.getString(language, "sourceUrl"),
               tFileNameRegex,
               tRecursive,
               tPathRegex);
@@ -567,7 +640,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                 tDefaultDataQuery,
                 tDefaultGraphQuery,
                 tGlobalAttributes,
-                ttDataVariables,
+                tDataVariables,
                 tReloadEveryNMinutes,
                 tUpdateEveryNMillis,
                 tFileDir,
@@ -604,12 +677,14 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
         String qrName = quickRestartFullFileName(datasetID);
         long tCreationTime = System.currentTimeMillis(); // used below
 
-        if (EDStatic.quickRestart && EDStatic.initialLoadDatasets() && File2.isFile(qrName)) {
+        if (EDStatic.config.quickRestart
+            && EDStatic.initialLoadDatasets()
+            && File2.isFile(qrName)) {
           tCreationTime = File2.getLastModified(qrName);
         } else {
           EDDTableFromThreddsFiles.makeDownloadFileTasks(
               datasetID,
-              tGlobalAttributes.getString("sourceUrl"),
+              tGlobalAttributes.getString(language, "sourceUrl"),
               tFileNameRegex,
               tRecursive,
               tPathRegex,
@@ -633,7 +708,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                 tDefaultDataQuery,
                 tDefaultGraphQuery,
                 tGlobalAttributes,
-                ttDataVariables,
+                tDataVariables,
                 tReloadEveryNMinutes,
                 tUpdateEveryNMillis,
                 tFileDir,
@@ -667,10 +742,10 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
         dataset.creationTimeMillis = tCreationTime;
       }
       case "EDDTableFromWFSFiles" -> {
-        String fileDir = EDStatic.fullCopyDirectory + datasetID + "/";
+        String fileDir = EDStatic.config.fullCopyDirectory + datasetID + "/";
         String fileName = "data.tsv";
         long tCreationTime = System.currentTimeMillis();
-        if (EDStatic.quickRestart
+        if (EDStatic.config.quickRestart
             && EDStatic.initialLoadDatasets()
             && File2.isFile(fileDir + fileName)) {
           tCreationTime = File2.getLastModified(fileDir + fileName);
@@ -679,8 +754,8 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
           File2.makeDirectory(fileDir);
           String error =
               EDDTableFromWFSFiles.downloadData(
-                  tGlobalAttributes.getString("sourceUrl"),
-                  tGlobalAttributes.getString("rowElementXPath"),
+                  tGlobalAttributes.getString(language, "sourceUrl"),
+                  tGlobalAttributes.getString(language, "rowElementXPath"),
                   fileDir + fileName);
           if (!error.isEmpty()) String2.log(error);
         }
@@ -697,7 +772,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                 tDefaultDataQuery,
                 tDefaultGraphQuery,
                 tGlobalAttributes,
-                ttDataVariables,
+                tDataVariables,
                 tReloadEveryNMinutes,
                 tUpdateEveryNMillis,
                 fileDir,
@@ -744,7 +819,7 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
                 tDefaultDataQuery,
                 tDefaultGraphQuery,
                 tGlobalAttributes,
-                ttDataVariables,
+                tDataVariables,
                 tReloadEveryNMinutes,
                 tUpdateEveryNMillis,
                 tFileDir,
@@ -819,6 +894,16 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
       case "cacheFromUrl" -> tCacheFromUrl = contentStr;
       case "cacheSizeGB" -> tCacheSizeGB = String2.parseInt(contentStr);
       case "cachePartialPathRegex" -> tCachePartialPathRegex = contentStr;
+      case "serverHost" -> serverHost = contentStr;
+      case "serverPort" -> serverPort = String2.parseIntObject(contentStr);
+      case "clientId" -> clientId = contentStr;
+      case "username" -> username = contentStr;
+      case "password" -> password = contentStr;
+      case "topics" -> topics = contentStr.trim().split(",");
+      case "useSsl" -> useSsl = String2.parseBoolean(contentStr);
+      case "sessionExpiryInterval" -> sessionExpiryInterval = String2.parseInt(contentStr);
+      case "connectionTimeout" -> connectionTimeout = String2.parseInt(contentStr);
+      case "automaticReconnect" -> automaticReconnect = String2.parseBoolean(contentStr);
 
       default -> {
         return false;
@@ -829,7 +914,6 @@ public class EDDTableFromFilesHandler extends BaseTableHandler {
 
   @Override
   protected EDD buildDataset() throws Throwable {
-    Object[][] ttDataVariables = convertDataVariablesToArray();
-    return getDataset(ttDataVariables);
+    return getDataset();
   }
 }

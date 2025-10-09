@@ -9,7 +9,6 @@ import com.cohort.array.IntArray;
 import com.cohort.util.Math2;
 import com.cohort.util.MustBe;
 import com.cohort.util.String2;
-import gov.noaa.pmel.sgt.AbstractPane;
 import gov.noaa.pmel.sgt.JPane;
 import gov.noaa.pmel.sgt.Layer;
 import gov.noaa.pmel.sgt.LayerChild;
@@ -155,7 +154,6 @@ public class CompoundColorMapLayerChild implements LayerChild {
           Math.max(1, Math2.roundToInt(Math.ceil(n * 0.55 * max * labelHeight / width)));
 
       // draw the colorbar
-      SGLabel label;
       for (int piece = 0; piece < n; piece++) {
         left = right;
         right = layer.getXPtoD(leftX + (piece + 1) * width / n);
@@ -393,16 +391,6 @@ public class CompoundColorMapLayerChild implements LayerChild {
   @Override
   public void setVisible(boolean visible) {
     this.visible = visible;
-  }
-
-  /**
-   * Get <code>AbstractPane</code> of the <code>LayerChild</code>.
-   *
-   * @since 2.0
-   */
-  @Override
-  public AbstractPane getPane() {
-    return layer.getPane();
   }
 
   /**

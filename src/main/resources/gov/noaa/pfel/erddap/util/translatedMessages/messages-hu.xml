@@ -64,7 +64,6 @@ A tömörítés kérése nem kötelező, de a tömörített válaszok gyakran 3-
 <acronyms>Betűszavak</acronyms>
 <addConstraints>A weboldalra vonatkozó kérésekhez tabledap-szerű megszorításokat adhat hozzá,
 például,</addConstraints>
-<addVarWhereAttName>Nem kötelező: Adjon meg egy attribútumnevet.</addVarWhereAttName>
 <addVarWhereAttValue>Nem kötelező: Adjon meg egy attribútumértéket.</addVarWhereAttValue>
 <addVarWhere><![CDATA[
 
@@ -96,11 +95,11 @@ Ezután ERDDAP hozzáadja az összeset
 <advl_institution>Intézmény</advl_institution>
 <advc_dataStructure>Az ERDDAP minden adatkészletet „rács” vagy „tábla” adatkészletként kezel.</advc_dataStructure>
 <advl_dataStructure>Adatstruktúra</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>Közös adatmodell típus</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>ERDDAP osztály</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>Cím</advl_title>
 <advl_minLongitude>Minimális hosszúság</advl_minLongitude>
 <advl_maxLongitude>Maximális hosszúság</advl_maxLongitude>
@@ -145,7 +144,7 @@ Ezután ERDDAP hozzáadja az összeset
 <advn_outOfDate><![CDATA[
 
 Úgy tűnik, egyetlen adatkészlet sem rendelkezik a
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> attribútummal.
 Talán nincsenek közel valós idejű adatkészletek ebben ERDDAP .
 
@@ -298,9 +297,6 @@ Ezután egy kategóriára kattintva megtekintheti a releváns adatkészletek lis
 <categorySearchHtml><![CDATA[
 Válasszon egy(n) <kbd>{0}</kbd>
 ]]></categorySearchHtml>
-<categorySearchDifferentHtml><![CDATA[
-Adatkészletek keresése másik <kbd>&category;</kbd>
-]]></categorySearchDifferentHtml>
 <categoryClickHtml>Kattintson egy kategóriára (egy attribútumértékre) a releváns adatkészletek listájának megtekintéséhez.</categoryClickHtml>
 <categoryNotAnOption>Amikor az attribútum=&quot;{0}&quot;, az érték=&quot;{1}&quot; nem választható.</categoryNotAnOption>
 <caughtInterrupted>elkapott currentThread().isInterrupted().</caughtInterrupted>
@@ -363,6 +359,8 @@ Vagy
 <a rel="help" href="#computerProgram">hagyja ki ezt a weboldalt</a>, és végezzen konverziót egy számítógépes programon, szkripten vagy weboldalon belül.
 
 ]]></convertBypass>
+<convertCOLORs>színek</convertCOLORs>
+<convertCOLORsMessage>Konvert értéke a színesbárból</convertCOLORsMessage>
 <convertToAFullName><![CDATA[
 <strong>Átalakítás {0} névről teljes névre.</strong>
 ]]></convertToAFullName>
@@ -1863,9 +1861,6 @@ más időpontból vagy helyről).
 
 ]]></dafTableTooltip>
 <dasTitle>Az adatkészlet attribútum-struktúrája (.das) ehhez az adatkészlethez</dasTitle>
-
-<!--  A megjelenítendő üzenet, ha az adatokat nem lehet letölteni (pl. SeaWiFS &lt;=14 napos).  -->
-<dataAccessNotAllowed>[Sajnálom. Ezeket az adatokat nem lehet letölteni.]</dataAccessNotAllowed>
 <databaseUnableToConnect>Nem lehet csatlakozni az adatbázishoz.</databaseUnableToConnect>
 <dataProviderForm>Adatszolgáltatói űrlap</dataProviderForm>
 <dataProviderFormP1>Adatszolgáltatói űrlap – 1. rész</dataProviderFormP1>
@@ -1985,7 +1980,7 @@ Ebbe beletartozik:
 <li>Jelenleg egy relációs adatbázisban tárolt
 <a class="selfLink" id="databases" href="#databases" rel="bookmark">adatok</a> .
 <br>Kérjük, olvassa el az
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> adatkészlet-típusról szóló információkat ERDDAP ban, különösen a kezdeti ~2 képernyőt, amely egy denormalizált tábla létrehozásának szükségességéről szól.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> adatkészlet-típusról szóló információkat ERDDAP ban, különösen a kezdeti ~2 képernyőt, amely egy denormalizált tábla létrehozásának szükségességéről szól.
 Ez őrülten hangozhat.
 Kérjük, bízzon eléggé ahhoz, hogy elolvassa ennek indoklását.
 <br>&nbsp;
@@ -2199,10 +2194,6 @@ Kattintson &widgetSubmitButton; hogy elküldje ezt az információt az ERDDAP ad
 <br>Kérjük, javítsa ki ezeket a problémákat, majd ismét „Küldje be” az űrlap ezen részét.
 
 ]]></dpf_fixProblem>
-<dpf_yourName>A neved</dpf_yourName>
-<dpf_emailAddress>Email cím</dpf_emailAddress>
-<dpf_Timestamp>Időbélyeg</dpf_Timestamp>
-<dpf_frequency>Frekvencia</dpf_frequency>
 <dpf_title>cím</dpf_title>
 <dpf_titleTooltip><![CDATA[
 
@@ -2282,12 +2273,6 @@ Ez az adatok felhasználására vonatkozó engedély és felelősség kizárása
 <br><kbd>
 
 ]]></dpf_licenseTooltip>
-<dpf_howYouStoreData><![CDATA[
-
-<br>• Hiba:
-Kérjük, adja meg (lent), hogyan tárolja a rácsos vagy táblázatos adatokat.
-
-]]></dpf_howYouStoreData>
 <dpf_provideIfAvailable>Kérjük, adja meg az információkat, ha az Ön adatkészletéhez rendelkezésre áll.</dpf_provideIfAvailable>
 <dpf_acknowledgement>elismerés</dpf_acknowledgement>
 <dpf_acknowledgementTooltip><![CDATA[
@@ -2593,10 +2578,8 @@ Ennek az adatkészlet-beküldésnek az időbélyege &tTimestamp; .
 <dtWMS>Kattintson ide, ha megtudhatja, hogyan készíthet térképeket ezen adatokról az adatkészlet webes térképszolgáltatásán keresztül.</dtWMS>
 <EasierAccessToScientificData>Könnyebb hozzáférés a tudományos adatokhoz</EasierAccessToScientificData>
 
-<!--  Az EDD üzenetek megjelennek a tabledap és griddap adatelérési űrlapokon.  -->
-<EDDClickOnSubmitHtml><![CDATA[
-Kattintson a <kbd>Submit</kbd> .
-]]></EDDClickOnSubmitHtml>
+<!--Az EDD üzenetek jelennek meg atabledapés a griddap Data Access Forms.
+-->
 <EDDDatasetID>Adatkészlet azonosítója</EDDDatasetID>
 <EDDFgdc>FGDC</EDDFgdc>
 <EDDFgdcMetadata>FGDC-STD-001-1998 Metaadatok</EDDFgdcMetadata>
@@ -2609,9 +2592,7 @@ Kattintson a <kbd>Submit</kbd> .
 <EDDInformation>Információ</EDDInformation>
 <EDDSummary>Összegzés</EDDSummary>
 <EDDDatasetTitle>Adatkészlet címe</EDDDatasetTitle>
-<EDDDownloadData>Adatok letöltése</EDDDownloadData>
 <EDDMakeAGraph>Készítsen grafikont</EDDMakeAGraph>
-<EDDMakeAMap>Készítsen térképet</EDDMakeAMap>
 <EDDMinimum>Minimális</EDDMinimum>
 <EDDMaximum>Maximális</EDDMaximum>
 <EDDFileType>Fájltípus:</EDDFileType>
@@ -2680,8 +2661,6 @@ Ez készíti el az URL-t az Ön számára.
 ]]></EDDGridDownloadDataTooltip>
 <EDDGridDimension>Méretek</EDDGridDimension>
 <EDDGridDimensionRanges>Méretek</EDDGridDimensionRanges>
-<EDDGridFirst>Első</EDDGridFirst>
-<EDDGridLast>Utolsó</EDDGridLast>
 <EDDGridStart>Rajt</EDDGridStart>
 <EDDGridStop>Állj meg</EDDGridStop>
 <EDDGridStartStopTooltip><![CDATA[
@@ -2725,14 +2704,6 @@ ez egy dimenzió értékei közötti átlagos távolság (a dimenzió egységeib
 A kissé furcsa, egyenetlen térköz gyakran azt jelzi, hogy egy vagy néhány fájl hiányzik vagy hibás egy egyébként tökéletesen egyenletes távolságú adatkészletben.
 
 ]]></EDDGridSpacingTooltip>
-<EDDGridDimensionFirstTooltip><![CDATA[
-Tájékoztatásul:
-ez egy dimenzió első értéke.
-]]></EDDGridDimensionFirstTooltip>
-<EDDGridDimensionLastTooltip><![CDATA[
-Tájékoztatásul:
-ez egy dimenzió utolsó értéke.
-]]></EDDGridDimensionLastTooltip>
 <EDDGridDownloadTooltip><![CDATA[
 Válassza ki a letölteni kívánt változókat:
 <br>* Csak méretadatok letöltéséhez:
@@ -3012,10 +2983,6 @@ Például:
 
 <!--  Ezek az üzenetek hibaüzenet megjelenésekor jelennek meg.  -->
 <errorTitle>Hiba</errorTitle>
-<errorRequestUrl>Kérésének URL-je:</errorRequestUrl>
-<errorRequestQuery>Az Ön kérése:</errorRequestQuery>
-<errorTheError>A hiba:</errorTheError>
-<errorCopyFrom>Nem lehet másolni innen: {0}.</errorCopyFrom>
 <errorFileNotFound>A fájl nem található: {0}.</errorFileNotFound>
 <errorFileNotFoundImage>A fájl nem található a gyorsítótárban. Hozza létre újra a képet, és próbálja újra.</errorFileNotFoundImage>
 <errorInternal>Belső hiba:</errorInternal>
@@ -3037,6 +3004,7 @@ Például:
 <externalLink>(külső hivatkozás)</externalLink>
 <externalWebSite>Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak.</externalWebSite>
 <fileHelp_asc>Tekintse meg az OPeNDAP-stílusú ISO-8859-1 vesszővel elválasztott szöveget.</fileHelp_asc>
+<fileHelp_croissant>Töltse le az adatkészlet croissant schema.</fileHelp_croissant>
 <fileHelp_csv>Töltse le az ISO-8859-1 vesszővel elválasztott szövegtáblázatot (1. sor: nevek; 2. sor: egységek; ISO 8601-szer).</fileHelp_csv>
 <fileHelp_csvp>Töltsön le egy ISO-8859-1 .csv fájlt 1. sorral: név (egységek). Az idők ISO 8601 karakterláncok.</fileHelp_csvp>
 <fileHelp_csv0>Töltsön le egy ISO-8859-1 .csv fájlt oszlopnevek és mértékegységek nélkül. Az idők ISO 8601 karakterláncok.</fileHelp_csv0>
@@ -3048,12 +3016,18 @@ Például:
 <fileHelpTable_esriCsv>Töltsön le egy ISO_8859_1 .csv fájlt az ESRI ArcGIS 9.x és korábbi verzióihoz (külön dátum és idő oszlopok).</fileHelpTable_esriCsv>
 <fileHelp_fgdc>Tekintse meg az adatkészlet UTF-8 FGDC .xml metaadatait.</fileHelp_fgdc>
 <fileHelp_geoJson>Töltse le a hosszúsági, szélességi és egyéb oszlopok adatait UTF-8 GeoJSON .json fájlként.</fileHelp_geoJson>
-<fileHelp_graph>Tekintse meg a Make A Graph weboldalt.</fileHelp_graph>
 <fileHelpGrid_help>Tekintse meg a griddap leírását tartalmazó weboldalt.</fileHelpGrid_help>
 <fileHelpTable_help>Tekintse meg a tabledap leírását tartalmazó weboldalt.</fileHelpTable_help>
 <fileHelp_html>Tekintse meg az OPeNDAP-stílusú HTML adatelérési űrlapot.</fileHelp_html>
 <fileHelp_htmlTable>Tekintse meg az UTF-8 .html weboldalt az adatokkal egy táblázatban. Az idők ISO 8601 karakterláncok.</fileHelp_htmlTable>
-<fileHelp_iso19115>Tekintse meg az adatkészlet ISO 19115-2/19139 UTF-8 .xml metaadatait.</fileHelp_iso19115>
+<fileHelp_iso19115>Az adatkészlet megtekintéseISO 19115/19139UTF-8 .xml metaadata használja a verzió alapértelmezettségét ehhez a szerverhez.
+</fileHelp_iso19115>
+<fileHelp_iso19115_2>Az adatkészlet megtekintéseISO 19115-2/19139UTF-8 .xml metaadata.
+</fileHelp_iso19115_2>
+<fileHelp_iso191392007>Az adatkészlet megtekintéseISO 19139:2007UTF-8 .xml metaadata.
+</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>Az adatkészlet megtekintéseISO 19115-3:2016UTF-8 .xml metaadata.
+</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>Töltse le az ISO-8859-1 Igor szövegfájlt. Minden tengelyváltozó és minden adatváltozó hullámmá válik.</fileHelp_itxGrid>
 <fileHelp_itxTable>Töltse le az ISO-8859-1 Igor szövegfájlt. Minden válaszoszlop hullámmá válik.</fileHelp_itxTable>
 <fileHelp_json>Táblázatszerű UTF-8 JSON-fájl megtekintése (hiányzó érték = &#39;null&#39;; az idők ISO 8601-es karakterláncok).</fileHelp_json>
@@ -3079,7 +3053,6 @@ Például:
 <fileHelpTable_odvTxt>Hosszúság, szélesség, idő, egyéb oszlopok letöltése általános ISO-8859-1 ODV táblázatfájlként (.txt).</fileHelpTable_odvTxt>
 <fileHelp_parquet>Töltse le, mint egy parquet fájl. A Metadata oszlopneveket (&quot;column_names&quot;) és egységeket (&quot;column_units&quot;).</fileHelp_parquet>
 <fileHelp_parquet_with_meta>Töltse le, mint egy parquet fájl részletes metaadatokkal.</fileHelp_parquet_with_meta>
-<fileHelp_subset>Tekintsen meg egy HTML-űrlapot, amely fazettált keresést használ az adatok részhalmazainak kiválasztásának egyszerűsítésére.</fileHelp_subset>
 <fileHelp_timeGaps>Tekintse meg az UTF-8-as listát az időértékek hézagairól, amelyek nagyobbak, mint a medián rés.</fileHelp_timeGaps>
 <fileHelp_tsv>Töltsön le egy ISO-8859-1 tabulátorral elválasztott szövegtáblázatot (1. sor: nevek; 2. sor: egységek; ISO 8601-szer).</fileHelp_tsv>
 <fileHelp_tsvp>Töltsön le egy ISO-8859-1 .tsv fájlt 1. sorral: név (egységek). Az idők ISO 8601 karakterláncok.</fileHelp_tsvp>
@@ -3099,7 +3072,6 @@ Például:
 
 <!--  A Leírás és Figyelmeztetés megfogalmazása homályos, hogy lehetővé tegye egy vagy több adatkészletet.  -->
 <filesDescription>Az ERDDAP &quot;fájlrendszere&quot; lehetővé teszi a virtuális fájlrendszer böngészését és a forrásadatfájlok letöltését.</filesDescription>
-<filesSort>Kattintson egy címsorra (pl. Név, Utolsó módosítás, Méret) a rendezési sorrend megváltoztatásához.  Az „Utolsó módosítás” a zulu időzónát használja.</filesSort>
 <filesWarning><![CDATA[
 
 Az adatkészlet metaadatai és változói ezekben a forrásfájlokban eltérhetnek, mint ERDDAP máshol! Lehet, hogy inkább az adatkészlet adatelérési űrlapját használja.
@@ -3377,7 +3349,7 @@ Mindkét verzió fájljai .nc kiterjesztéssel rendelkeznek, és .nc fájlokat o
 <a rel="help" href="https://anaconda.org/eumetsat/ncview"><img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak."></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, egy hatékony parancssori eszköz .nc fájlok végleges módosításához.
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, egy hatékony parancssori eszköz .nc fájlok végleges módosításához.
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C és NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak."></a>, a C, C++, Fortran vagy Java fő szoftverkönyvtárai .nc fájlok olvasásához és írásához.
@@ -3551,13 +3523,6 @@ Ebben a sorban a többi változó összege lesz.
 Például orderByMax(&quot;stationID, time/1day&quot;) minden naphoz létrehoz egy csoportot minden egyes stationID, és kiszámítja és visszaadja a többi változó összegét.
 
 ]]></functionOrderByTooltip>
-<functionOrderByExtra><![CDATA[
-
-orderByClosest esetén itt adja meg az intervallumot (n[timeUnits] formátumban, pl.
-1 óra).
-<br>orderByLimit esetén itt adja meg a csoportonkénti sorok maximális számát.
-
-]]></functionOrderByExtra>
 <functionOrderBySort><![CDATA[
 
 Ez a(z) {0} fontos orderBy ...
@@ -3570,7 +3535,6 @@ hely.
 <functionOrderBySort3>harmadik legtöbb</functionOrderBySort3>
 <functionOrderBySort4>negyedik legtöbb</functionOrderBySort4>
 <functionOrderBySortLeast>legkevésbé</functionOrderBySortLeast>
-<functionOrderBySortRowMax>Csak a maximális értékkel rendelkező sor marad meg.</functionOrderBySortRowMax>
 <generatedAt>Ez a weboldal itt jött létre: {0}.</generatedAt>
 <geoServicesDescription><![CDATA[
 
@@ -3800,7 +3764,7 @@ A fent leírtak szerint, mivel Java programok hozzáférhetnek a weben elérhet�
 <p>Vagy mivel ERDDAP egy teljesen nyílt forráskódú program, saját kiszolgálóján is beállíthatja ERDDAP saját példányát (nyilvánosan elérhető vagy nem), hogy kiszolgálja saját adatait.
 Java programjai adatokat kaphatnak az ERDDAP adott példányából.
 Lásd
-<a rel="help" href="https://erddap.github.io/setup.html">:
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">:
 Saját ERDDAP beállítása</a> .
   
 ]]></javaProgramsHTML>
@@ -3877,7 +3841,6 @@ Az alapértelmezett érték a semmi (nem használt).
 <!--  pl.: {0}=WMS vagy listAll  -->
 <listOfDatasets>{0} adatkészlet listája</listOfDatasets>
 <listAll>Minden</listAll>
-<LogIn>Belépés</LogIn>
 <login>Belépés</login>
 <loginHTML><![CDATA[
 
@@ -3888,7 +3851,7 @@ Sok ERDDAP telepítésen nincs engedélyezve a hitelesítés, így nem biztosít
 Jelenleg ERDDAP csak a Google által kezelt e-mail fiókokon keresztüli hitelesítést támogatja, amely magában foglalja NOAA és számos egyetem e-mail fiókjait.
 Ha egy ERDDAP engedélyezett a hitelesítés, bárki bejelentkezhet a Google által kezelt e-mail fiókkal, de csak azokhoz a privát adatkészletekhez férhet hozzá, amelyek elérésére az ERDDAP adminisztrátora kifejezetten felhatalmazta.
 ERDDAP ba böngészőből vagy szkripten keresztüli bejelentkezéshez lásd:
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">Hozzáférés a privát adatkészletekhez ERDDAP -ban</a> .
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">Hozzáférés a privát adatkészletekhez ERDDAP -ban</a> .
   
 ]]></loginHTML>
 <loginAttemptBlocked>HIBA: A(z) {0} bejelentkezési kísérletei 3 sikertelen kísérlet után ideiglenesen blokkolva vannak.
@@ -3936,22 +3899,15 @@ Bárki bejelentkezhet Google e-mail fiókkal vagy ORCID azonosítóval, de az ER
 Csak azok jelentkezhetnek be, akik megegyeztek az ERDDAP rendszergazdájával.
 
 ]]></loginDescribeOpenID>
-<loginErddap>Jelentkezzen be az ERDDAP-ba</loginErddap>
 <loginCanNot>Ez az ERDDAP nincs úgy konfigurálva, hogy a felhasználók bejelentkezzenek.</loginCanNot>
 <loginAreNot>Nem vagy bejelentkezve.</loginAreNot>
 <loginToLogIn>A bejelentkezéshez</loginToLogIn>
-<loginEmailAddress>email cím</loginEmailAddress>
 <loginYourEmailAddress>az email címed</loginYourEmailAddress>
 <loginUserName>Felhasználónév</loginUserName>
 <loginPassword>Jelszó</loginPassword>
 <loginUserNameAndPassword>Felhasználónév és jelszó</loginUserNameAndPassword>
 <loginGoogleSignIn>Hitelesítés a Google-fiókjával.</loginGoogleSignIn>
 <loginOrcidSignIn>Hitelesítés az ORCID iD segítségével.</loginOrcidSignIn>
-<loginOpenID>Jelentkezzen be OpenID URL-jével</loginOpenID>
-<loginOpenIDOr>Vagy jelentkezzen be meglévő (nem OpenID) fiókjába a címen</loginOpenIDOr>
-<loginOpenIDCreate>Vagy hozzon létre egy OpenID URL-t a címen</loginOpenIDCreate>
-<loginOpenIDFree>Mindegyik ingyenes!</loginOpenIDFree>
-<loginOpenIDSame>Győződjön meg arról, hogy pontosan ugyanazzal az OpenID URL-címmel jelentkezett be, amelyet az ERDDAP adminisztrátorának adott.</loginOpenIDSame>
 <loginAs>Ön mint {0} jelentkezett be.</loginAs>
 <loginPartwayAs>Részben bejelentkezett, mint {0}.</loginPartwayAs>
 <loginFailed>HIBA: Sikertelen bejelentkezés</loginFailed>
@@ -4066,7 +4022,6 @@ Lehetséges, hogy egyes adatkészletek jelenleg nem állnak rendelkezésre, vagy
 ]]></loginPublicAccess>
 <LogOut>Kijelentkezés</LogOut>
 <logout>Kijelentkezés</logout>
-<logoutOpenID>Jelentkezzen ki az OpenID szolgáltatójából.</logoutOpenID>
 
 <!--  logoutSuccess utolsó frissítése: 2019-12-19  -->
 <logoutSuccess>Sikeresen kijelentkezett. 
@@ -4367,10 +4322,6 @@ De a dods.dap.DODSExceptionnek nincs releváns kivétele.
 Jobb, ha üres fájlt küld vissza? De az .nc és mások nem engedélyezik a 0 hosszúságú adatokat.
  -->
 <MustBeThereIsNoData>Lekérdezése nem hozott megfelelő eredményt.</MustBeThereIsNoData>
-
-<!--  Sok fájltípus korlátozza, hogy egy fájl mennyi adatot tárolhat (például 2 GB).  -->
-<MustBeNotNull>A(z) {0} nem lehet null.</MustBeNotNull>
-<MustBeNotEmpty>A(z) {0} nem lehet üres karakterlánc.</MustBeNotEmpty>
 <MustBeInternalError>Belső hiba</MustBeInternalError>
 <MustBeOutOfMemoryError>Kifogyott a memória hiba</MustBeOutOfMemoryError>
 
@@ -4411,11 +4362,9 @@ Jobb, ha üres fájlt küld vissza? De az .nc és mások nem engedélyezik a 0 h
 <noXxxNoLonIn180>nincsenek hosszúsági értékek -180 és 360 között</noXxxNoLonIn180>
 <noXxxNoNonString>nincsenek nem karakterlánc-változók</noXxxNoNonString>
 <noXxxNo2NonString>nincs legalább két nem karakterlánc változó</noXxxNo2NonString>
-<noXxxNoStation>cdmDataType={0} nem &quot;TimeSeries&quot;</noXxxNoStation>
 <noXxxNoStationID>nincs stationID-szerű változó</noXxxNoStationID>
 <noXxxNoSubsetVariables>subsetVariables nincs megadva</noXxxNoSubsetVariables>
 <noXxxNoOLLSubsetVariables>subsetVariables nem rendelkezik az ajánlati, hosszúsági és szélességi változókkal</noXxxNoOLLSubsetVariables>
-<noXxxNoMinMax>a forrásadat-szerver nem ad meg minimális és maximális értékeket</noXxxNoMinMax>
 <noXxxItsGridded>ez egy rácsozott adatkészlet</noXxxItsGridded>
 <noXxxItsTabular>ez egy táblázatos adatkészlet</noXxxItsTabular>
 <oneRequestAtATime>Kérjük, egyszerre csak egy kérést nyújtson be.</oneRequestAtATime>
@@ -4442,7 +4391,6 @@ A számítógépes programok és Java Scripted weboldalak fejlesztői
 <options>Lehetőségek</options>
 <orAListOfValues>vagy Értéklista</orAListOfValues>
 <orRefineSearchWith>Vagy finomítsa a keresést a következővel:</orRefineSearchWith>
-<orSearchWith>Vagy keressen adatkészleteket a következővel:</orSearchWith>
 <orComma>Vagy,</orComma>
 <otherFeatures>Más funkciók</otherFeatures>
 <outOfDateDatasets>Elavult adatkészletek</outOfDateDatasets>
@@ -4503,7 +4451,6 @@ Vannak
     title="Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak."></a> .
 
 ]]></percentEncode>
-<pickADataset>Válasszon egy adatkészletet</pickADataset>
 
 <!--  Protokoll alapú adatkészlet-keresésekkel kapcsolatos üzenetek.  -->
 <protocolSearchHtml>Adatkészletek keresése protokoll szerint</protocolSearchHtml>
@@ -4520,7 +4467,6 @@ A különböző típusú adatokhoz és a különböző kliens alkalmazásokhoz k
 <queryError1Var>A {0} formátum csak egy adatváltozót tud kezelni.</queryError1Var>
 <queryError2Var>A {0} formátumra vonatkozó kéréseknek legalább két numerikus változót kell tartalmazniuk (az X és Y tengelyhez).</queryError2Var>
 <queryErrorActualRange>A {0} kívül esik a változó tényleges_tartományán: {1} és {2} között</queryErrorActualRange>
-<queryErrorAscending>A(z) {0} kérések esetén a hosszúsági és szélességi értékeknek növekvőnek kell lenniük.</queryErrorAscending>
 <queryErrorAdjusted>A(z) {0} kérések esetén a beállított hosszúsági értékeknek ({1} és {2} között) -180 és 180 között kell lenniük.</queryErrorAdjusted>
 <queryErrorConstraintNaN>A kényszerérték=&quot;{0}&quot; NaN-re értékeli ki.  Ha tényleg NaN-t akarsz, írd NaN-nek.</queryErrorConstraintNaN>
 <queryErrorEqualSpacing>A(z) {0} kérések esetében a hosszúsági távolságnak ({1}) meg kell egyeznie a szélességi távolsággal ({2}).</queryErrorEqualSpacing>
@@ -4552,7 +4498,6 @@ A különböző típusú adatokhoz és a különböző kliens alkalmazásokhoz k
 <queryErrorGridNoAxisVar>A griddap adatváltozó lekérdezése nem tartalmazhat tengelyváltozót ({0}).</queryErrorGridNoAxisVar>
 <queryErrorGridNoDataVar>A griddap tengelyváltozó lekérdezése nem tartalmazhat adatváltozót ({0}).</queryErrorGridNoDataVar>
 <queryErrorGridNotIdentical>A változó={1} {0} megszorítása nem azonos a változó={2} {2} megszorításával.  Ha különböző részhalmazokra van szüksége, kérjen külön.</queryErrorGridNotIdentical>
-<queryErrorGridSLessS>StartIndex={0} nagyobb, mint StopIndex={1}.</queryErrorGridSLessS>
 <queryErrorLastEndP>A(z) {0} &quot;(&quot;) karakterrel kezdődik, de nem végződik &quot;)&quot;-re.</queryErrorLastEndP>
 <queryErrorLastExpected>&quot;utolsó&quot; {0} elején volt várható.</queryErrorLastExpected>
 <queryErrorLastUnexpected>Váratlan karakter az &quot;utolsó&quot; után itt: {0}.</queryErrorLastUnexpected>
@@ -4584,7 +4529,7 @@ Például az emberek ezt az URL-t használhatják teljes szöveges kereséshez �
 ERDDAP számos olyan szolgáltatást tartalmaz, amelyeket az Ön által írt számítógépes programok vagy szkriptek használhatnak.
 Használhatja őket más webalkalmazások vagy webszolgáltatások létrehozására ERDDAP mellett, így ERDDAP elvégzi a munka nagy részét! Tehát ha van egy ötlete az ERDDAP által kiszolgált adatok jobb interfészére, vagy olyan weboldalra, amelyhez egyszerű hozzáférést kell biztosítani az adatokhoz, javasoljuk, hogy készítse el saját webalkalmazását, webszolgáltatását vagy weboldalát, és használja az ERDDAP Alapítvány.
 Rendszere adatokat, grafikonokat és egyéb információkat kaphat ERD ERDDAP -jából vagy más ERDDAP telepítésekből, vagy<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">állítsa be saját ERDDAP szerverét</a>, amely lehet nyilvánosan vagy csak privát módon elérhető.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">állítsa be saját ERDDAP szerverét</a>, amely lehet nyilvánosan vagy csak privát módon elérhető.
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">RESTful URL kérések</a></h3>
 ERDDAP tól származó felhasználói felület információira vonatkozó kérések (például keresési eredmények) a web univerzális szabványát használják a kérésekhez:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URL-ek &externalLinkHtml;</a>
@@ -4643,7 +4588,7 @@ ERDDAP a felhasználói felület eredményeit adattáblázatként tudja visszaad
 <li>.nc - egy lapos, táblázatszerű, NetCDF -3 bináris fájl.
 (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">több&nbsp;információ &externalLinkHtml;</a>)
 <li>.nccsv – egy lapos, táblázatszerű, NetCDF -szerű, ASCII CSV-fájl.
-(<a rel="help" href="https://erddap.github.io/NCCSV.html">több&nbsp;információ &externalLinkHtml;</a>)
+(<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">több&nbsp;információ &externalLinkHtml;</a>)
 <li>.tsv – tabulátorral elválasztott ASCII szövegtábla.
 (<a rel="help" href="https://jkorpela.fi/TSV.html">több&nbsp;információ &externalLinkHtml;</a>)
 <li>.xhtml – egy XHTML (XML) fájl az adatokkal egy táblázatban.
@@ -4791,7 +4736,6 @@ Lát
 <SOSDocumentation>Az ERDDAP SOS dokumentációja</SOSDocumentation>
 <WCSDocumentation>Az ERDDAP WCS dokumentációja</WCSDocumentation>
 <WMSDocumentation>Az ERDDAP WMS dokumentációja</WMSDocumentation>
-<findOutChange>hogy a számítógépes program megtudja, ha egy adatkészlet megváltozott.</findOutChange>
 <requestFormatExamplesHtml><![CDATA[
 
 (például
@@ -5243,14 +5187,6 @@ Ehelyett kérjen e-mailt
 
 ]]></subscriptionRemoveSuccess>
 <subscriptionRSS>Iratkozzon fel az adatkészlet RSS-hírcsatornájára...</subscriptionRSS>
-<subscriptionsNotAvailable><![CDATA[
-
-<p><strong>Sajnálom.
-Az e-mail/URL előfizetési rendszer nem érhető el ennél ERDDAP telepítésnél.</strong>
-<br>Fontolja meg az
-<a rel="help" href="{0}/information.html#subscriptions">RSS</a> előfizetéses szolgáltatás használatát.
-
-]]></subscriptionsNotAvailable>
 <subscriptionUrlHtml><![CDATA[
 
 <kbd>URL/action</kbd> egy opcionális URL, amellyel ERDDAP felveszi a kapcsolatot ahelyett, hogy e-mailt küldene Önnek.
@@ -5359,7 +5295,7 @@ adathalmazok keresésekor ne használjon <kbd>AND</kbd> a keresési kifejezések
 Ez implicit.)
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>Tudjon meg többet ERDDAP ról.</strong></a>
 <p><strong>Adatszolgáltatók:
-<a rel="help" href="https://erddap.github.io/setup.html">Saját ERDDAP szervert állíthat be</a> és saját adatait szolgálhatja ki.</strong> ERDDAP ingyenes és nyílt forráskódú.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">Saját ERDDAP szervert állíthat be</a> és saját adatait szolgálhatja ki.</strong> ERDDAP ingyenes és nyílt forráskódú.
 Apache-szerű licenceket használ, így bármit megtehet vele.
 ERDDAP megjelenése személyre szabható, így ERDDAP az Ön intézményét fogja tükrözni, nem NOAA .
 Az ERDDAP létrehozásának kis erőfeszítése számos előnnyel jár.
@@ -5518,13 +5454,6 @@ A(z) {0} megtekintéséhez,
 <!--  A következő címkét az előző 2 címke közül egy előzi meg. 
   A {0} egy subsetViewSelectDistintCombos vagy subsetViewSelectRelatedCounts.  -->
 <subsetWhenCounts>{0} a(z) &quot;{2}&quot; {1} értékéhez a következők:</subsetWhenCounts>
-<subsetComboClickSelect><![CDATA[
-
-A fent felsorolt ​​változók különböző kombinációinak számának megtekintéséhez,
-<br>jelölje be a fenti <kbd>{0} :
-{1}</kbd> elemet, és válasszon értéket a fenti változók egyikéhez.
-
-]]></subsetComboClickSelect>
 <subsetNVariableCombos>Összesen {0} sora van a fent felsorolt ​​változók különböző kombinációinak.</subsetNVariableCombos>
 <subsetShowingAllRows>Az összes sor fent látható.</subsetShowingAllRows>
 <subsetShowingNRows>Az első {0} sor fent látható.  A fennmaradó {1} sor nem jelenik meg.</subsetShowingNRows>
@@ -5722,7 +5651,7 @@ Ez implicit.)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP helyi (a szerver merevlemezén lévő) és távoli (weben keresztül elérhető) adatforrásokból is tud adatokat szerezni.</a></strong>
 <br>Tekintse meg
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">azon adatforrástípusok listáját,</a> amelyekhez ERDDAP hozzáférhet.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">azon adatforrástípusok listáját,</a> amelyekhez ERDDAP hozzáférhet.
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP számos tudományos adatot tud szolgálni, nem csak oceanográfiai adatokat.</a></strong>
 <br>ERDDAP egy adatszerver, amelyet
@@ -5881,8 +5810,8 @@ Amikor adatokat vagy grafikont kér egy
       title="Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak."></a>) írja le az adatokat.
 ERDDAP lehetővé teszi (és ösztönzi) az adminisztrátor számára, hogy leírja azokat a metaadatokat, amelyeket menet közben adnak hozzá az adatkészletekhez és azok változóihoz.
 Tekintse meg az
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">addAttributes szakaszt</a> a
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">rendszergazdáknak szóló útmutatóban</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">addAttributes szakaszt</a> a
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">rendszergazdáknak szóló útmutatóban</a> .
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP segítségével .png és .pdf formátumú képfájlokat kérhet grafikonokkal és térképekkel</a></strong>
@@ -6043,7 +5972,7 @@ A bejelentkezett felhasználók hozzáférhetnek a nyilvános adatkészletekhez 
 A felhasználóknak a https:
 (Secure Sockets Layer) használatával kell bejelentkezniük és hozzáférniük a privát adatkészletekhez.
 Az adatkészletek konfigurálhatók úgy, hogy a grafikonok és a térképek nyilvánosan elérhetőek legyenek, de az adatokhoz csak a jogosult felhasználók férhetnek hozzá.
-(<a rel="help" href="https://erddap.github.io/setup.html#security">több információ</a>)
+(<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">több információ</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP az adatokat darabokban dolgozza fel.</a></strong>
 <br>A memória megtakarítása (nagy probléma) és a válaszok mielőbbi megindítása érdekében ERDDAP az adatkéréseket darabokban dolgozza fel – ismételten lekér egy adattömeget a forrásból, megtisztítja (például
@@ -6066,16 +5995,16 @@ kér egy felhasználót; távoli adatforrásból kap adatokat; újraformázza az
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak."></a> :
 De ERDDAP arra is képes, hogy aktívan lekérje az összes elérhető adatot egy távoli adatforrásból, és
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">tárolja az adatok helyi másolatát</a> .
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">tárolja az adatok helyi másolatát</a> .
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Push technológia <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="Ez a külső webhelyre mutató hivatkozás nem minősül jóváhagyásnak."></a> :
 ERDDAP
 <a href="#subscriptions">előfizetéses szolgáltatásainak</a> használatával a többi adatszerver azonnal értesítést kaphat, amint új adatok állnak rendelkezésre, hogy lekérhessék az adatokat (az adatok lehívásával).
 ERDDAP
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> és
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> programjai ERDDAP előfizetéses szolgáltatásait és
-<a rel="help" href="https://erddap.github.io/setup.html#flag">jelzőrendszerét</a> használják, így azonnal értesítést kapnak, ha új adatok állnak rendelkezésre.
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> és
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> programjai ERDDAP előfizetéses szolgáltatásait és
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">jelzőrendszerét</a> használják, így azonnal értesítést kapnak, ha új adatok állnak rendelkezésre.
 Ezeket nagyszerű hatás elérése érdekében kombinálhatja:
 ha egy EDDGrid -másolatot egy EDDGrid FromErddap-adatkészlet köré csomagol (vagy egy EDDTableCopy-t egy EDDTableFromErddap-adatkészlet köré), ERDDAP automatikusan létrehozza és karbantartja egy másik ERDDAP adatkészletének helyi másolatát.
 Mivel az előfizetési szolgáltatások azonnal működnek, amint új adatok állnak rendelkezésre, a push technológia nagyon gyorsan (másodperceken belül) terjeszti az adatokat.
@@ -6168,10 +6097,10 @@ Ez önmagában is indokolja az ERDDAP fejlesztésének költségeit.
 (Azt hiszem, be lehetne mutatni, hogy ERDDAP több NOAA tudós idejét spórolt meg, mint amennyit én ERDDAP fejlesztésével töltöttem.
 Idő=Pénz.) De ennek mellékes előnye, hogy bármely más szervezet <strong>ingyenesen</strong>
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">letöltheti, telepítheti és használhatja ERDDAP</a> saját terjesztésére.
+href="https://erddap.github.io/docs/server-admin/deploy-install">letöltheti, telepítheti és használhatja ERDDAP</a> saját terjesztésére.
 tudományos adatok.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >Legalább 14 országban több mint 90 szervezet használja ERDDAP</a> .
 Talán van olyan, hogy ingyen ebéd.
 <p>ERDDAP egy Java program.
@@ -6289,14 +6218,14 @@ Nos, kérem, gondolja csak névnek, ne mozaikszónak.
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">itt</a> található.
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">Beállíthatja</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>saját ERDDAP szerverét</strong></a>, és kiszolgálhatja saját adatait.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>saját ERDDAP szerverét</strong></a>, és kiszolgálhatja saját adatait.
 <ul>
 <li>Az ERDDAP létrehozásának kis erőfeszítése számos előnnyel jár.
 <li>Ha már rendelkezik webszolgáltatással az adatok terjesztésére, beállíthatja ERDDAP hogy a meglévő szolgáltatáson vagy a forrásfájlokon vagy adatbázisokon keresztül hozzáférjen adataihoz.
 Ezután az emberek más módon is hozzáférhetnek az Ön adataihoz, és további fájlformátumokban, illetve grafikonok vagy térképek formájában tölthetik le az adatokat.
 <li>Ha vannak olyan adatkészletei, amelyekre nagy a kereslet,
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >több ERDDAP -t is telepíthet, amelyek együtt működnek</a> a méretezés érdekében, és megfelelnek egy nagy adatelosztó központ igényeinek.
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">Lépjen kapcsolatba velünk</a></h2>
@@ -6313,7 +6242,6 @@ Ha már tag, felteheti kérdését ott, vagy kereshet rá, hogy a kérdést már
 Az ezen a weboldalon található vélemények Bob Simons személyes véleményei, és nem feltétlenül tükrözik a kormány vagy a National Oceanic and Atmospheric Administration álláspontját.
 
 ]]></theLongDescriptionHtml>
-<Then>Akkor</Then>
 <twoClickMapDefaultTooltip>Határozzon meg egy téglalapot két átlós sarokra kattintva.  Csináld újra, ha szükséges.</twoClickMapDefaultTooltip>
 
 <!--  Ez egy módja annak, hogy felülbírálja az ERDDAP szabványosított UDUnits konverterét
@@ -7597,7 +7525,6 @@ Ez nem lehet semmi. Tehát, ha nem akar semmit, írjon be egy halandzsa szót, a
 soha ne legyen attribútumnév.  -->
 <updateUrlsSkipAttributes>forrásUrl</updateUrlsSkipAttributes>
 <variableNames>Változónevek</variableNames>
-<viewAllDatasetsHtml>Tekintse meg az összes adatkészlet listáját</viewAllDatasetsHtml>
 <waitThenTryAgain>Volt egy (átmeneti?) probléma.  Várjon egy percet, majd próbálja újra.  (Böngészőben kattintson az Újratöltés gombra.)</waitThenTryAgain>
 <warning>FIGYELEM!</warning>
 <units>Egységek</units>
@@ -7931,7 +7858,7 @@ adatkészletnek kell lennie.
 (A többi tengelyváltozó OPCIONÁLIS.)
 <li>KELL lennie néhány hosszúsági értéknek -180 és 180 között.
 <li>A
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">colorBarMinimum és colorBarMaximum attribútumokat</a> KELL megadni.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">colorBarMinimum és colorBarMaximum attribútumokat</a> KELL megadni.
 (A színsáv többi attribútuma OPCIONÁLIS.)
 </ul>
 <li><strong>Rács adatrétegek:</strong> ERDDAP WMS rendszerében a rácsadatkészletekben található összes adatváltozó, amely hosszúsági és szélességi dimenziókat használ, elérhető WMS keresztül.

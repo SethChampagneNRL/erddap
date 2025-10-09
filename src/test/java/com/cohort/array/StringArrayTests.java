@@ -3,7 +3,7 @@ package com.cohort.array;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
 import java.util.BitSet;
-import java.util.HashSet;
+import java.util.Set;
 
 class StringArrayTests {
 
@@ -584,12 +584,6 @@ class StringArrayTests {
     s = anArray.diffString(ia);
     Test.ensureEqual(s, "  old [2]=23,\n  new [2]=22.", "s=" + s);
 
-    // utf8
-    String os = " s\\\n\tÃ\u20ac ";
-    StringArray sa = new StringArray(new String[] {os});
-    sa.toUTF8().fromUTF8();
-    Test.ensureEqual(sa.get(0), os, "");
-
     // hashcode
     anArray = new StringArray();
     for (int i = 5; i < 1000; i++) anArray.add("" + i);
@@ -718,7 +712,7 @@ class StringArrayTests {
 
     // toHashSet addHashSet
     anArray = StringArray.fromCSV("a, e, i, o, uu");
-    HashSet<String> hs = anArray.toHashSet();
+    Set<String> hs = anArray.toHashSet();
     anArray2 = new StringArray().addSet(hs);
     anArray2.sort();
     Test.ensureEqual(anArray.toArray(), anArray2.toArray(), "");

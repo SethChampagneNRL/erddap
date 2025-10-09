@@ -8,12 +8,13 @@ import com.cohort.util.Calendar2;
 import com.cohort.util.MustBe;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
-import dods.dap.*;
-import gov.noaa.pfel.coastwatch.griddata.Grid;
+import dods.dap.DAS;
+import dods.dap.DConnect;
+import dods.dap.DDS;
 import gov.noaa.pfel.coastwatch.griddata.Opendap;
 import gov.noaa.pfel.coastwatch.griddata.OpendapHelper;
 import gov.noaa.pfel.coastwatch.util.SimpleXMLReader;
-import java.util.GregorianCalendar;
+import java.time.ZonedDateTime;
 
 /**
  * This deals with one type of netCheck test: the ability to get das and dds information and actual
@@ -27,7 +28,7 @@ public class OpendapTest extends NetCheckTest {
   private String url;
   private String variableName;
   private String missingValue;
-  private GregorianCalendar offsetDate;
+  private ZonedDateTime offsetDate;
   private double[] minMaxXY;
 
   // optional
@@ -59,51 +60,47 @@ public class OpendapTest extends NetCheckTest {
     while (!tags.equals("<netCheck></opendapTest>") && iteration++ < 1000000) {
       // process the tags
       if (verbose) String2.log(tags + xmlReader.content());
-      if (tags.equals("<netCheck><opendapTest><title>")) {
-      } else if (tags.equals("<netCheck><opendapTest></title>")) title = xmlReader.content();
-      else if (tags.equals("<netCheck><opendapTest><url>")) {
-      } else if (tags.equals("<netCheck><opendapTest></url>")) url = xmlReader.content();
-      else if (tags.equals("<netCheck><opendapTest><variableName>")) {
-      } else if (tags.equals("<netCheck><opendapTest></variableName>"))
-        variableName = xmlReader.content();
-      else if (tags.equals("<netCheck><opendapTest><missingValue>")) {
-      } else if (tags.equals("<netCheck><opendapTest></missingValue>"))
-        missingValue = xmlReader.content();
-      else if (tags.equals("<netCheck><opendapTest><offsetDate>")) {
-      } else if (tags.equals("<netCheck><opendapTest></offsetDate>"))
-        offsetDate =
-            Calendar2.parseISODateTimeZulu(xmlReader.content()); // throws Exception if trouble
-      else if (tags.equals("<netCheck><opendapTest><minMaxXY>")) {
-      } else if (tags.equals("<netCheck><opendapTest></minMaxXY>"))
-        minMaxXY = String2.csvToDoubleArray(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><dasMustContain>")) {
-      } else if (tags.equals("<netCheck><opendapTest></dasMustContain>"))
-        dasMustContain = xmlReader.content();
-      else if (tags.equals("<netCheck><opendapTest><ddsMustContain>")) {
-      } else if (tags.equals("<netCheck><opendapTest></ddsMustContain>"))
-        ddsMustContain = xmlReader.content();
-      else if (tags.equals("<netCheck><opendapTest><gridNLonValues>")) {
-      } else if (tags.equals("<netCheck><opendapTest></gridNLonValues>"))
-        gridNLonValues = String2.parseInt(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><gridNLatValues>")) {
-      } else if (tags.equals("<netCheck><opendapTest></gridNLatValues>"))
-        gridNLatValues = String2.parseInt(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><mustRespondWithinSeconds>")) {
-      } else if (tags.equals("<netCheck><opendapTest></mustRespondWithinSeconds>"))
-        mustRespondWithinSeconds = String2.parseDouble(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><emailStatusTo>")) {
-      } else if (tags.equals("<netCheck><opendapTest></emailStatusTo>"))
-        emailStatusTo.add(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><emailStatusHeadlinesTo>")) {
-      } else if (tags.equals("<netCheck><opendapTest></emailStatusHeadlinesTo>"))
-        emailStatusHeadlinesTo.add(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><emailChangesTo>")) {
-      } else if (tags.equals("<netCheck><opendapTest></emailChangesTo>"))
-        emailChangesTo.add(xmlReader.content());
-      else if (tags.equals("<netCheck><opendapTest><emailChangeHeadlinesTo>")) {
-      } else if (tags.equals("<netCheck><opendapTest></emailChangeHeadlinesTo>"))
-        emailChangeHeadlinesTo.add(xmlReader.content());
-      else throw new RuntimeException(errorIn + "unrecognized tags: " + tags);
+      switch (tags) {
+        case "<netCheck><opendapTest><title>",
+            "<netCheck><opendapTest><emailChangeHeadlinesTo>",
+            "<netCheck><opendapTest><emailChangesTo>",
+            "<netCheck><opendapTest><emailStatusHeadlinesTo>",
+            "<netCheck><opendapTest><emailStatusTo>",
+            "<netCheck><opendapTest><mustRespondWithinSeconds>",
+            "<netCheck><opendapTest><gridNLatValues>",
+            "<netCheck><opendapTest><gridNLonValues>",
+            "<netCheck><opendapTest><ddsMustContain>",
+            "<netCheck><opendapTest><dasMustContain>",
+            "<netCheck><opendapTest><minMaxXY>",
+            "<netCheck><opendapTest><offsetDate>",
+            "<netCheck><opendapTest><missingValue>",
+            "<netCheck><opendapTest><variableName>",
+            "<netCheck><opendapTest><url>" -> {}
+        case "<netCheck><opendapTest></title>" -> title = xmlReader.content();
+        case "<netCheck><opendapTest></url>" -> url = xmlReader.content();
+        case "<netCheck><opendapTest></variableName>" -> variableName = xmlReader.content();
+        case "<netCheck><opendapTest></missingValue>" -> missingValue = xmlReader.content();
+        case "<netCheck><opendapTest></offsetDate>" ->
+            offsetDate =
+                Calendar2.parseISODateTimeUtc(xmlReader.content()); // throws Exception if trouble
+        case "<netCheck><opendapTest></minMaxXY>" ->
+            minMaxXY = String2.csvToDoubleArray(xmlReader.content());
+        case "<netCheck><opendapTest></dasMustContain>" -> dasMustContain = xmlReader.content();
+        case "<netCheck><opendapTest></ddsMustContain>" -> ddsMustContain = xmlReader.content();
+        case "<netCheck><opendapTest></gridNLonValues>" ->
+            gridNLonValues = String2.parseInt(xmlReader.content());
+        case "<netCheck><opendapTest></gridNLatValues>" ->
+            gridNLatValues = String2.parseInt(xmlReader.content());
+        case "<netCheck><opendapTest></mustRespondWithinSeconds>" ->
+            mustRespondWithinSeconds = String2.parseDouble(xmlReader.content());
+        case "<netCheck><opendapTest></emailStatusTo>" -> emailStatusTo.add(xmlReader.content());
+        case "<netCheck><opendapTest></emailStatusHeadlinesTo>" ->
+            emailStatusHeadlinesTo.add(xmlReader.content());
+        case "<netCheck><opendapTest></emailChangesTo>" -> emailChangesTo.add(xmlReader.content());
+        case "<netCheck><opendapTest></emailChangeHeadlinesTo>" ->
+            emailChangeHeadlinesTo.add(xmlReader.content());
+        default -> throw new RuntimeException(errorIn + "unrecognized tags: " + tags);
+      }
 
       // get the next tags
       xmlReader.nextTag();
@@ -143,14 +140,12 @@ public class OpendapTest extends NetCheckTest {
       int gridNLatValues)
       throws Exception {
 
-    String errorIn = String2.ERROR + " in OpendapTest constructor: ";
-
     // required
     this.title = title;
     this.url = url;
     this.variableName = variableName;
     this.missingValue = missingValue;
-    offsetDate = Calendar2.parseISODateTimeZulu(isoOffsetDate); // throws Exception if trouble
+    offsetDate = Calendar2.parseISODateTimeUtc(isoOffsetDate); // throws Exception if trouble
     this.minMaxXY = minMaxXY;
 
     // optional
@@ -206,7 +201,7 @@ public class OpendapTest extends NetCheckTest {
       long time = System.currentTimeMillis();
 
       // open the dataSet; getTimeOptions, makeGrid
-      Opendap opendap = new Opendap(url, true, null); // acceptDeflate, resetFlagDir
+      Opendap opendap = new Opendap(url, true); // acceptDeflate, resetFlagDir
       DConnect dConnect = new DConnect(opendap.url, opendap.acceptDeflate, 1, 1);
       DAS das = dConnect.getDAS(OpendapHelper.DEFAULT_TIMEOUT);
       DDS dds = dConnect.getDDS(OpendapHelper.DEFAULT_TIMEOUT);
@@ -218,9 +213,8 @@ public class OpendapTest extends NetCheckTest {
           0); // 0 not accurate here, but doesn't matter for opendapTest
 
       // makeGrid throws exception if trouble
-      Grid grid =
-          opendap.makeGrid(
-              opendap.timeOptions[0], minMaxXY[0], minMaxXY[1], minMaxXY[2], minMaxXY[3], 200, 200);
+      opendap.makeGrid(
+          opendap.timeOptions[0], minMaxXY[0], minMaxXY[1], minMaxXY[2], minMaxXY[3], 200, 200);
       time = System.currentTimeMillis() - time;
 
       // check mustRespondWithinSeconds

@@ -17,8 +17,7 @@ import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.erddap.variable.EDV;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.ZonedDateTime;
 
 /**
  * TableWriterDataTable provides a way to write a table to JSON which follows the conventions of a
@@ -33,7 +32,7 @@ import java.util.GregorianCalendar;
 public class TableWriterDataTable extends TableWriter {
 
   // set by constructor
-  protected boolean writeUnits;
+  protected final boolean writeUnits;
 
   // set by firstTime
   protected boolean isCharOrString[];
@@ -146,45 +145,7 @@ public class TableWriterDataTable extends TableWriter {
                       + name
                       + "\",\"pattern\":\"\",\"type\":\"string\"}");
             }
-          } else if (type == PAType.FLOAT) {
-            if (writeUnits && u != null) {
-              writer.write(
-                  "{\"id\":\""
-                      + name
-                      + "\",\"label\":\""
-                      + name
-                      + " ("
-                      + u
-                      + ") "
-                      + "\",\"pattern\":\"\",\"type\":\"number\"}");
-            } else {
-              writer.write(
-                  "{\"id\":\""
-                      + name
-                      + "\",\"label\":\""
-                      + name
-                      + "\",\"pattern\":\"\",\"type\":\"number\"}");
-            }
-          } else if (type == PAType.DOUBLE) {
-            if (writeUnits && u != null) {
-              writer.write(
-                  "{\"id\":\""
-                      + name
-                      + "\",\"label\":\""
-                      + name
-                      + " ("
-                      + u
-                      + ") "
-                      + "\",\"pattern\":\"\",\"type\":\"number\"}");
-            } else {
-              writer.write(
-                  "{\"id\":\""
-                      + name
-                      + "\",\"label\":\""
-                      + name
-                      + "\",\"pattern\":\"\",\"type\":\"number\"}");
-            }
-          } else { // Assume numeric, will be long at this point
+          } else { // Assume numeric, will be double, float, or long at this point
             if (writeUnits && u != null) {
               writer.write(
                   "{\"id\":\""
@@ -234,15 +195,15 @@ public class TableWriterDataTable extends TableWriter {
 
           if (!Double.isNaN(d)) {
 
-            GregorianCalendar gc = Calendar2.epochSecondsToGc(d);
+            ZonedDateTime dt = Calendar2.epochSecondsToZdt(d);
 
-            int year = gc.get(Calendar.YEAR);
-            int month = gc.get(Calendar.MONTH);
-            int day = gc.get(Calendar.DAY_OF_MONTH);
-            int hour = gc.get(Calendar.HOUR_OF_DAY);
-            int minute = gc.get(Calendar.MINUTE);
-            int second = gc.get(Calendar.SECOND);
-            int milli = gc.get(Calendar.MILLISECOND);
+            int year = dt.getYear();
+            int month = dt.getMonthValue() - 1;
+            int day = dt.getDayOfMonth();
+            int hour = dt.getHour();
+            int minute = dt.getMinute();
+            int second = dt.getSecond();
+            int milli = dt.getNano() / 1000000;
             writer.write(
                 "{\"v\":\"Date("
                     + year
@@ -324,6 +285,7 @@ public class TableWriterDataTable extends TableWriter {
     TableWriterDataTable tdt =
         new TableWriterDataTable(language, tEdd, tNewHistory, outputStreamSource, writeUnits);
     tdt.writeAllAndFinish(table);
+    tdt.close();
   }
 
   protected void writeNumber(String s, PAType elementPAType) throws IOException {
@@ -331,18 +293,25 @@ public class TableWriterDataTable extends TableWriter {
       writer.write("{\"v\":null,\"f\":null}");
     } else {
       if (elementPAType == PAType.DOUBLE) {
-        double dv = Double.valueOf(s).doubleValue();
+        double dv = Double.parseDouble(s);
         writer.write("{\"v\":" + dv + ",\"f\":null}");
       } else if (elementPAType == PAType.FLOAT) {
-        float f = Float.valueOf(s).floatValue();
+        float f = Float.parseFloat(s);
         writer.write("{\"v\":" + f + ",\"f\":null}");
       } else if (elementPAType == PAType.LONG) {
-        long f = Long.valueOf(s).longValue();
+        long f = Long.parseLong(s);
         writer.write("{\"v\":" + f + ",\"f\":null}");
       } else {
-        int f = Integer.valueOf(s).intValue();
+        int f = Integer.parseInt(s);
         writer.write("{\"v\":" + f + ",\"f\":null}");
       }
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (writer != null) {
+      writer.close();
     }
   }
 }

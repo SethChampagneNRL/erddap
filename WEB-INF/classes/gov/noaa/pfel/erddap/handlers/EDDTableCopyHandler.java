@@ -12,7 +12,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDTableCopyHandler extends BaseTableHandler {
-  private SaxParsingContext context;
+  private final SaxParsingContext context;
 
   public EDDTableCopyHandler(
       SaxHandler saxHandler, String datasetID, State completeState, SaxParsingContext context) {
@@ -26,7 +26,7 @@ public class EDDTableCopyHandler extends BaseTableHandler {
   private boolean checkSourceData = defaultCheckSourceData;
   private boolean tSourceNeedsExpandedFP_EQ = true;
   private boolean tFileTableInMemory = false;
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
   private int tStandardizeWhat = Integer.MAX_VALUE;
   private int tnThreads = -1;
 

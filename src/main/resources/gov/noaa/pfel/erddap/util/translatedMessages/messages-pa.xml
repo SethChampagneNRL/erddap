@@ -86,11 +86,11 @@ addEntry, closeEntry ਵਿੱਚ ਮੁਸ਼ਕਲਾਂ ਦੇ ਕਾਰਨ \
 <advl_institution>ਸੰਸਥਾ</advl_institution>
 <advc_dataStructure>ERDDAP ਹਰੇਕ ਡੇਟਾਸੇਟ ਨੂੰ ਜਾਂ ਤਾਂ ਇੱਕ &#39;ਗਰਿੱਡ&#39; ਜਾਂ ਇੱਕ &#39;ਟੇਬਲ&#39; ਡੇਟਾਸੈਟ ਦੇ ਰੂਪ ਵਿੱਚ ਮੰਨਦਾ ਹੈ।</advc_dataStructure>
 <advl_dataStructure>ਡਾਟਾ ਢਾਂਚਾ</advl_dataStructure>
-<advr_dataStructure>https://erddap.github.io/setupDatasetsXml.html#dataStructures</advr_dataStructure>
+<advr_dataStructure>https://erddap.github.io/docs/server-admin/datasets#why-just-two-basic-data-structures</advr_dataStructure>
 <advl_cdm_data_type>ਆਮ ਡਾਟਾ ਮਾਡਲ ਕਿਸਮ</advl_cdm_data_type>
-<advr_cdm_data_type>https://erddap.github.io/setupDatasetsXml.html#cdm_data_type</advr_cdm_data_type>
+<advr_cdm_data_type>https://erddap.github.io/docs/server-admin/datasets#cdm_data_type</advr_cdm_data_type>
 <advl_class>ERDDAP ਕਲਾਸ</advl_class>
-<advr_class>https://erddap.github.io/setupDatasetsXml.html#datasetTypes</advr_class>
+<advr_class>https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets</advr_class>
 <advl_title>ਸਿਰਲੇਖ</advl_title>
 <advl_minLongitude>ਨਿਊਨਤਮ ਲੰਬਕਾਰ</advl_minLongitude>
 <advl_maxLongitude>ਅਧਿਕਤਮ ਲੰਬਕਾਰ</advl_maxLongitude>
@@ -135,7 +135,7 @@ addEntry, closeEntry ਵਿੱਚ ਮੁਸ਼ਕਲਾਂ ਦੇ ਕਾਰਨ \
 <advn_outOfDate><![CDATA[
 
 ਜ਼ਾਹਰ ਤੌਰ &#39;ਤੇ, ਕਿਸੇ ਵੀ ਡੇਟਾਸੇਟ ਵਿੱਚ
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#testOutOfDate"
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#testoutofdate"
 ><kbd>testOutOfDate</kbd></a> ਵਿਸ਼ੇਸ਼ਤਾ ਨਹੀਂ ਹੈ। ਸ਼ਾਇਦ ਇਸ ERDDAP ਵਿੱਚ ਕੋਈ ਨਜ਼ਦੀਕੀ-ਰੀਅਲ-ਟਾਈਮ ਡਾਟਾਸੈੱਟ ਨਹੀਂ ਹਨ।
 
 ]]></advn_outOfDate>
@@ -1685,7 +1685,7 @@ ERDDAP ਇੱਕ ਡੇਟਾਸੈਟ ਨਾਲ ਦੋ ਤਰੀਕਿਆਂ �
 <ul>
 <li><a class="selfLink" id="databases" href="#databases" rel="bookmark">ਡੇਟਾ</a> ਜੋ ਵਰਤਮਾਨ ਵਿੱਚ ਇੱਕ ਰਿਲੇਸ਼ਨਲ ਡੇਟਾਬੇਸ ਵਿੱਚ ਸਟੋਰ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।
 <br>ਕਿਰਪਾ ਕਰਕੇ ERDDAP ਵਿੱਚ
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromDatabase">EDDTableFromDatabase</a> ਡੇਟਾਸੈਟ ਕਿਸਮ ਬਾਰੇ ਜਾਣਕਾਰੀ ਪੜ੍ਹੋ, ਖਾਸ ਤੌਰ &#39;ਤੇ ਜਾਣਕਾਰੀ ਦੀਆਂ ਸ਼ੁਰੂਆਤੀ ~2 ਸਕਰੀਨਾਂ ਜੋ ਇੱਕ ਅਸਧਾਰਨ ਸਾਰਣੀ ਬਣਾਉਣ ਦੀ ਲੋੜ ਬਾਰੇ ਗੱਲ ਕਰਦੀਆਂ ਹਨ। ਇਹ ਪਾਗਲ ਲੱਗ ਸਕਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਲਈ ਤਰਕ ਨੂੰ ਪੜ੍ਹਨ ਲਈ ਕਾਫ਼ੀ ਭਰੋਸਾ ਕਰੋ.
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddtablefromdatabase">EDDTableFromDatabase</a> ਡੇਟਾਸੈਟ ਕਿਸਮ ਬਾਰੇ ਜਾਣਕਾਰੀ ਪੜ੍ਹੋ, ਖਾਸ ਤੌਰ &#39;ਤੇ ਜਾਣਕਾਰੀ ਦੀਆਂ ਸ਼ੁਰੂਆਤੀ ~2 ਸਕਰੀਨਾਂ ਜੋ ਇੱਕ ਅਸਧਾਰਨ ਸਾਰਣੀ ਬਣਾਉਣ ਦੀ ਲੋੜ ਬਾਰੇ ਗੱਲ ਕਰਦੀਆਂ ਹਨ। ਇਹ ਪਾਗਲ ਲੱਗ ਸਕਦਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਇਸ ਲਈ ਤਰਕ ਨੂੰ ਪੜ੍ਹਨ ਲਈ ਕਾਫ਼ੀ ਭਰੋਸਾ ਕਰੋ.
 <br>&nbsp;
 <li>ਸਭ <i>ਸਥਿਤੀ ਡਾਟਾ ਵਿੱਚ</i> .
 <br>ਉਦਾਹਰਨਾਂ:
@@ -2691,6 +2691,9 @@ ERDDAP ਇੱਕ ਡੇਟਾ ਸਰਵਰ ਹੈ ਜੋ ਤੁਹਾਨੂੰ �
 <fileHelp_html>ਇੱਕ ਓਪੀਐਨਡੀਏਪੀ-ਸ਼ੈਲੀ HTML ਡੇਟਾ ਐਕਸੈਸ ਫਾਰਮ ਵੇਖੋ।</fileHelp_html>
 <fileHelp_htmlTable>ਇੱਕ ਸਾਰਣੀ ਵਿੱਚ ਡੇਟਾ ਦੇ ਨਾਲ ਇੱਕ UTF-8 .html ਵੈਬ ਪੇਜ ਵੇਖੋ। ਟਾਈਮਜ਼ ISO 8601 ਸਤਰ ਹਨ।</fileHelp_htmlTable>
 <fileHelp_iso19115>ਡਾਟਾਸੈੱਟ ਦਾ ISO 19115-2/19139 UTF-8 .xml ਮੈਟਾਡੇਟਾ ਦੇਖੋ।</fileHelp_iso19115>
+<fileHelp_iso19115_2>View the dataset's ISO 19115-2/19139 UTF-8 .xml metadata.</fileHelp_iso19115_2>
+<fileHelp_iso191392007>View the dataset's ISO 19139:2007 UTF-8 .xml metadata.</fileHelp_iso191392007>
+<fileHelp_iso19115_3_2016>View the dataset's ISO 19115-3:2016 UTF-8 .xml metadata.</fileHelp_iso19115_3_2016>
 <fileHelp_itxGrid>ਇੱਕ ISO-8859-1 ਇਗੋਰ ਟੈਕਸਟ ਫਾਈਲ ਡਾਊਨਲੋਡ ਕਰੋ। ਹਰੇਕ ਧੁਰੀ ਵੇਰੀਏਬਲ ਅਤੇ ਹਰੇਕ ਡੇਟਾ ਵੇਰੀਏਬਲ ਇੱਕ ਤਰੰਗ ਬਣ ਜਾਂਦਾ ਹੈ।</fileHelp_itxGrid>
 <fileHelp_itxTable>ਇੱਕ ISO-8859-1 ਇਗੋਰ ਟੈਕਸਟ ਫਾਈਲ ਡਾਊਨਲੋਡ ਕਰੋ। ਹਰ ਜਵਾਬ ਕਾਲਮ ਇੱਕ ਤਰੰਗ ਬਣ ਜਾਂਦਾ ਹੈ।</fileHelp_itxTable>
 <fileHelp_json>ਇੱਕ ਸਾਰਣੀ-ਵਰਗੀ UTF-8 JSON ਫ਼ਾਈਲ ਦੇਖੋ (ਗੁੰਮ ਮੁੱਲ = &#39;null&#39;; ਵਾਰ ISO 8601 ਸਤਰ ਹਨ)।</fileHelp_json>
@@ -2986,7 +2989,7 @@ ERDDAP ਦੀਆਂ ਮੁੱਖ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਵਿੱ�
 <a rel="help" href="https://anaconda.org/eumetsat/ncview"><img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="ਕਿਸੇ ਬਾਹਰੀ ਵੈੱਬਸਾਈਟ ਦਾ ਇਹ ਲਿੰਕ ਕਿਸੇ ਸਮਰਥਨ ਦਾ ਗਠਨ ਨਹੀਂ ਕਰਦਾ ਹੈ।"></a>).
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#NCO">NCO</a>, .nc ਫਾਈਲਾਂ ਨੂੰ ਪੱਕੇ ਤੌਰ &#39;ਤੇ ਸੋਧਣ ਲਈ ਇੱਕ ਸ਼ਕਤੀਸ਼ਾਲੀ ਕਮਾਂਡ ਲਾਈਨ ਟੂਲ।
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#netcdf-operators-nco">NCO</a>, .nc ਫਾਈਲਾਂ ਨੂੰ ਪੱਕੇ ਤੌਰ &#39;ਤੇ ਸੋਧਣ ਲਈ ਇੱਕ ਸ਼ਕਤੀਸ਼ਾਲੀ ਕਮਾਂਡ ਲਾਈਨ ਟੂਲ।
 <li><a rel="help" href="https://www.unidata.ucar.edu/downloads/netcdf/">NetCDF -C ਅਤੇ NetCDF - Java <img
        src="https://coastwatch.pfeg.noaa.gov/erddap/images/external.png" alt=" (external link)"
        title="ਕਿਸੇ ਬਾਹਰੀ ਵੈੱਬਸਾਈਟ ਦਾ ਇਹ ਲਿੰਕ ਕਿਸੇ ਸਮਰਥਨ ਦਾ ਗਠਨ ਨਹੀਂ ਕਰਦਾ ਹੈ।"></a>, C, C++, Fortran, ਜਾਂ Java ਲਈ .nc ਫਾਈਲਾਂ ਨੂੰ ਪੜ੍ਹਨ ਅਤੇ ਲਿਖਣ ਲਈ ਮੁੱਖ ਸਾਫਟਵੇਅਰ ਲਾਇਬ੍ਰੇਰੀਆਂ।
@@ -3363,7 +3366,7 @@ href="https://groups.google.com/forum/#!forum/erddap"><img
 <h2><a class="selfLink" id="JavaPrograms" href="#JavaPrograms" rel="bookmark">ਤੁਹਾਡੇ Java ਪ੍ਰੋਗਰਾਮ ਦੇ ਅੰਦਰ ਇੱਕ ਡੇਟਾ ਸਰੋਤ ਵਜੋਂ ERDDAP ਵਰਤੋਂ ਕਰਨਾ</a></h2>
 ਜਿਵੇਂ ਕਿ ਉੱਪਰ ਦੱਸਿਆ ਗਿਆ ਹੈ, ਕਿਉਂਕਿ Java ਪ੍ਰੋਗਰਾਮ ਵੈੱਬ &#39;ਤੇ ਉਪਲਬਧ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰ ਸਕਦੇ ਹਨ, ਤੁਸੀਂ ਇੱਕ Java ਪ੍ਰੋਗਰਾਮ ਲਿਖ ਸਕਦੇ ਹੋ ਜੋ ਕਿਸੇ ਵੀ ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ERDDAP ਇੰਸਟਾਲੇਸ਼ਨ ਤੋਂ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਦਾ ਹੈ।
 <p>ਜਾਂ, ਕਿਉਂਕਿ ERDDAP ਇੱਕ ਆਲ-ਓਪਨ ਸੋਰਸ ਪ੍ਰੋਗਰਾਮ ਹੈ, ਤੁਸੀਂ ਆਪਣੇ ਖੁਦ ਦੇ ਡੇਟਾ ਦੀ ਸੇਵਾ ਕਰਨ ਲਈ ਆਪਣੇ ਖੁਦ ਦੇ ਸਰਵਰ (ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਜਾਂ ਨਹੀਂ) &#39;ਤੇ ERDDAP ਦੀ ਆਪਣੀ ਕਾਪੀ ਵੀ ਸੈੱਟ ਕਰ ਸਕਦੇ ਹੋ। ਤੁਹਾਡੇ Java ਪ੍ਰੋਗਰਾਮ ERDDAP ਦੀ ਉਸ ਕਾਪੀ ਤੋਂ ਡਾਟਾ ਪ੍ਰਾਪਤ ਕਰ ਸਕਦੇ ਹਨ।
-<a rel="help" href="https://erddap.github.io/setup.html">ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸੈੱਟਅੱਪ ਕਰੋ</a> ।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸੈੱਟਅੱਪ ਕਰੋ</a> ।
   
 ]]></javaProgramsHTML>
 
@@ -3439,7 +3442,7 @@ ERDDAP ਦੇ ਹਰੀਜੱਟਲ ਲੈਜੇਂਡ ਲਈ, legendTitle1 ਅ�
 <h2><a class="selfLink" id="login" href="#login" rel="bookmark">ਪ੍ਰਾਈਵੇਟ ਡਾਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ ਲੌਗ ਇਨ ਕਰੋ।</a></h2>
 ਬਹੁਤ ਸਾਰੀਆਂ ERDDAP ਸਥਾਪਨਾਵਾਂ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕਤਾ ਸਮਰਥਿਤ ਨਹੀਂ ਹੁੰਦੀ ਹੈ ਅਤੇ ਇਸ ਤਰ੍ਹਾਂ ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ ਲੌਗਇਨ ਕਰਨ ਦਾ ਕੋਈ ਤਰੀਕਾ ਪ੍ਰਦਾਨ ਨਹੀਂ ਕਰਦੇ ਹਨ, ਅਤੇ ਨਾ ਹੀ ਉਹਨਾਂ ਕੋਲ ਕੋਈ ਨਿੱਜੀ ਡੇਟਾਸੈਟ ਹਨ।
 <p>ਕੁਝ ERDDAP ਸਥਾਪਨਾਵਾਂ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕਤਾ ਸਮਰਥਿਤ ਹੁੰਦੀ ਹੈ। ਵਰਤਮਾਨ ਵਿੱਚ, ERDDAP ਸਿਰਫ਼ Google-ਪ੍ਰਬੰਧਿਤ ਈਮੇਲ ਖਾਤਿਆਂ ਰਾਹੀਂ ਪ੍ਰਮਾਣੀਕਰਨ ਦਾ ਸਮਰਥਨ ਕਰਦਾ ਹੈ, ਜਿਸ ਵਿੱਚ NOAA ਅਤੇ ਕਈ ਯੂਨੀਵਰਸਿਟੀਆਂ ਵਿੱਚ ਈਮੇਲ ਖਾਤੇ ਸ਼ਾਮਲ ਹਨ। ਜੇਕਰ ਕਿਸੇ ERDDAP ਕੋਲ ਪ੍ਰਮਾਣਿਕਤਾ ਸਮਰਥਿਤ ਹੈ, ਤਾਂ Google-ਪ੍ਰਬੰਧਿਤ ਈਮੇਲ ਖਾਤੇ ਵਾਲਾ ਕੋਈ ਵੀ ਵਿਅਕਤੀ ਲੌਗ ਇਨ ਕਰ ਸਕਦਾ ਹੈ, ਪਰ ਉਹਨਾਂ ਕੋਲ ਸਿਰਫ਼ ਉਹਨਾਂ ਨਿੱਜੀ ਡੇਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ ਹੋਵੇਗੀ ਜਿਹਨਾਂ ਤੱਕ ERDDAP ਪ੍ਰਸ਼ਾਸਕ ਨੇ ਉਹਨਾਂ ਨੂੰ ਐਕਸੈਸ ਕਰਨ ਲਈ ਸਪਸ਼ਟ ਤੌਰ &#39;ਤੇ ਅਧਿਕਾਰਤ ਕੀਤਾ ਹੈ। ਬ੍ਰਾਊਜ਼ਰ ਤੋਂ ਜਾਂ ਸਕ੍ਰਿਪਟ ਰਾਹੀਂ ERDDAP ਵਿੱਚ ਲੌਗਇਨ ਕਰਨ ਦੀਆਂ ਹਦਾਇਤਾਂ ਲਈ,
-<a rel="help" href="https://erddap.github.io/AccessToPrivateDatasets.html">ERDDAP ਵਿੱਚ ਪ੍ਰਾਈਵੇਟ ਡਾਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ</a> ਦੇਖੋ।
+<a rel="help" href="https://erddap.github.io/docs/user/AccessToPrivateDatasets">ERDDAP ਵਿੱਚ ਪ੍ਰਾਈਵੇਟ ਡਾਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ</a> ਦੇਖੋ।
   
 ]]></loginHTML>
 <loginAttemptBlocked>ਗਲਤੀ: 3 ਅਸਫਲ ਕੋਸ਼ਿਸ਼ਾਂ ਤੋਂ ਬਾਅਦ {0} ਲਈ ਲੌਗਇਨ ਕੋਸ਼ਿਸ਼ਾਂ ਨੂੰ ਅਸਥਾਈ ਤੌਰ &#39;ਤੇ ਬਲੌਕ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।
@@ -4083,7 +4086,7 @@ ERDDAP ਦੋਵੇਂ ਹਨ:
 <h3><a class="selfLink" id="BuildThings" href="#BuildThings" rel="bookmark">ERDDAP ਦੇ ਸਿਖਰ &#39;ਤੇ ਚੀਜ਼ਾਂ ਬਣਾਓ</a></h3>
 ERDDAP ਵਿੱਚ ਬਹੁਤ ਸਾਰੀਆਂ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਹਨ ਜੋ ਕੰਪਿਊਟਰ ਪ੍ਰੋਗਰਾਮਾਂ ਜਾਂ ਸਕ੍ਰਿਪਟਾਂ ਦੁਆਰਾ ਵਰਤੀਆਂ ਜਾ ਸਕਦੀਆਂ ਹਨ ਜੋ ਤੁਸੀਂ ਲਿਖਦੇ ਹੋ। ਤੁਸੀਂ ਉਹਨਾਂ ਦੀ ਵਰਤੋਂ ERDDAP ਦੇ ਸਿਖਰ &#39;ਤੇ ਹੋਰ ਵੈਬ ਐਪਲੀਕੇਸ਼ਨਾਂ ਜਾਂ ਵੈਬ ਸੇਵਾਵਾਂ ਬਣਾਉਣ ਲਈ ਕਰ ਸਕਦੇ ਹੋ, ਜਿਸ ਨਾਲ ERDDAP ਜ਼ਿਆਦਾਤਰ ਕੰਮ ਕਰਦਾ ਹੈ! ਇਸ ਲਈ ਜੇਕਰ ਤੁਹਾਡੇ ਕੋਲ ERDDAP ਦੁਆਰਾ ਪ੍ਰਦਾਨ ਕੀਤੇ ਗਏ ਡੇਟਾ ਲਈ ਇੱਕ ਬਿਹਤਰ ਇੰਟਰਫੇਸ ਜਾਂ ਇੱਕ ਵੈਬ ਪੇਜ ਲਈ ਇੱਕ ਵਿਚਾਰ ਹੈ ਜਿਸਨੂੰ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਦੇ ਆਸਾਨ ਤਰੀਕੇ ਦੀ ਲੋੜ ਹੈ, ਤਾਂ ਅਸੀਂ ਤੁਹਾਨੂੰ ਆਪਣੀ ਖੁਦ ਦੀ ਵੈਬ ਐਪਲੀਕੇਸ਼ਨ, ਵੈਬ ਸੇਵਾ, ਜਾਂ ਵੈਬ ਪੇਜ ਬਣਾਉਣ ਅਤੇ ERDDAP ਵਰਤੋਂ ਕਰਨ ਲਈ ਉਤਸ਼ਾਹਿਤ ਕਰਦੇ ਹਾਂ ਬੁਨਿਆਦ.
 ਤੁਹਾਡਾ ਸਿਸਟਮ ERD ਦੇ ERDDAP ਜਾਂ ਹੋਰ ERDDAP ਸਥਾਪਨਾਵਾਂ ਤੋਂ ਡੇਟਾ, ਗ੍ਰਾਫ਼ ਅਤੇ ਹੋਰ ਜਾਣਕਾਰੀ ਪ੍ਰਾਪਤ ਕਰ ਸਕਦਾ ਹੈ, ਜਾਂ ਤੁਸੀਂ ਕਰ ਸਕਦੇ ਹੋ<!-- setup always from coastwatch's erddap -->
-<a rel="help" href="https://erddap.github.io/setup.html">ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸਰਵਰ ਸੈਟ ਅਪ ਕਰੋ</a>, ਜੋ ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਜਾਂ ਸਿਰਫ਼ ਨਿੱਜੀ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਹੋ ਸਕਦਾ ਹੈ।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸਰਵਰ ਸੈਟ ਅਪ ਕਰੋ</a>, ਜੋ ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਜਾਂ ਸਿਰਫ਼ ਨਿੱਜੀ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਹੋ ਸਕਦਾ ਹੈ।
 <h3><a class="selfLink" id="requests" href="#requests" rel="bookmark">RESTful URL ਬੇਨਤੀਆਂ</a></h3>
 ERDDAP ਤੋਂ ਉਪਭੋਗਤਾ-ਇੰਟਰਫੇਸ ਜਾਣਕਾਰੀ ਲਈ ਬੇਨਤੀਆਂ (ਉਦਾਹਰਨ ਲਈ, ਖੋਜ ਨਤੀਜੇ) ਬੇਨਤੀਆਂ ਲਈ ਵੈੱਬ ਦੇ ਯੂਨੀਵਰਸਲ ਸਟੈਂਡਰਡ ਦੀ ਵਰਤੋਂ ਕਰਦੀਆਂ ਹਨ:
 <a rel="help" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">URLs &externalLinkHtml;</a>
@@ -4126,7 +4129,7 @@ URL ਵਿੱਚ, ਕੁਝ ਅੱਖਰਾਂ ਦੀ ਇਜਾਜ਼ਤ ਨਹ�
 <li>.jsonlKVP - ਕੁੰਜੀ:ਮੁੱਲ ਜੋੜਾਂ ਵਾਲੀ ਇੱਕ JSON ਲਾਈਨਾਂ ਫ਼ਾਈਲ। (<a rel="help" href="https://jsonlines.org/">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
 <li>.mat - ਇੱਕ MATLAB ਬਾਈਨਰੀ ਫਾਈਲ। (<a rel="help" href="https://www.mathworks.com/">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
 <li>.nc - ਇੱਕ ਫਲੈਟ, ਟੇਬਲ ਵਰਗੀ, NetCDF -3 ਬਾਈਨਰੀ ਫਾਈਲ। (<a rel="help" href="https://www.unidata.ucar.edu/software/netcdf/">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
-<li>.nccsv - ਇੱਕ ਫਲੈਟ, ਟੇਬਲ-ਵਰਗੀ, NetCDF ਵਰਗੀ, ASCII CSV ਫਾਈਲ। (<a rel="help" href="https://erddap.github.io/NCCSV.html">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
+<li>.nccsv - ਇੱਕ ਫਲੈਟ, ਟੇਬਲ-ਵਰਗੀ, NetCDF ਵਰਗੀ, ASCII CSV ਫਾਈਲ। (<a rel="help" href="https://erddap.github.io/docs/user/nccsv-1.20">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
 <li>.tsv - ਇੱਕ ਟੈਬ-ਵੱਖ ਕੀਤੀ ASCII ਟੈਕਸਟ ਟੇਬਲ। (<a rel="help" href="https://jkorpela.fi/TSV.html">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
 <li>.xhtml - ਇੱਕ ਸਾਰਣੀ ਵਿੱਚ ਡੇਟਾ ਦੇ ਨਾਲ ਇੱਕ XHTML (XML) ਫਾਈਲ। (<a rel="help" href="https://www.w3schools.com/html/html_tables.asp">ਹੋਰ&nbsp;ਜਾਣਕਾਰੀ &externalLinkHtml;</a>)
 </ul>
@@ -4778,7 +4781,7 @@ OPeNDAP ਸਟੈਂਡਰਡ ਦੁਆਰਾ।
 <p><a rel="help" href="&erddapUrl;/information.html"><strong>ERDDAP ਬਾਰੇ ਹੋਰ ਜਾਣੋ।</strong></a>
 <p><strong>ਡੇਟਾ ਪ੍ਰਦਾਤਾ:
 ਤੁਸੀਂ
-<a rel="help" href="https://erddap.github.io/setup.html">ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸਰਵਰ ਸੈਟ ਅਪ</a> ਕਰ ਸਕਦੇ ਹੋ ਅਤੇ ਆਪਣਾ ਡਾਟਾ ਸਰਵ ਕਰ ਸਕਦੇ ਹੋ।</strong> ERDDAP ਮੁਫ਼ਤ ਅਤੇ ਓਪਨ ਸੋਰਸ ਹੈ। ਇਹ ਅਪਾਚੇ-ਵਰਗੇ ਲਾਇਸੰਸ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ, ਇਸਲਈ ਤੁਸੀਂ ਇਸ ਨਾਲ ਜੋ ਵੀ ਚਾਹੁੰਦੇ ਹੋ ਕਰ ਸਕਦੇ ਹੋ। ERDDAP ਦੀ ਦਿੱਖ ਅਨੁਕੂਲਿਤ ਹੈ, ਇਸਲਈ ਤੁਹਾਡਾ ERDDAP ਤੁਹਾਡੀ ਸੰਸਥਾ ਨੂੰ ਦਰਸਾਏਗਾ, NOAA ਨਹੀਂ। ERDDAP ਸਥਾਪਤ ਕਰਨ ਦੀ ਛੋਟੀ ਜਿਹੀ ਕੋਸ਼ਿਸ਼ ਬਹੁਤ ਸਾਰੇ ਲਾਭ ਲਿਆਉਂਦੀ ਹੈ। ਜੇਕਰ ਤੁਹਾਡੇ ਕੋਲ ਪਹਿਲਾਂ ਹੀ ਆਪਣਾ ਡੇਟਾ ਵੰਡਣ ਲਈ ਇੱਕ ਵੈੱਬ ਸੇਵਾ ਹੈ, ਤਾਂ ਤੁਸੀਂ ਮੌਜੂਦਾ ਸੇਵਾ ਜਾਂ ਸਰੋਤ ਫਾਈਲਾਂ ਜਾਂ ਡੇਟਾਬੇਸ ਰਾਹੀਂ ਆਪਣੇ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ ERDDAP ਸੈਟ ਅਪ ਕਰ ਸਕਦੇ ਹੋ। ਫਿਰ, ਲੋਕਾਂ ਕੋਲ ਤੁਹਾਡੇ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਦਾ ਇੱਕ ਹੋਰ ਤਰੀਕਾ ਹੋਵੇਗਾ ਅਤੇ ਉਹ ਡੇਟਾ ਨੂੰ ਵਾਧੂ ਫਾਈਲ ਫਾਰਮੈਟਾਂ ਵਿੱਚ ਜਾਂ ਗ੍ਰਾਫ ਜਾਂ ਨਕਸ਼ਿਆਂ ਦੇ ਰੂਪ ਵਿੱਚ ਡਾਊਨਲੋਡ ਕਰਨ ਦੇ ਯੋਗ ਹੋਣਗੇ। ERDDAP ਘੱਟੋ-ਘੱਟ 14 ਦੇਸ਼ਾਂ ਵਿੱਚ 90 ਤੋਂ ਵੱਧ ਸੰਸਥਾਵਾਂ ਦੁਆਰਾ ਸਥਾਪਿਤ ਕੀਤਾ ਗਿਆ ਹੈ।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install">ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸਰਵਰ ਸੈਟ ਅਪ</a> ਕਰ ਸਕਦੇ ਹੋ ਅਤੇ ਆਪਣਾ ਡਾਟਾ ਸਰਵ ਕਰ ਸਕਦੇ ਹੋ।</strong> ERDDAP ਮੁਫ਼ਤ ਅਤੇ ਓਪਨ ਸੋਰਸ ਹੈ। ਇਹ ਅਪਾਚੇ-ਵਰਗੇ ਲਾਇਸੰਸ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ, ਇਸਲਈ ਤੁਸੀਂ ਇਸ ਨਾਲ ਜੋ ਵੀ ਚਾਹੁੰਦੇ ਹੋ ਕਰ ਸਕਦੇ ਹੋ। ERDDAP ਦੀ ਦਿੱਖ ਅਨੁਕੂਲਿਤ ਹੈ, ਇਸਲਈ ਤੁਹਾਡਾ ERDDAP ਤੁਹਾਡੀ ਸੰਸਥਾ ਨੂੰ ਦਰਸਾਏਗਾ, NOAA ਨਹੀਂ। ERDDAP ਸਥਾਪਤ ਕਰਨ ਦੀ ਛੋਟੀ ਜਿਹੀ ਕੋਸ਼ਿਸ਼ ਬਹੁਤ ਸਾਰੇ ਲਾਭ ਲਿਆਉਂਦੀ ਹੈ। ਜੇਕਰ ਤੁਹਾਡੇ ਕੋਲ ਪਹਿਲਾਂ ਹੀ ਆਪਣਾ ਡੇਟਾ ਵੰਡਣ ਲਈ ਇੱਕ ਵੈੱਬ ਸੇਵਾ ਹੈ, ਤਾਂ ਤੁਸੀਂ ਮੌਜੂਦਾ ਸੇਵਾ ਜਾਂ ਸਰੋਤ ਫਾਈਲਾਂ ਜਾਂ ਡੇਟਾਬੇਸ ਰਾਹੀਂ ਆਪਣੇ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ ERDDAP ਸੈਟ ਅਪ ਕਰ ਸਕਦੇ ਹੋ। ਫਿਰ, ਲੋਕਾਂ ਕੋਲ ਤੁਹਾਡੇ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਦਾ ਇੱਕ ਹੋਰ ਤਰੀਕਾ ਹੋਵੇਗਾ ਅਤੇ ਉਹ ਡੇਟਾ ਨੂੰ ਵਾਧੂ ਫਾਈਲ ਫਾਰਮੈਟਾਂ ਵਿੱਚ ਜਾਂ ਗ੍ਰਾਫ ਜਾਂ ਨਕਸ਼ਿਆਂ ਦੇ ਰੂਪ ਵਿੱਚ ਡਾਊਨਲੋਡ ਕਰਨ ਦੇ ਯੋਗ ਹੋਣਗੇ। ERDDAP ਘੱਟੋ-ਘੱਟ 14 ਦੇਸ਼ਾਂ ਵਿੱਚ 90 ਤੋਂ ਵੱਧ ਸੰਸਥਾਵਾਂ ਦੁਆਰਾ ਸਥਾਪਿਤ ਕੀਤਾ ਗਿਆ ਹੈ।
 <a rel="bookmark"
 href="https://www.ngdc.noaa.gov/wiki/index.php/Data_Access_Technical_Recommendations#Software_implementations">NOAA ਦਾ ਡੇਟਾ ਐਕਸੈਸ ਪ੍ਰੋਸੀਜਰਲ ਡਾਇਰੈਕਟਿਵ <img 
     src="&erddapUrl;/images/external.png" alt=" (external link)" 
@@ -5114,7 +5117,7 @@ ERDDAP ਤੋਂ ਬਿਨਾਂ, ਜਦੋਂ ਕੋਈ ਵਿਅਕਤੀ (ਜ
 ਡੇਟਾਸੇਟਸ ਦੀ ਖੋਜ ਕਰਦੇ ਸਮੇਂ, ਖੋਜ ਸ਼ਬਦਾਂ ਦੇ ਵਿਚਕਾਰ <kbd>AND</kbd> ਵਰਤੋਂ ਨਾ ਕਰੋ। ਇਹ ਨਿਸ਼ਚਿਤ ਹੈ।)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="localAndRemote" href="#localAndRemote" rel="bookmark">ERDDAP ਲੋਕਲ (ਸਰਵਰ ਦੀ ਹਾਰਡ ਡਰਾਈਵ &#39;ਤੇ) ਅਤੇ ਰਿਮੋਟ (ਵੈੱਬ ਰਾਹੀਂ ਐਕਸੈਸ ਕੀਤਾ) ਡਾਟਾ ਸਰੋਤਾਂ ਤੋਂ ਡਾਟਾ ਪ੍ਰਾਪਤ ਕਰ ਸਕਦਾ ਹੈ।</a></strong>
-<br><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#datasetTypes">ਡੇਟਾ ਸਰੋਤਾਂ ਦੀਆਂ ਕਿਸਮਾਂ ਦੀ ਸੂਚੀ</a> ਵੇਖੋ ਜਿਨ੍ਹਾਂ ਤੱਕ ERDDAP ਪਹੁੰਚ ਕਰ ਸਕਦਾ ਹੈ।
+<br><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#list-of-types-datasets">ਡੇਟਾ ਸਰੋਤਾਂ ਦੀਆਂ ਕਿਸਮਾਂ ਦੀ ਸੂਚੀ</a> ਵੇਖੋ ਜਿਨ੍ਹਾਂ ਤੱਕ ERDDAP ਪਹੁੰਚ ਕਰ ਸਕਦਾ ਹੈ।
 <br>&nbsp;
 <li><strong><a class="selfLink" id="scientificData" href="#scientificData" rel="bookmark">ERDDAP ਕਈ ਕਿਸਮਾਂ ਦੇ ਵਿਗਿਆਨਕ ਡੇਟਾ ਦੀ ਸੇਵਾ ਕਰ ਸਕਦਾ ਹੈ, ਨਾ ਕਿ ਸਿਰਫ਼ ਸਮੁੰਦਰੀ ਡੇਟਾ।</a></strong>
 <br>ERDDAP ਇੱਕ ਡਾਟਾ ਸਰਵਰ ਹੈ ਜੋ
@@ -5258,8 +5261,8 @@ ERDDAP ਡੇਟਾ ਐਕਸੈਸ ਫਾਰਮ (ਵੈੱਬ ਪੇਜ) ਵੀ
 <a rel="help" href="https://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html">CF ਮੈਟਾਡੇਟਾ <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="ਕਿਸੇ ਬਾਹਰੀ ਵੈੱਬਸਾਈਟ ਦਾ ਇਹ ਲਿੰਕ ਕਿਸੇ ਸਮਰਥਨ ਦਾ ਗਠਨ ਨਹੀਂ ਕਰਦਾ ਹੈ।"></a>) ਡੇਟਾ ਦਾ ਵਰਣਨ ਕਰਨਾ। ERDDAP ਪ੍ਰਸ਼ਾਸਕ ਨੂੰ ਮੈਟਾਡੇਟਾ ਦਾ ਵਰਣਨ ਕਰਨ ਦਿੰਦਾ ਹੈ (ਅਤੇ ਉਤਸ਼ਾਹਿਤ ਕਰਦਾ ਹੈ) ਜੋ ਕਿ ਡਾਟਾਸੈਟਾਂ ਅਤੇ ਉਹਨਾਂ ਦੇ ਵੇਰੀਏਬਲਾਂ ਵਿੱਚ ਜੋੜਿਆ ਜਾਵੇਗਾ।
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html">ਪ੍ਰਸ਼ਾਸਕਾਂ ਲਈ ਨਿਰਦੇਸ਼ਾਂ</a> ਦਾ
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#addAttributes">addAttributes ਭਾਗ</a> ਵੇਖੋ।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets">ਪ੍ਰਸ਼ਾਸਕਾਂ ਲਈ ਨਿਰਦੇਸ਼ਾਂ</a> ਦਾ
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#addattributes">addAttributes ਭਾਗ</a> ਵੇਖੋ।
 <br>&nbsp;
 <li><strong><a class="selfLink" id="images" href="#images" rel="bookmark"
  >ERDDAP ਤੁਹਾਨੂੰ ਗ੍ਰਾਫਾਂ ਅਤੇ ਨਕਸ਼ਿਆਂ ਨਾਲ .png ਅਤੇ .pdf ਚਿੱਤਰ ਫਾਈਲਾਂ ਦੀ ਬੇਨਤੀ ਕਰਨ ਦਿੰਦਾ ਹੈ</a></strong>
@@ -5372,7 +5375,7 @@ ERDDAP ਹਰੇਕ ਡੇਟਾਸੈਟ ਲਈ ਇੱਕ ਵੱਖਰੀ RSS 2
 <a rel="help" href="&erddapUrl;/rest.html">ਕੰਪਿਊਟਰ ਪ੍ਰੋਗਰਾਮਾਂ ਲਈ</a> ERDDAP ਦੀਆਂ ਸੇਵਾਵਾਂ ਬਾਰੇ ਹੋਰ ਪੜ੍ਹੋ।
 <br>&nbsp;
 <li><strong><a class="selfLink" id="security" href="#security" rel="bookmark">ਸੁਰੱਖਿਆ</a></strong> - ਮੂਲ ਰੂਪ ਵਿੱਚ, ERDDAP ਇੱਕ ਪੂਰੀ ਤਰ੍ਹਾਂ ਜਨਤਕ ਸਰਵਰ ਦੇ ਤੌਰ &#39;ਤੇ ਚੱਲਦਾ ਹੈ ਜਿਸ ਵਿੱਚ ਕੋਈ ਲੌਗਇਨ ਸਿਸਟਮ ਨਹੀਂ ਹੈ ਅਤੇ ਡੇਟਾ ਐਕਸੈਸ ਲਈ ਕੋਈ ਪਾਬੰਦੀਆਂ ਨਹੀਂ ਹਨ। ਹਾਲਾਂਕਿ, ਇੱਕ ERDDAP ਪ੍ਰਸ਼ਾਸਕ ਉਹਨਾਂ ਉਪਭੋਗਤਾਵਾਂ ਲਈ ਕੁਝ ਜਾਂ ਸਾਰੇ ਡੇਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ ਨੂੰ ਸੀਮਤ ਕਰਨ ਲਈ ERDDAP ਕੌਂਫਿਗਰ ਕਰ ਸਕਦਾ ਹੈ ਜੋ ਲੌਗ ਇਨ ਕਰਦੇ ਹਨ ਅਤੇ ਉਹਨਾਂ ਨੂੰ ਕੁਝ ਭੂਮਿਕਾਵਾਂ ਸੌਂਪੀਆਂ ਗਈਆਂ ਹਨ। ERDDAP ਕੋਲ ਪ੍ਰਮਾਣਿਕਤਾ (ਲੌਗਇਨ) ਲਈ ਬਿਲਟ-ਇਨ ਢੰਗ ਹਨ। ਜੇਕਰ ਇੱਕ ERDDAP ਇੰਸਟਾਲੇਸ਼ਨ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕਤਾ ਚਾਲੂ ਹੈ, ਤਾਂ ਹਰੇਕ ਵੈੱਬ ਪੰਨੇ ਦੇ ਸਿਖਰ &#39;ਤੇ ਇੱਕ&quot;ਲੌਗ ਇਨ&quot;ਲਿੰਕ ਹੋਵੇਗਾ। ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਉਪਲਬਧ ਡੇਟਾਸੇਟਾਂ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ ਕਦੇ ਵੀ ਲੌਗਇਨ ਨਹੀਂ ਕਰਨਾ ਪੈਂਦਾ। ਜਿਨ੍ਹਾਂ ਉਪਭੋਗਤਾਵਾਂ ਨੇ ਲੌਗਇਨ ਕੀਤਾ ਹੈ ਉਹ ਜਨਤਕ ਡੇਟਾਸੈਟਾਂ ਅਤੇ ਉਹਨਾਂ ਨਿੱਜੀ ਡੇਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ ਕਰ ਸਕਦੇ ਹਨ ਜਿਨ੍ਹਾਂ ਤੱਕ ਉਹਨਾਂ ਨੂੰ ਪਹੁੰਚ ਦੀ ਆਗਿਆ ਹੈ। ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ ਲੌਗ ਇਨ ਕਰਨ ਅਤੇ ਪ੍ਰਾਈਵੇਟ ਡੇਟਾਸੈਟਾਂ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ https:
-(ਸੁਰੱਖਿਅਤ ਸਾਕਟ ਲੇਅਰ) ਦੀ ਵਰਤੋਂ ਕਰਨੀ ਚਾਹੀਦੀ ਹੈ। ਡਾਟਾਸੈੱਟਾਂ ਨੂੰ ਗ੍ਰਾਫ ਅਤੇ ਨਕਸ਼ੇ ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਬਣਾਉਣ ਲਈ ਕੌਂਫਿਗਰ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ, ਪਰ ਡੇਟਾ ਸਿਰਫ ਅਧਿਕਾਰਤ ਉਪਭੋਗਤਾਵਾਂ ਲਈ ਪਹੁੰਚਯੋਗ ਹੈ। (<a rel="help" href="https://erddap.github.io/setup.html#security">ਹੋਰ ਜਾਣਕਾਰੀ</a>)
+(ਸੁਰੱਖਿਅਤ ਸਾਕਟ ਲੇਅਰ) ਦੀ ਵਰਤੋਂ ਕਰਨੀ ਚਾਹੀਦੀ ਹੈ। ਡਾਟਾਸੈੱਟਾਂ ਨੂੰ ਗ੍ਰਾਫ ਅਤੇ ਨਕਸ਼ੇ ਜਨਤਕ ਤੌਰ &#39;ਤੇ ਪਹੁੰਚਯੋਗ ਬਣਾਉਣ ਲਈ ਕੌਂਫਿਗਰ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ, ਪਰ ਡੇਟਾ ਸਿਰਫ ਅਧਿਕਾਰਤ ਉਪਭੋਗਤਾਵਾਂ ਲਈ ਪਹੁੰਚਯੋਗ ਹੈ। (<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#security">ਹੋਰ ਜਾਣਕਾਰੀ</a>)
 <br>&nbsp;
 <li><strong><a class="selfLink" id="chunks" href="#chunks" rel="bookmark">ERDDAP ਟੁਕੜਿਆਂ ਵਿੱਚ ਡੇਟਾ ਦੀ ਪ੍ਰਕਿਰਿਆ ਕਰਦਾ ਹੈ।</a></strong>
 <br>ਮੈਮੋਰੀ ਨੂੰ ਬਚਾਉਣ ਲਈ (ਇੱਕ ਵੱਡਾ ਮੁੱਦਾ) ਅਤੇ ਜਵਾਬਾਂ ਨੂੰ ਜਲਦੀ ਸ਼ੁਰੂ ਕਰਨ ਲਈ, ERDDAP ਡੇਟਾ ਬੇਨਤੀਆਂ ਨੂੰ ਟੁਕੜਿਆਂ ਵਿੱਚ ਪ੍ਰਕਿਰਿਆ ਕਰਦਾ ਹੈ — ਸਰੋਤ ਤੋਂ ਵਾਰ-ਵਾਰ ਡੇਟਾ ਦਾ ਇੱਕ ਹਿੱਸਾ ਪ੍ਰਾਪਤ ਕਰਨਾ, ਇਸਨੂੰ ਸਾਫ਼ ਕਰਨਾ (ਉਦਾਹਰਨ ਲਈ,
@@ -5392,15 +5395,15 @@ Push ਅਤੇ Pull ਤਕਨਾਲੋਜੀ</a></strong>
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="ਕਿਸੇ ਬਾਹਰੀ ਵੈੱਬਸਾਈਟ ਦਾ ਇਹ ਲਿੰਕ ਕਿਸੇ ਸਮਰਥਨ ਦਾ ਗਠਨ ਨਹੀਂ ਕਰਦਾ ਹੈ।"></a> :
 ਪਰ ERDDAP ਕੋਲ ਇੱਕ ਰਿਮੋਟ ਡੇਟਾ ਸਰੋਤ ਤੋਂ ਸਾਰੇ ਉਪਲਬਧ ਡੇਟਾ ਨੂੰ ਸਰਗਰਮੀ ਨਾਲ ਪ੍ਰਾਪਤ ਕਰਨ ਅਤੇ
-<a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#EDDGridCopy">ਡੇਟਾ ਦੀ ਇੱਕ ਸਥਾਨਕ ਕਾਪੀ ਸਟੋਰ ਕਰਨ</a> ਦੀ ਸਮਰੱਥਾ ਵੀ ਹੈ।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#eddgridcopy">ਡੇਟਾ ਦੀ ਇੱਕ ਸਥਾਨਕ ਕਾਪੀ ਸਟੋਰ ਕਰਨ</a> ਦੀ ਸਮਰੱਥਾ ਵੀ ਹੈ।
 <a rel="help" href="https://en.wikipedia.org/wiki/Push_technology">Push ਤਕਨਾਲੋਜੀ <img 
       src="&erddapUrl;/images/external.png" alt=" (external link)" 
       title="ਕਿਸੇ ਬਾਹਰੀ ਵੈੱਬਸਾਈਟ ਦਾ ਇਹ ਲਿੰਕ ਕਿਸੇ ਸਮਰਥਨ ਦਾ ਗਠਨ ਨਹੀਂ ਕਰਦਾ ਹੈ।"></a> :
 ERDDAP ਦੀਆਂ
 <a href="#subscriptions">ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਸੇਵਾਵਾਂ ਦੀ</a> ਵਰਤੋਂ ਕਰਕੇ, ਨਵਾਂ ਡੇਟਾ ਉਪਲਬਧ ਹੁੰਦੇ ਹੀ ਦੂਜੇ ਡੇਟਾ ਸਰਵਰਾਂ ਨੂੰ ਸੂਚਿਤ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ ਤਾਂ ਜੋ ਉਹ ਡੇਟਾ ਦੀ ਬੇਨਤੀ ਕਰ ਸਕਣ (ਡਾਟਾ ਖਿੱਚ ਕੇ)। ERDDAP ਦੀ
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDGridFromErddap">EDDGrid FromErddap</a> ਅਤੇ
-<a rel="help"  href="https://erddap.github.io/setupDatasetsXml.html#EDDTableFromErddap">EDDTableFromErddap</a> ERDDAP ਦੀ ਗਾਹਕੀ ਸੇਵਾਵਾਂ ਅਤੇ
-<a rel="help" href="https://erddap.github.io/setup.html#flag">ਫਲੈਗ ਸਿਸਟਮ ਦੀ</a> ਵਰਤੋਂ ਕਰਦੇ ਹਨ ਤਾਂ ਜੋ ਨਵਾਂ ਡੇਟਾ ਉਪਲਬਧ ਹੋਣ &#39;ਤੇ ਉਹਨਾਂ ਨੂੰ ਤੁਰੰਤ ਸੂਚਿਤ ਕੀਤਾ ਜਾ ਸਕੇ। ਤੁਸੀਂ ਇਹਨਾਂ ਨੂੰ ਵਧੀਆ ਪ੍ਰਭਾਵ ਨਾਲ ਜੋੜ ਸਕਦੇ ਹੋ:
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDGrid FromErddap</a> ਅਤੇ
+<a rel="help"  href="https://erddap.github.io/docs/server-admin/datasets#eddfromerddap">EDDTableFromErddap</a> ERDDAP ਦੀ ਗਾਹਕੀ ਸੇਵਾਵਾਂ ਅਤੇ
+<a rel="help" href="https://erddap.github.io/docs/server-admin/additional-information#flag">ਫਲੈਗ ਸਿਸਟਮ ਦੀ</a> ਵਰਤੋਂ ਕਰਦੇ ਹਨ ਤਾਂ ਜੋ ਨਵਾਂ ਡੇਟਾ ਉਪਲਬਧ ਹੋਣ &#39;ਤੇ ਉਹਨਾਂ ਨੂੰ ਤੁਰੰਤ ਸੂਚਿਤ ਕੀਤਾ ਜਾ ਸਕੇ। ਤੁਸੀਂ ਇਹਨਾਂ ਨੂੰ ਵਧੀਆ ਪ੍ਰਭਾਵ ਨਾਲ ਜੋੜ ਸਕਦੇ ਹੋ:
 ਜੇਕਰ ਤੁਸੀਂ ਇੱਕ EDDGrid FromErddap ਡੇਟਾਸੈਟ ਦੇ ਦੁਆਲੇ ਇੱਕ EDDGrid ਕਾਪੀ ਲਪੇਟਦੇ ਹੋ (ਜਾਂ ਇੱਕ EDDTableFromErddap ਡੇਟਾਸੈਟ ਦੇ ਦੁਆਲੇ ਇੱਕ EDDTableCopy ਲਪੇਟਦੇ ਹੋ), ERDDAP ਆਪਣੇ ਆਪ ਹੀ ਕਿਸੇ ਹੋਰ ERDDAP ਦੇ ਡੇਟਾਸੈਟ ਦੀ ਇੱਕ ਸਥਾਨਕ ਕਾਪੀ ਬਣਾਵੇਗਾ ਅਤੇ ਬਣਾਈ ਰੱਖੇਗਾ। ਕਿਉਂਕਿ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਸੇਵਾਵਾਂ ਜਿਵੇਂ ਹੀ ਨਵਾਂ ਡੇਟਾ ਉਪਲਬਧ ਹੁੰਦਾ ਹੈ, ਕੰਮ ਕਰਦਾ ਹੈ, ਪੁਸ਼ ਤਕਨਾਲੋਜੀ ਬਹੁਤ ਤੇਜ਼ੀ ਨਾਲ (ਸਕਿੰਟਾਂ ਦੇ ਅੰਦਰ) ਡੇਟਾ ਨੂੰ ਫੈਲਾਉਂਦੀ ਹੈ।
 <p>ਇਹ ਆਰਕੀਟੈਕਚਰ ਹਰੇਕ ERDDAP ਪ੍ਰਸ਼ਾਸਕ ਨੂੰ ਇਹ ਨਿਰਧਾਰਿਤ ਕਰਨ ਲਈ ਜ਼ਿੰਮੇਵਾਰ ਬਣਾਉਂਦਾ ਹੈ ਕਿ ਉਸ ਦੇ ERDDAP ਲਈ ਡੇਟਾ ਕਿੱਥੋਂ ਆਉਂਦਾ ਹੈ। ਹੋਰ ERDDAP ਪ੍ਰਸ਼ਾਸਕ ਵੀ ਅਜਿਹਾ ਕਰ ਸਕਦੇ ਹਨ। ਪ੍ਰਬੰਧਕਾਂ ਵਿਚਕਾਰ ਤਾਲਮੇਲ ਦੀ ਕੋਈ ਲੋੜ ਨਹੀਂ ਹੈ। ਜੇਕਰ ਬਹੁਤ ਸਾਰੇ ERDDAP ਪ੍ਰਸ਼ਾਸਕ ਇੱਕ ਦੂਜੇ ਦੇ ERDDAP s ਨਾਲ ਲਿੰਕ ਕਰਦੇ ਹਨ, ਤਾਂ ਇੱਕ ਡਾਟਾ ਵੰਡ ਨੈੱਟਵਰਕ ਬਣਦਾ ਹੈ। ਡਾਟਾ ਤੇਜ਼ੀ ਨਾਲ, ਕੁਸ਼ਲਤਾ ਨਾਲ, ਅਤੇ ਆਪਣੇ ਆਪ ਹੀ ਡਾਟਾ ਸਰੋਤਾਂ (ERDDAP ਅਤੇ ਹੋਰ ਸਰਵਰਾਂ) ਤੋਂ ਡਾਟਾ ਰੀਡਿਸਟ੍ਰੀਬਿਊਸ਼ਨ ਸਾਈਟਾਂ (ERDDAP ) ਨੂੰ ਨੈੱਟਵਰਕ ਵਿੱਚ ਕਿਤੇ ਵੀ ਪ੍ਰਸਾਰਿਤ ਕੀਤਾ ਜਾਵੇਗਾ। ਇੱਕ ਦਿੱਤਾ ਗਿਆ ERDDAP ਕੁਝ ਡੇਟਾਸੈਟਾਂ ਲਈ ਡੇਟਾ ਦਾ ਇੱਕ ਸਰੋਤ ਅਤੇ ਦੂਜੇ ਡੇਟਾਸੈਟਾਂ ਲਈ ਇੱਕ ਮੁੜ ਵੰਡ ਸਾਈਟ ਹੋ ਸਕਦਾ ਹੈ। ਨਤੀਜਾ ਨੈੱਟਵਰਕ ਲਗਭਗ
 <a rel="bookmark" href="https://www.unidata.ucar.edu/software/idd/">Unidata ਦੇ IDD/IDM</a> ਵਰਗੇ ਪ੍ਰੋਗਰਾਮਾਂ ਨਾਲ ਸਥਾਪਤ ਕੀਤੇ ਡਾਟਾ ਵੰਡ ਨੈੱਟਵਰਕਾਂ ਵਰਗਾ ਹੈ
@@ -5456,9 +5459,9 @@ DODS ਸਿਸਟਮ ਨੇ ਇੰਟਰਨੈੱਟ &#39;ਤੇ dods:
 ਮੱਛੀ ਵਿਗਿਆਨੀਆਂ (ਮੁੱਖ ਤੌਰ &#39;ਤੇ, ਪਰ ਅਸਲ ਵਿੱਚ ਹਰ ਕਿਸੇ) ਲਈ ਵਿਭਿੰਨ ਸਰੋਤਾਂ ਤੋਂ ਵਿਗਿਆਨਕ ਡੇਟਾ ਪ੍ਰਾਪਤ ਕਰਨਾ ਆਸਾਨ ਬਣਾਉਂਦਾ ਹੈ।
 <p><a class="selfLink" id="miraculous" href="#miraculous" rel="bookmark">ਸੌਫਟਵੇਅਰ ਬਾਰੇ ਚਮਤਕਾਰੀ ਗੱਲ ਇਹ ਹੈ ਕਿ ਇਸ ਨੂੰ ਡੁਪਲੀਕੇਟ ਕਰਨ ਲਈ ਕੁਝ ਵੀ ਖਰਚ ਨਹੀਂ ਹੁੰਦਾ.</a> ਇਸ ਲਈ ਆਪਣਾ ਕੰਮ ਕਰਨ ਲਈ, ਮੈਂ ERD ਤੇ ਵਰਤਣ ਲਈ ERDDAP ਲਿਖਦਾ ਹਾਂ। ਮੈਨੂੰ ਲੱਗਦਾ ਹੈ ਕਿ ਇਹ ਮੇਰੇ ਲਈ ਆਪਣਾ ਕੰਮ ਕਰਨ ਦਾ ਸਭ ਤੋਂ ਵਧੀਆ ਤਰੀਕਾ ਹੈ। ਇਹੀ ਕਾਰਨ ERDDAP ਵਿਕਾਸ ਦੇ ਖਰਚੇ ਨੂੰ ਜਾਇਜ਼ ਠਹਿਰਾਉਂਦਾ ਹੈ। (ਮੇਰੇ ਖਿਆਲ ਵਿੱਚ ਇਹ ਦਿਖਾਇਆ ਜਾ ਸਕਦਾ ਹੈ ਕਿ ERDDAP NOAA ਵਿਗਿਆਨੀਆਂ ਦੇ ਸਮੇਂ ਨਾਲੋਂ ਵੱਧ ਸਮਾਂ ਬਚਾਇਆ ਹੈ ਜਿੰਨਾ ਮੈਂ ERDDAP ਵਿਕਸਤ ਕਰਨ ਵਿੱਚ ਖਰਚ ਕੀਤਾ ਹੈ। ਸਮਾਂ=ਪੈਸਾ।) ਪਰ ਇਸਦਾ ਸਾਈਡ ਫਾਇਦਾ ਇਹ ਹੈ ਕਿ ਕੋਈ ਵੀ ਹੋਰ ਸੰਸਥਾ ERDDAP ਨੂੰ <strong>ਮੁਫਤ ਵਿੱਚ</strong>
 <a rel="bookmark" 
-href="https://erddap.github.io/setup.html">ERDDAP, ਸਥਾਪਿਤ ਅਤੇ ਵਰਤ</a> ਸਕਦੀ ਹੈ। ਵਿਗਿਆਨਕ ਡਾਟਾ.
+href="https://erddap.github.io/docs/server-admin/deploy-install">ERDDAP, ਸਥਾਪਿਤ ਅਤੇ ਵਰਤ</a> ਸਕਦੀ ਹੈ। ਵਿਗਿਆਨਕ ਡਾਟਾ.
 <p><a rel="bookmark" 
-href="https://erddap.github.io/setup.html#organizations"
+href="https://erddap.github.io/#who-uses-erddap"
 >ਘੱਟੋ-ਘੱਟ 14 ਦੇਸ਼ਾਂ ਵਿੱਚ 90 ਤੋਂ ਵੱਧ ਸੰਸਥਾਵਾਂ ERDDAP ਵਰਤੋਂ ਕਰਦੀਆਂ ਹਨ</a> । ਹੋ ਸਕਦਾ ਹੈ ਕਿ ਮੁਫਤ ਦੁਪਹਿਰ ਦੇ ਖਾਣੇ ਵਰਗੀ ਕੋਈ ਚੀਜ਼ ਹੋਵੇ.
 <p>ERDDAP ਇੱਕ Java ਪ੍ਰੋਗਰਾਮ ਹੈ। ਹਰੇਕ ਸੰਸਕਰਣ ਲਈ ਸਰੋਤ ਕੋਡ
 <a rel="bookmark" href="https://github.com/ERDDAP">GitHub</a> &#39;ਤੇ ਹੈ
@@ -5536,13 +5539,13 @@ NOAA / NMFS / SWFSC / ERD .</kbd>
 <a rel="help" href="https://coastwatch.pfeg.noaa.gov/erddap/images/erddapTalk/erdData.html">ਇੱਥੇ</a> ਲੱਭੇ ਜਾ ਸਕਦੇ ਹਨ।
 <br>&nbsp;
 <p><strong><a class="selfLink" id="setup" href="#setup" rel="bookmark">ਤੁਸੀਂ</a></strong>
-<a rel="help" href="https://erddap.github.io/setup.html"><strong>ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸਰਵਰ ਸੈਟ ਅਪ</strong></a> ਕਰ ਸਕਦੇ ਹੋ ਅਤੇ ਆਪਣਾ ਡਾਟਾ ਸਰਵ ਕਰ ਸਕਦੇ ਹੋ।
+<a rel="help" href="https://erddap.github.io/docs/server-admin/deploy-install"><strong>ਆਪਣਾ ਖੁਦ ਦਾ ERDDAP ਸਰਵਰ ਸੈਟ ਅਪ</strong></a> ਕਰ ਸਕਦੇ ਹੋ ਅਤੇ ਆਪਣਾ ਡਾਟਾ ਸਰਵ ਕਰ ਸਕਦੇ ਹੋ।
 <ul>
 <li>ERDDAP ਸਥਾਪਤ ਕਰਨ ਦੀ ਛੋਟੀ ਜਿਹੀ ਕੋਸ਼ਿਸ਼ ਬਹੁਤ ਸਾਰੇ ਲਾਭ ਲਿਆਉਂਦੀ ਹੈ।
 <li>ਜੇਕਰ ਤੁਹਾਡੇ ਕੋਲ ਪਹਿਲਾਂ ਹੀ ਆਪਣਾ ਡੇਟਾ ਵੰਡਣ ਲਈ ਇੱਕ ਵੈੱਬ ਸੇਵਾ ਹੈ, ਤਾਂ ਤੁਸੀਂ ਮੌਜੂਦਾ ਸੇਵਾ ਰਾਹੀਂ ਜਾਂ ਸਰੋਤ ਫਾਈਲਾਂ ਜਾਂ ਡੇਟਾਬੇਸ ਰਾਹੀਂ ਆਪਣੇ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਲਈ ERDDAP ਸੈਟ ਅਪ ਕਰ ਸਕਦੇ ਹੋ। ਫਿਰ, ਲੋਕਾਂ ਕੋਲ ਤੁਹਾਡੇ ਡੇਟਾ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਦਾ ਇੱਕ ਹੋਰ ਤਰੀਕਾ ਹੋਵੇਗਾ ਅਤੇ ਉਹ ਡੇਟਾ ਨੂੰ ਵਾਧੂ ਫਾਈਲ ਫਾਰਮੈਟਾਂ ਵਿੱਚ ਜਾਂ ਗ੍ਰਾਫ ਜਾਂ ਨਕਸ਼ਿਆਂ ਦੇ ਰੂਪ ਵਿੱਚ ਡਾਊਨਲੋਡ ਕਰਨ ਦੇ ਯੋਗ ਹੋਣਗੇ।
 <li>ਜੇਕਰ ਤੁਹਾਡੇ ਕੋਲ ਬਹੁਤ ਜ਼ਿਆਦਾ ਮੰਗ ਵਾਲੇ ਡੇਟਾਸੈੱਟ ਹਨ, ਤਾਂ ਤੁਸੀਂ
 <a rel="help" 
-  href="https://erddap.github.io/grids.html"
+  href="https://erddap.github.io/docs/server-admin/scaling"
   >ਇੱਕ ਤੋਂ ਵੱਧ ERDDAP ਸਥਾਪਤ ਕਰ ਸਕਦੇ ਹੋ ਜੋ ਇੱਕ ਵੱਡੇ ਡੇਟਾ ਵੰਡ ਕੇਂਦਰ ਦੀਆਂ ਲੋੜਾਂ ਨੂੰ ਵਧਾਉਣ ਅਤੇ ਪੂਰਾ ਕਰਨ ਲਈ ਇਕੱਠੇ ਕੰਮ ਕਰਦੇ ਹਨ</a> ।
 </ul>
 <h2><a class="selfLink" id="contact" href="#contact" rel="bookmark">ਸਾਡੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ</a></h2>
@@ -7109,7 +7112,7 @@ A-Za-z0-9_-!.~&#39;()* ਤੋਂ ਇਲਾਵਾ ਪੁੱਛਗਿੱਛ ਮੁ
 <li>ਡਾਟਾ ਵੇਰੀਏਬਲ ਇੱਕ ਗਰਿੱਡ ਵੇਰੀਏਬਲ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ।
 <li>ਡੇਟਾ ਵੇਰੀਏਬਲ ਵਿੱਚ ਲੰਬਕਾਰ ਅਤੇ ਅਕਸ਼ਾਂਸ਼ ਧੁਰੀ ਵੇਰੀਏਬਲ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ। (ਹੋਰ ਧੁਰੀ ਵੇਰੀਏਬਲ ਵਿਕਲਪਿਕ ਹਨ।)
 <li>-180 ਅਤੇ 180 ਦੇ ਵਿਚਕਾਰ ਕੁਝ ਲੰਬਕਾਰ ਮੁੱਲ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ।
-<li><a rel="help" href="https://erddap.github.io/setupDatasetsXml.html#colorBar">colorBarMinimum ਅਤੇ colorBarMaximum ਐਟਰੀਬਿਊਟਸ</a> ਨੂੰ ਨਿਸ਼ਚਿਤ ਕੀਤਾ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। (ਹੋਰ ਰੰਗ ਪੱਟੀ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਵਿਕਲਪਿਕ ਹਨ।)
+<li><a rel="help" href="https://erddap.github.io/docs/server-admin/datasets#color-bar-attributes">colorBarMinimum ਅਤੇ colorBarMaximum ਐਟਰੀਬਿਊਟਸ</a> ਨੂੰ ਨਿਸ਼ਚਿਤ ਕੀਤਾ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। (ਹੋਰ ਰੰਗ ਪੱਟੀ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ ਵਿਕਲਪਿਕ ਹਨ।)
 </ul>
 <li><strong>ਗਰਿੱਡ ਡੇਟਾ ਪਰਤਾਂ:</strong> ERDDAP ਦੇ WMS ਵਿੱਚ, ਗਰਿੱਡ ਡੇਟਾਸੈਟਾਂ ਵਿੱਚ ਸਾਰੇ ਡੇਟਾ ਵੇਰੀਏਬਲ ਜੋ ਲੰਬਕਾਰ ਅਤੇ ਅਕਸ਼ਾਂਸ਼ ਮਾਪਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹਨ, WMS ਦੁਆਰਾ ਉਪਲਬਧ ਹਨ। ਹਰੇਕ ਅਜਿਹਾ ਵੇਰੀਏਬਲ ਇੱਕ WMS ਪਰਤ ਦੇ ਰੂਪ ਵਿੱਚ ਉਪਲਬਧ ਹੈ, ਜਿਸਦਾ ਨਾਮ <i>datasetID</i> &WMSSEPARATOR; <i>ਵੇਰੀਏਬਲ ਨਾਮ</i> ਹਰੇਕ ਅਜਿਹੀ ਪਰਤ ਪਾਰਦਰਸ਼ੀ ਹੁੰਦੀ ਹੈ (ਭਾਵ, ਡੇਟਾ ਮੁੱਲਾਂ ਨੂੰ ਰੰਗਾਂ ਦੀ ਇੱਕ ਰੇਂਜ ਵਜੋਂ ਦਰਸਾਇਆ ਜਾਂਦਾ ਹੈ ਅਤੇ ਗੁੰਮ ਮੁੱਲ ਪਾਰਦਰਸ਼ੀ ਪਿਕਸਲ ਦੁਆਰਾ ਪ੍ਰਸਤੁਤ ਕੀਤੇ ਜਾਂਦੇ ਹਨ)।
 <li><strong>ਟੇਬਲ ਡੇਟਾ ਲੇਅਰ:</strong> ਵਰਤਮਾਨ ਵਿੱਚ ERDDAP ਦੇ WMS ਵਿੱਚ, ਟੇਬਲ ਡੇਟਾਸੈਟਾਂ ਵਿੱਚ ਡੇਟਾ ਵੇਰੀਏਬਲ WMS ਦੁਆਰਾ ਉਪਲਬਧ ਨਹੀਂ ਹਨ।

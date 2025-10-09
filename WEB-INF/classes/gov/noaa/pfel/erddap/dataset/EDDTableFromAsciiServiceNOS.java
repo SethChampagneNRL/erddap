@@ -4,7 +4,6 @@
  */
 package gov.noaa.pfel.erddap.dataset;
 
-import com.cohort.array.Attributes;
 import com.cohort.array.DoubleArray;
 import com.cohort.array.PAType;
 import com.cohort.array.PrimitiveArray;
@@ -19,16 +18,25 @@ import com.cohort.util.Test;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
 import gov.noaa.pfel.coastwatch.util.SSR;
 import gov.noaa.pfel.coastwatch.util.SimpleXMLReader;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
+import gov.noaa.pfel.erddap.handlers.EDDTableFromAsciiServiceHandler;
+import gov.noaa.pfel.erddap.handlers.SaxHandlerClass;
+import gov.noaa.pfel.erddap.util.EDMessages;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
+import gov.noaa.pfel.erddap.variable.DataVariableInfo;
 import java.io.BufferedReader;
+import java.time.Instant;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * This is a subclass of EDDTableFromAsciiService for the NOS Ascii services.
  *
  * @author Bob Simons (was bob.simons@noaa.gov, now BobSimons2.00@gmail.com) 2010-11-12
  */
+@SaxHandlerClass(EDDTableFromAsciiServiceHandler.class)
 public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
 
   // stationTable created in constructor; col numbers == -1 if not present
@@ -56,8 +64,8 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
       String tDefaultDataQuery,
       String tDefaultGraphQuery,
       String tAddVariablesWhere,
-      Attributes tAddGlobalAttributes,
-      Object[][] tDataVariables,
+      LocalizedAttributes tAddGlobalAttributes,
+      List<DataVariableInfo> tDataVariables,
       int tReloadEveryNMinutes,
       String tLocalSourceUrl,
       String tBeforeData[],
@@ -84,10 +92,10 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
         tBeforeData,
         tAfterData,
         tNoData);
-
+    int language = EDMessages.DEFAULT_LANGUAGE;
     // datumIsFixedValue
     datumIsFixedValue =
-        tAddGlobalAttributes.getString("sourceUrl").indexOf("datum=") > 0
+        tAddGlobalAttributes.getString(language, "sourceUrl").indexOf("datum=") > 0
             || // url specifies the datum
             String2.indexOf(dataVariableDestinationNames(), "datum")
                 < 0; // dataset doesn't use datum
@@ -138,7 +146,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     // Note that times are often too wide a range because they are for all observedProperties,
     //  not just the one used by this dataset.
     // This is not tested!
-    if (EDStatic.sosActive && stationDateEstCol >= 0) {
+    if (EDStatic.config.sosActive && stationDateEstCol >= 0) {
       sosOfferingPrefix = "urn:ioos:station:NOAA.NOS.CO-OPS:";
       sosOfferingType = "Station";
       // The index of the dataVariable with the sosOffering outer var (e.g. with
@@ -161,7 +169,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
    *
    * @param language the index of the selected language
    * @param loggedInAs the user's login name if logged in (or null if not logged in).
-   * @param requestUrl the part of the user's request, after EDStatic.baseUrl, before '?'.
+   * @param requestUrl the part of the user's request, after EDStatic.config.baseUrl, before '?'.
    * @param userDapQuery the part of the user's request after the '?', still percentEncoded, may be
    *     null.
    * @param tableWriter
@@ -197,7 +205,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     String datum = null;
     double beginSeconds = Double.NaN;
     // default endTime is an hour ahead of now (for safety)
-    double endSeconds = Calendar2.gcToEpochSeconds(Calendar2.newGCalendarZulu()) + 3600;
+    double endSeconds = Instant.now().getEpochSecond() + 3600;
     int nConstraints = constraintVariables.size();
     for (int c = 0; c < nConstraints; c++) {
       String conVar = constraintVariables.get(c);
@@ -231,22 +239,23 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
       throw new SimpleException(
           EDStatic.bilingual(
               language,
-              EDStatic.queryErrorAr[0]
+              EDStatic.messages.get(Message.QUERY_ERROR, 0)
                   + "For this dataset, all queries must include a \"datum=\" constraint.",
-              EDStatic.queryErrorAr[language]
+              EDStatic.messages.get(Message.QUERY_ERROR, language)
                   + "For this dataset, all queries must include a \"datum=\" constraint."));
     if (Double.isNaN(beginSeconds))
       throw new SimpleException(
           EDStatic.bilingual(
               language,
-              EDStatic.queryErrorAr[0] + "Missing time>= constraint.",
-              EDStatic.queryErrorAr[language] + "Missing time>= constraint."));
+              EDStatic.messages.get(Message.QUERY_ERROR, 0) + "Missing time>= constraint.",
+              EDStatic.messages.get(Message.QUERY_ERROR, language) + "Missing time>= constraint."));
     if (Double.isNaN(endSeconds))
       throw new SimpleException(
           EDStatic.bilingual(
               language,
-              EDStatic.queryErrorAr[0] + "If present, the time<= constraint must be valid.",
-              EDStatic.queryErrorAr[language]
+              EDStatic.messages.get(Message.QUERY_ERROR, 0)
+                  + "If present, the time<= constraint must be valid.",
+              EDStatic.messages.get(Message.QUERY_ERROR, language)
                   + "If present, the time<= constraint must be valid."));
     String beginTime =
         Calendar2.epochSecondsToIsoStringTZ(beginSeconds).substring(0, 16); // no seconds
@@ -312,8 +321,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
         double tLongitude = Double.NaN;
         double tLatitude = Double.NaN;
         // Open the file
-        BufferedReader in = SSR.getBufferedUrlReader(encodedSourceUrl);
-        try {
+        try (BufferedReader in = SSR.getBufferedUrlReader(encodedSourceUrl)) {
           String s = in.readLine();
 
           while (s != null) {
@@ -349,8 +357,6 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
 
           // read the data
           table = getTable(in, s); // table PA's have different sizes!
-        } finally {
-          in.close();
         }
 
         // table.makeColumnsSameSize();
@@ -511,39 +517,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     return false;
   } // because this gets info from a remote service
 
-  /* *
-   * This does its best to generate a read-to-use datasets.xml entry for an
-   * EDDTableFromAsciiServiceNOS.
-   * <br>The XML can then be edited by hand and added to the datasets.xml file.
-   * <br>This uses the first outerSequence (and if present, first innerSequence) found.
-   * <br>Other sequences are skipped.
-   *
-   * @param tLocalSourceUrl
-   * @param tReloadEveryNMinutes  must be a valid value, e.g., 1440 for once per day.
-   *    Use, e.g., 1000000000, for never reload.
-   * @param externalGlobalAttributes globalAttributes gleaned from external
-   *    sources, e.g., a THREDDS catalog.xml file.
-   *    These have priority over other sourceGlobalAttributes.
-   *    Okay to use null if none.
-   * @return a suggested chunk of xml for this dataset for use in datasets.xml
-   * @throws Throwable if trouble, e.g., if no Grid or Array variables are found.
-   *    If no trouble, then a valid dataset.xml chunk has been returned.
-   */
-  /*    public static String generateDatasetsXml(String tLocalSourceUrl,
-      int tReloadEveryNMinutes, Attributes externalGlobalAttributes)
-      //String outerSequenceName, String innerSequenceName, boolean sortColumnsByName)
-      throws Throwable {
-
-      String2.log("EDDTableFromAsciiServiceNOS.generateDatasetsXml" +
-          "\n  tLocalSourceUrl=" + tLocalSourceUrl);
-      String tPublicSourceUrl = convertToPublicSourceUrl(tLocalSourceUrl);
-
-
-      String2.log("\n\n*** generateDatasetsXml finished successfully.\n\n");
-      return sb.toString();
-  } */
-
-  private static String stationsFileName = "c:/programs/nos/stations.xml";
+  private static final String stationsFileName = "c:/programs/nos/stations.xml";
 
   /**
    * Bob uses this to reload the Water Level and Meteorological Capabilities document and store it
@@ -714,8 +688,8 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     table.addColumn("dateEstablished", dateEstablished);
     String tStationID = null;
     String tStationName = null;
-    Double tLongitude = Double.NaN;
-    Double tLatitude = Double.NaN;
+    double tLongitude = Double.NaN;
+    double tLatitude = Double.NaN;
     String tDateEstablished = null;
 
     String fileName = "c:/programs/nos/ActiveCurrentsStations.xml";
@@ -731,54 +705,60 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     SimpleXMLReader xmlReader =
         new SimpleXMLReader(File2.getDecompressedBufferedInputStream(fileName), "soapenv:Envelope");
     try {
+      label:
       while (true) {
         xmlReader.nextTag();
         String tag = xmlReader.topTag();
         // String2.log("  tag=" + tag);
-        if (tag.equals("/soapenv:Envelope")) break;
+        switch (tag) {
+          case "/soapenv:Envelope":
+            break label;
 
-        /*
-        ...
-        <station ID="cb0102" name="Cape Henry LB 2CH">
-          <metadata><
-            project>Chesapeake Bay South PORTS</project>
-            <deploymentHistory>
-              <deployment long="-76.01278" deployed="2004-05-14 00:00:00.0" lat="36.95917" recovered="2005-02-08 00:00:00.0"/>
-              <deployment long="-76.01278" deployed="2005-02-09 00:00:00.0" lat="36.95917" recovered="2005-10-17 23:54:00.0"/>
-              <deployment long="-76.01278" deployed="2005-10-18 00:00:00.0" lat="36.95917" recovered="2005-11-07 23:54:00.0"/>
-              ...
-              <deployment long="-76.01302" deployed="2013-08-07 14:00:00.0" lat="36.95922" recovered="2014-01-06 13:00:00.0"/>
-              <deployment long="-76.01302" deployed="2014-01-06 14:00:00.0" lat="36.95922" recovered="2014-06-24 23:00:00.0"/>
-              <deployment long="-76.01302" deployed="2014-06-25 15:00:00.0" lat="36.95922"/>
-            </deploymentHistory>
-          </metadata>
-        </station>
-        <station ID="cb0301" name="Thimble Shoal LB 18">
-        */
-        if (tag.equals("station")) {
-          tStationID = xmlReader.attributeValue("ID");
-          tStationName = xmlReader.attributeValue("name");
-        } else if (tag.equals("/station")) {
-          String2.log(tStationID + " " + tStationName + " " + tLongitude + " " + tLatitude);
-          if (tStationID != null
-              && tStationName != null
-              && !Double.isNaN(tLongitude)
-              && !Double.isNaN(tLatitude)) stationID.add(tStationID);
-          stationName.add(tStationName);
-          longitude.add(tLongitude);
-          latitude.add(tLatitude);
-          dateEstablished.add(tDateEstablished == null ? "" : tDateEstablished);
-          tDateEstablished = null;
-        } else if (tag.equals("deployment")) {
-          // there are usually several deployments,
-          //  so get first deployed date, but last long,lat
-          if (!String2.isSomething(tDateEstablished)) {
-            tDateEstablished = xmlReader.attributeValue("deployed");
-            if (tDateEstablished != null && tDateEstablished.length() > 10)
-              tDateEstablished = tDateEstablished.substring(0, 10);
-          }
-          tLongitude = String2.parseDouble(xmlReader.attributeValue("long"));
-          tLatitude = String2.parseDouble(xmlReader.attributeValue("lat"));
+            /*
+            ...
+            <station ID="cb0102" name="Cape Henry LB 2CH">
+              <metadata><
+                project>Chesapeake Bay South PORTS</project>
+                <deploymentHistory>
+                  <deployment long="-76.01278" deployed="2004-05-14 00:00:00.0" lat="36.95917" recovered="2005-02-08 00:00:00.0"/>
+                  <deployment long="-76.01278" deployed="2005-02-09 00:00:00.0" lat="36.95917" recovered="2005-10-17 23:54:00.0"/>
+                  <deployment long="-76.01278" deployed="2005-10-18 00:00:00.0" lat="36.95917" recovered="2005-11-07 23:54:00.0"/>
+                  ...
+                  <deployment long="-76.01302" deployed="2013-08-07 14:00:00.0" lat="36.95922" recovered="2014-01-06 13:00:00.0"/>
+                  <deployment long="-76.01302" deployed="2014-01-06 14:00:00.0" lat="36.95922" recovered="2014-06-24 23:00:00.0"/>
+                  <deployment long="-76.01302" deployed="2014-06-25 15:00:00.0" lat="36.95922"/>
+                </deploymentHistory>
+              </metadata>
+            </station>
+            <station ID="cb0301" name="Thimble Shoal LB 18">
+            */
+          case "station":
+            tStationID = xmlReader.attributeValue("ID");
+            tStationName = xmlReader.attributeValue("name");
+            break;
+          case "/station":
+            String2.log(tStationID + " " + tStationName + " " + tLongitude + " " + tLatitude);
+            if (tStationID != null
+                && tStationName != null
+                && !Double.isNaN(tLongitude)
+                && !Double.isNaN(tLatitude)) stationID.add(tStationID);
+            stationName.add(tStationName);
+            longitude.add(tLongitude);
+            latitude.add(tLatitude);
+            dateEstablished.add(tDateEstablished == null ? "" : tDateEstablished);
+            tDateEstablished = null;
+            break;
+          case "deployment":
+            // there are usually several deployments,
+            //  so get first deployed date, but last long,lat
+            if (!String2.isSomething(tDateEstablished)) {
+              tDateEstablished = xmlReader.attributeValue("deployed");
+              if (tDateEstablished != null && tDateEstablished.length() > 10)
+                tDateEstablished = tDateEstablished.substring(0, 10);
+            }
+            tLongitude = String2.parseDouble(xmlReader.attributeValue("long"));
+            tLatitude = String2.parseDouble(xmlReader.attributeValue("lat"));
+            break;
         }
       }
     } finally {
@@ -808,10 +788,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     // reload the Capabilities document
     if (reloadStationsFile) reloadStationsFile();
     String dir = "c:/programs/_tomcat/content/erddap/subset/";
-    Table table;
-    int c;
-
-    table = lookForStations("Air Temp");
+    Table table = lookForStations("Air Temp");
     int nMAT = table.nRows();
     table.saveAsJson(
         dir + "nosCoopsMAT.json", -1, false); // timeColumn=-1 since already ISO String, writeUnits
@@ -938,7 +915,7 @@ public class EDDTableFromAsciiServiceNOS extends EDDTableFromAsciiService {
     toTable.addColumn("shefID", toShef);
     toTable.addColumn("deployment", toDeployment);
 
-    HashMap datumsHash = new HashMap();
+    HashMap<String, String> datumsHash = new HashMap<>();
     int nStations = fromID.size();
     int noName = 0,
         wrongName = 0,

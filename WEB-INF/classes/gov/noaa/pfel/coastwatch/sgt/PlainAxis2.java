@@ -14,7 +14,11 @@
  */
 package gov.noaa.pfel.coastwatch.sgt;
 
-import gov.noaa.pmel.sgt.*;
+import gov.noaa.pmel.sgt.Axis;
+import gov.noaa.pmel.sgt.LayerNotFoundException;
+import gov.noaa.pmel.sgt.PlainAxis;
+import gov.noaa.pmel.sgt.SGLabel;
+import gov.noaa.pmel.sgt.SpaceAxis;
 import gov.noaa.pmel.util.Point2D;
 import java.awt.Graphics;
 
@@ -34,7 +38,7 @@ import java.awt.Graphics;
  * @since 1.0
  */
 public class PlainAxis2 extends PlainAxis {
-  protected NumberFormatter numberFormatter;
+  protected final NumberFormatter numberFormatter;
 
   /**
    * Default constructor for PlainAxis.
@@ -64,7 +68,6 @@ public class PlainAxis2 extends PlainAxis {
     double xt, yt, dir, x, y, xp, yp;
     double xtitle, ytitle;
     double delta = uRange_.delta;
-    Format format;
     String labelText;
     SGLabel title = getTitle();
     if (!visible_) return;

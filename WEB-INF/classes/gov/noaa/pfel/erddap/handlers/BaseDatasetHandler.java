@@ -3,12 +3,14 @@ package gov.noaa.pfel.erddap.handlers;
 import com.cohort.array.StringArray;
 import com.cohort.util.String2;
 import gov.noaa.pfel.erddap.dataset.EDD;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
+import gov.noaa.pfel.erddap.variable.DataVariableInfo;
 import java.util.ArrayList;
 import org.xml.sax.SAXException;
 
 public abstract class BaseDatasetHandler extends StateWithParent {
-  protected StringBuilder content = new StringBuilder();
-  protected String datasetID;
+  protected final StringBuilder content = new StringBuilder();
+  protected final String datasetID;
 
   public BaseDatasetHandler(SaxHandler saxHandler, String datasetID, State completeState) {
     super(saxHandler, completeState);
@@ -18,14 +20,14 @@ public abstract class BaseDatasetHandler extends StateWithParent {
   protected int tReloadEveryNMinutes = Integer.MAX_VALUE;
   protected String tAccessibleTo = null;
   protected String tGraphsAccessibleTo = null;
-  protected StringArray tOnChange = new StringArray();
+  protected final StringArray tOnChange = new StringArray();
   protected String tFgdcFile = null;
   protected String tIso19115File = null;
   protected String tDefaultDataQuery = null;
   protected String tDefaultGraphQuery = null;
 
-  protected com.cohort.array.Attributes tGlobalAttributes = new com.cohort.array.Attributes();
-  protected ArrayList<Object[]> tDataVariables = new ArrayList<>();
+  protected final LocalizedAttributes tGlobalAttributes = new LocalizedAttributes();
+  protected final ArrayList<DataVariableInfo> tDataVariables = new ArrayList<>();
 
   protected void handleAttributes(String localName) {
     if ("addAttributes".equals(localName)) {
@@ -39,12 +41,6 @@ public abstract class BaseDatasetHandler extends StateWithParent {
       State state = new DataVariableHandler(saxHandler, tDataVariables, this);
       saxHandler.setState(state);
     }
-  }
-
-  protected Object[][] convertDataVariablesToArray() {
-    Object[][] ttDataVariables = new Object[tDataVariables.size()][];
-    ttDataVariables = tDataVariables.toArray(ttDataVariables);
-    return ttDataVariables;
   }
 
   @Override

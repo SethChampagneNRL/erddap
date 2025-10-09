@@ -2,7 +2,7 @@ package gov.noaa.pfel.coastwatch.util;
 
 import com.cohort.util.File2;
 import com.cohort.util.String2;
-import com.cohort.util.Test;
+import com.cohort.util.TestUtil;
 import com.cohort.util.XML;
 import gov.noaa.pfel.erddap.util.EDStatic;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,7 +22,7 @@ class HtmlWidgetsTests {
     // boolean oDebugMode = debugMode;
     // debugMode = true;
     String fullName = SSR.getTempDirectory() + "TestHtmlWidgets.html";
-    String imageDir = EDStatic.getWebInfParentDirectory() + "\\images\\";
+    String imageDir = EDStatic.config.imageDir;
     File2.delete(fullName);
     StringBuilder sb = new StringBuilder();
     boolean tHtmlTooltips = true;
@@ -33,7 +33,7 @@ class HtmlWidgetsTests {
         HtmlWidgets.DOCTYPE_HTML
             + "  <title>Test Html Widgets</title>\n"
             + "  <link href=\"http://localhost:8080/cwexperimental/images/erddap2.css\" rel=\"stylesheet\" type=\"text/css\">\n"
-            + widgets.leafletHead("http://localhost:8080/cwexperimental")
+            + HtmlWidgets.leafletHead("http://localhost:8080/cwexperimental")
             +
             // myMouseMove_SCRIPT +
             "</head>\n"
@@ -57,19 +57,6 @@ class HtmlWidgetsTests {
                     // height=\"331\" width=\"375\"
                     "<br><img src=\"https://www.cohortsoftware.com/wings.gif\" alt=\"wings\">",
                 ""));
-    sb.append(
-        "<br>Large image scaled down to max=600:\n"
-            + HtmlWidgets.imageInTooltip(
-                "/programs/_tomcat/webapps/cwexperimental/images/HowDoISpecifyARegion.png",
-                "http://localhost:8080/cwexperimental/images/HowDoISpecifyARegion.png",
-                "http://localhost:8080/cwexperimental/images/QuestionMark.png"));
-
-    sb.append(
-        "<br>Small image (plus1000.gif):\n"
-            + HtmlWidgets.imageInTooltip(
-                "/programs/_tomcat/webapps/cwexperimental/images/plus1000.gif",
-                "http://localhost:8080/cwexperimental/images/plus1000.gif",
-                "http://localhost:8080/cwexperimental/images/QuestionMark.png"));
 
     // pure CSS image tooltip
     // try to defer loading the image
@@ -194,28 +181,12 @@ class HtmlWidgetsTests {
                 true,
                 "checkboxValue4",
                 "rightLabel4",
-                "")
-            + widgets.comment("This is a comment."));
+                ""));
     String options[] = new String[1200];
     for (int i = 0; i < 1200; i++)
       options[i] = i == 1 ? "1 (2 is empty)" : i == 2 ? "" : "option" + i;
     sb.append(
         "<br>\n"
-            + widgets.radioButtons(
-                "radioName1",
-                "radioTooltip literal: &lt;&gt;&amp;\"!",
-                true,
-                new String[] {"apple", "banana", "cucumber"},
-                1,
-                "")
-            + "<br>\n"
-            + widgets.radioButtons(
-                "radioName2",
-                "radioTooltip literal: &lt;&gt;&amp;\"!",
-                true,
-                new String[] {"apple", "banana", "cucumber"},
-                2,
-                "")
             + widgets.select(
                 "dropdownName",
                 "dropdownTooltip literal: &lt;&gt;&amp;\"!",
@@ -564,7 +535,7 @@ class HtmlWidgetsTests {
             + "</html>\n");
     String2.log("writeToFile result=" + File2.writeToFileUtf8(fullName, sb.toString()));
 
-    // Test.displayInBrowser("file://" + fullName);
+    // TestUtil.displayInBrowser("file://" + fullName);
     // debugMode = oDebugMode;
   }
 
@@ -576,7 +547,8 @@ class HtmlWidgetsTests {
     // "Try viewing the images and videos to test range requests with public S3
     // buckets/files.");
 
-    Test.displayInBrowser("http://localhost:8080/cwexperimental/files/testPrivateAwsS3MediaFiles/");
+    TestUtil.displayInBrowser(
+        "http://localhost:8080/cwexperimental/files/testPrivateAwsS3MediaFiles/");
 
     // String2.pressEnterToContinue();
   }
@@ -589,7 +561,8 @@ class HtmlWidgetsTests {
     // "Try viewing the images and videos to test range requests with private S3
     // buckets/files.");
 
-    Test.displayInBrowser("http://localhost:8080/cwexperimental/files/testPrivateAwsS3MediaFiles/");
+    TestUtil.displayInBrowser(
+        "http://localhost:8080/cwexperimental/files/testPrivateAwsS3MediaFiles/");
 
     // String2.pressEnterToContinue();
   }

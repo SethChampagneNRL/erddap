@@ -12,13 +12,7 @@ import com.cohort.util.MustBe;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
 import com.cohort.util.XML;
-import com.lowagie.text.Document;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.pdf.PdfContentByte;
-import com.lowagie.text.pdf.PdfTemplate;
-import com.lowagie.text.pdf.PdfWriter;
 import gov.noaa.pfel.coastwatch.util.AttributedString2;
-import gov.noaa.pfel.coastwatch.util.SSR;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -28,8 +22,17 @@ import java.awt.Image;
 import java.awt.ImageCapabilities;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import javax.imageio.ImageIO;
+import org.openpdf.text.Document;
+import org.openpdf.text.PageSize;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.PdfContentByte;
+import org.openpdf.text.pdf.PdfTemplate;
+import org.openpdf.text.pdf.PdfWriter;
 
 /**
  * This class has utilities for SgtMap and SgtGraph. A note about coordinates:
@@ -55,8 +58,10 @@ public class SgtUtil {
 
   public static final int LEGEND_BELOW = 1;
 
-  public static final com.lowagie.text.Rectangle PDF_LANDSCAPE = PageSize.LETTER.rotate();
-  public static final com.lowagie.text.Rectangle PDF_PORTRAIT = PageSize.LETTER;
+  public enum PDFPageSize {
+    LETTER_PORTRAIT,
+    LETTER_LANDSCAPE,
+  }
 
   public static final double DEFAULT_AXIS_LABEL_HEIGHT = 0.12;
   public static final double DEFAULT_LABEL_HEIGHT =
@@ -65,7 +70,7 @@ public class SgtUtil {
   public static final Color TRANSPARENT =
       new Color(0, 0, 0, 0); // 4th 0 is alpha value   //Hmmm, it may not be this simple
 
-  public static double AVG_CHAR_WIDTH = 4.5;
+  public static final double AVG_CHAR_WIDTH = 4.5;
 
   public static String isBufferedImageAccelerated;
 
@@ -78,10 +83,9 @@ public class SgtUtil {
   public static int maxCharsPerLine(int legendTextWidth, double fontScale) {
     // lessen the effect of small fonts (they stay wide to stay legible)
     if (fontScale < 1) fontScale = (1 + fontScale) / 2;
-    int m = Math2.roundToInt(legendTextWidth / (SgtUtil.AVG_CHAR_WIDTH * fontScale));
     // String2.log("\n***maxCharsPerLine=" + m + " legendWidth=" + legendTextWidth + " fontScale=" +
     // fontScale);
-    return m;
+    return Math2.roundToInt(legendTextWidth / (SgtUtil.AVG_CHAR_WIDTH * fontScale));
   }
 
   /** This returns the maxBoldCharsPerLine based on charsPerLine. */
@@ -377,46 +381,10 @@ public class SgtUtil {
         isBufferedImageAccelerated =
             "bufferedImage isAccelerated=" + (imCap == null ? "[unknown]" : imCap.isAccelerated());
       } catch (Throwable t) {
-        String2.log(MustBe.throwableToString(t));
-        isBufferedImageAccelerated = "bufferedImage isAccelerated=[unknown]";
+        isBufferedImageAccelerated = "bufferedImage isAccelerated=[" + t.toString() + "]";
       }
     }
     return isBufferedImageAccelerated;
-  }
-
-  /**
-   * This reads a image using Java's ImageIO routines.
-   *
-   * @param fullName with directory and extension
-   * @return a BufferedImage
-   * @throws Exception if trouble
-   */
-  public static BufferedImage readImage(String fullName) throws Exception {
-    return ImageIO.read(new File(fullName));
-  }
-
-  /**
-   * Saves an image as a non-transparent .gif or .png based on the fullImageName's extension. This
-   * will overwrite an existing file. Gif's are saved with ImageMagick's convert (which does great
-   * color reduction).
-   *
-   * @param bi
-   * @param fullName with directory and extension
-   * @throws Exception if trouble
-   */
-  public static void saveImage(BufferedImage bi, String fullName) throws Exception {
-    String shortName =
-        fullName.substring(0, fullName.length() - 4); // currently, all extensions are 4 char
-    if (fullName.endsWith(".gif")) saveAsGif(bi, shortName);
-    else if (fullName.endsWith(".png")) saveAsPng(bi, shortName);
-    // else if (fullName.endsWith(".jpg"))
-    //    saveAsJpg(bi, shortName);
-    else
-      Test.error(
-          String2.ERROR
-              + " in SgtUtil.saveImage: "
-              + "Unsupported image type for fileName="
-              + fullName);
   }
 
   /**
@@ -438,14 +406,15 @@ public class SgtUtil {
     // save as .bmp     (note: doesn't support transparent pixels)
     long time = System.currentTimeMillis();
     if (verbose) String2.log("SgtUtil.saveAsGif");
-    ImageIO.write(bi, "bmp", new File(fullGifName + randomInt + ".bmp"));
-    if (verbose)
-      String2.log("  make .bmp done. time=" + (System.currentTimeMillis() - time) + "ms");
+    ImageIO.write(bi, "gif", new File(fullGifName + randomInt + ".gif"));
+    // if (verbose)
+    //   String2.log("  make .bmp done. time=" + (System.currentTimeMillis() - time) + "ms");
 
-    // "convert" to .gif
-    SSR.dosOrCShell(
-        "convert " + fullGifName + randomInt + ".bmp" + " " + fullGifName + randomInt + ".gif", 30);
-    File2.delete(fullGifName + randomInt + ".bmp");
+    // // "convert" to .gif
+    // SSR.dosOrCShell(
+    //     "convert " + fullGifName + randomInt + ".bmp" + " " + fullGifName + randomInt + ".gif",
+    // 30);
+    // File2.delete(fullGifName + randomInt + ".bmp");
 
     // try fancy color reduction algorithms
     // Image2.saveAsGif(Image2.reduceTo216Colors(bi), fullGifName + randomInt + ".gif");
@@ -459,57 +428,6 @@ public class SgtUtil {
     if (verbose)
       String2.log(
           "SgtUtil.saveAsGif done. TOTAL TIME=" + (System.currentTimeMillis() - time) + "ms\n");
-  }
-
-  /**
-   * Saves an image as a gif. Currently this uses ImageMagick's "convert" (Windows or Linux) because
-   * it does the best job at color reduction (and is fast and is cross-platform). This will
-   * overwrite an existing file.
-   *
-   * @param bi
-   * @param transparent the color to be made transparent
-   * @param fullGifName but without the .gif at the end
-   * @throws Exception if trouble
-   */
-  public static void saveAsTransparentGif(BufferedImage bi, Color transparent, String fullGifName)
-      throws Exception {
-
-    // POLICY: because this procedure may be used in more than one thread,
-    // do work on unique temp files names using randomInt, then rename to proper file name.
-    // If procedure fails half way through, there won't be a half-finished file.
-    int randomInt = Math2.random(Integer.MAX_VALUE);
-
-    // convert transparent color to be transparent
-    long time = System.currentTimeMillis();
-    Image image = Image2.makeImageBackgroundTransparent(bi, transparent, 10000);
-
-    // convert image back to bufferedImage
-    bi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    Graphics g = bi.getGraphics();
-    g.drawImage(image, 0, 0, bi.getWidth(), bi.getHeight(), null);
-    image = null; // encourage garbage collection
-
-    // save as png
-    int random = Math2.random(Integer.MAX_VALUE);
-    ImageIO.write(bi, "png", new File(fullGifName + randomInt + ".png"));
-
-    // "convert" to .gif
-    SSR.dosOrCShell(
-        "convert " + fullGifName + randomInt + ".png" + " " + fullGifName + randomInt + ".gif", 30);
-    File2.delete(fullGifName + randomInt + ".png");
-
-    // try fancy color reduction algorithms
-    // Image2.saveAsGif(Image2.reduceTo216Colors(bi), fullGifName + randomInt + ".gif");
-
-    // try dithering
-    // Image2.saveAsGif216(bi, fullGifName + randomInt + ".gif", true);
-
-    // last step: rename to final gif name
-    File2.rename(fullGifName + randomInt + ".gif", fullGifName + ".gif");
-
-    if (verbose)
-      String2.log(
-          "SgtUtil.saveAsTransparentGif TIME=" + (System.currentTimeMillis() - time) + "ms\n");
   }
 
   /**
@@ -540,28 +458,14 @@ public class SgtUtil {
     int randomInt = Math2.random(Integer.MAX_VALUE);
 
     // create fileOutputStream
-    BufferedOutputStream bos =
-        new BufferedOutputStream(new FileOutputStream(fullPngName + randomInt + ".png"));
-    try {
+    try (BufferedOutputStream bos =
+        new BufferedOutputStream(new FileOutputStream(fullPngName + randomInt + ".png"))) {
       // save the image
       saveAsTransparentPng(bi, transparent, bos);
-    } finally {
-      bos.close();
     }
 
     // last step: rename to final Png name
     File2.rename(fullPngName + randomInt + ".png", fullPngName + ".png");
-  }
-
-  /**
-   * Saves an image as a png. This will overwrite an existing file.
-   *
-   * @param bi
-   * @param outputStream
-   * @throws Exception if trouble
-   */
-  public static void saveAsPng(BufferedImage bi, OutputStream outputStream) throws Exception {
-    saveAsTransparentPng(bi, null, outputStream);
   }
 
   /**
@@ -605,11 +509,10 @@ public class SgtUtil {
    * @return an object[] with 0=g2D, 1=document, 2=pdfContentByte, 3=pdfTemplate
    * @throws Exception if trouble
    */
-  public static Object[] createPdf(
-      com.lowagie.text.Rectangle pageSize, int bbWidth, int bbHeight, String fullFileName)
+  public static Object[] createPdf(PDFPageSize size, int bbWidth, int bbHeight, String fullFileName)
       throws Exception {
     return createPdf(
-        pageSize, bbWidth, bbHeight, new BufferedOutputStream(new FileOutputStream(fullFileName)));
+        size, bbWidth, bbHeight, new BufferedOutputStream(new FileOutputStream(fullFileName)));
   }
 
   /**
@@ -624,8 +527,9 @@ public class SgtUtil {
    * @throws Exception if trouble
    */
   public static Object[] createPdf(
-      com.lowagie.text.Rectangle pageSize, int bbWidth, int bbHeight, OutputStream outputStream)
-      throws Exception {
+      PDFPageSize size, int bbWidth, int bbHeight, OutputStream outputStream) throws Exception {
+    Rectangle pageSize =
+        size == PDFPageSize.LETTER_PORTRAIT ? PageSize.LETTER : PageSize.LETTER.rotate();
     // currently, this uses itext
     // see the sample program:
     //
@@ -655,8 +559,7 @@ public class SgtUtil {
    */
   public static void closePdf(Object oar[]) throws Exception {
     Graphics2D g2D = (Graphics2D) oar[0];
-    Document document = (Document) oar[1];
-    try {
+    try (Document document = (Document) oar[1]) {
       PdfContentByte pdfContentByte = (PdfContentByte) oar[2];
       PdfTemplate pdfTemplate = (PdfTemplate) oar[3];
 
@@ -706,8 +609,6 @@ public class SgtUtil {
           document.left()   + (document.right() - document.left()   - xSize) / 2,
           document.bottom() + (document.top()   - document.bottom() - ySize) / 2);
       */
-    } finally {
-      document.close();
     }
   }
 
@@ -725,86 +626,6 @@ public class SgtUtil {
         r + (255 - r) / 4, // little changes close to 255 have big effect
         g + (255 - g) / 4,
         b + (255 - b) / 4);
-  }
-
-  /**
-   * This returns a blacker color than c.
-   *
-   * @param color
-   * @return a blacker color than c
-   */
-  public static Color blacker(Color color) {
-    int r = color.getRed();
-    int g = color.getGreen();
-    int b = color.getBlue();
-    return new Color(
-        Math.max(0, r - (255 - r) / 4), // little changes close to 255 have big effect
-        Math.max(0, g - (255 - g) / 4),
-        Math.max(0, b - (255 - b) / 4));
-  }
-
-  /**
-   * The default palette (aka color bar) range ([0]=min, [1]=max). The values are also suitable for
-   * the axis range on a graph.
-   *
-   * @param dataMin the raw minimum value of the data
-   * @param dataMax the raw maximum value of the data
-   * @return the default palette (aka color bar) range ([0]=min, [1]=max).
-   */
-  public static double[] suggestPaletteRange(double dataMin, double dataMax) {
-
-    double lowHigh[] = Math2.suggestLowHigh(dataMin, dataMax);
-
-    // log axis?
-    if (suggestPaletteScale(dataMin, dataMax)
-        .equals("Log")) { // yes, use dataMin,dataMax,  not lowHigh
-      lowHigh[0] =
-          Math2.suggestLowHigh(dataMin, 2 * dataMin)[0]; // trick to get nice suggested min>0
-      return lowHigh;
-    }
-
-    // axis is linear
-    // suggest symmetric around 0 (symbolized by BlueWhiteRed)?
-    if (suggestPalette(dataMin, dataMax)
-        .equals("BlueWhiteRed")) { // yes, use dataMin,dataMax,  not lowHigh
-      double rangeMax = Math.max(-lowHigh[0], lowHigh[1]);
-      lowHigh[0] = -rangeMax;
-      lowHigh[1] = rangeMax;
-    }
-
-    // standard Rainbow Linear
-    return lowHigh;
-  }
-
-  /**
-   * The name of the suggested palette (aka color bar), e.g., Rainbow or BlueWhiteRed. Must be one
-   * of the palettes available to PointDataSets in the browser.
-   *
-   * @param min the raw minimum value of the data (preferred) or the refined minimum value for the
-   *     palette
-   * @param max the raw maximum value of the data (preferred) or the refined maximum value for the
-   *     palette
-   * @return the name of the suggested palette (aka color bar), e.g., Rainbow. "BlueWhiteRed" is
-   *     suggested if the palette should be centered on 0.
-   */
-  public static String suggestPalette(double min, double max) {
-    if (min < 0 && max > 0 && -min / max >= .5 && -min / max <= 2) return "BlueWhiteRed";
-    if (min >= 0 && min < max / 5) return "WhiteRedBlack";
-    return "Rainbow";
-  }
-
-  /**
-   * The name of the suggested palette scale, e.g., Linear or Log.
-   *
-   * @param min the raw minimum value of the data (preferred) or the refined minimum value for the
-   *     palette
-   * @param max the raw maximum value of the data (preferred) or the refined maximum value for the
-   *     palette
-   * @return the name of the suggested palette (aka color bar) scale, e.g., Linear or Log.
-   */
-  public static String suggestPaletteScale(double min, double max) {
-    if (min > 0 && min < 1 && max / min > 100) return "Log";
-    return "Linear";
   }
 
   /**
@@ -936,84 +757,6 @@ public class SgtUtil {
       String2.log(MustBe.throwableToString(t));
     }
     return bufferedImage;
-  }
-
-  /**
-   * Given a bufferedImage with a rectangular graph/map at the top, this returns the left, right,
-   * bottom, top of the graph (from human perspective). Since y=0 at top of image, the returned top
-   * value will be a lower value than bottom.
-   *
-   * @param bufferedImage
-   * @return int[4] with left, right, bottom, top of the graph. If trouble, this returns null.
-   */
-  public static int[] findGraph(BufferedImage bufferedImage) {
-    // rely on this try/catch to catch errors
-    try {
-
-      int width = bufferedImage.getWidth();
-      int height = bufferedImage.getHeight();
-      int centerX = width / 2;
-
-      // starting at top center, go down to first back pixel
-      int top = 0;
-      while (bufferedImage.getRGB(centerX, top) != 0xff000000
-          || // look at main pixel
-          bufferedImage.getRGB(centerX - 1, top) != 0xff000000
-          || // and to left
-          bufferedImage.getRGB(centerX + 1, top) != 0xff000000) { // and to right
-        top++;
-        // String2.log("top=" + top + " 0x" + Integer.toHexString(bufferedImage.getRGB(centerX,
-        // top)));
-      }
-
-      // go left to left  (may be fooled by tic mark)
-      int left = centerX - 1;
-      while (bufferedImage.getRGB(left - 1, top) == 0xff000000) {
-        left--;
-        // String2.log("left=" + left + " 0x" + Integer.toHexString(bufferedImage.getRGB(left-1,
-        // top)));
-      }
-
-      // backtrack left if it was tic mark
-      while (bufferedImage.getRGB(left, top + 1) != 0xff000000) {
-        left++;
-        // String2.log("backtrack left=" + left + " 0x" +
-        // Integer.toHexString(bufferedImage.getRGB(left, top-1)));
-      }
-
-      // go right to right
-      int right = centerX + 1;
-      while (bufferedImage.getRGB(right + 1, top) == 0xff000000) {
-        right++;
-        // String2.log("right=" + right + " 0x" + Integer.toHexString(bufferedImage.getRGB(right+1,
-        // top)));
-      }
-
-      // go down to bottom (may be fooled by tick mark)
-      int bottom = top;
-      while (bufferedImage.getRGB(left, bottom + 1) == 0xff000000
-          && bufferedImage.getRGB(right, bottom + 1) == 0xff000000) {
-        bottom++;
-        // String2.log("bottom=" + bottom + " 0x" + Integer.toHexString(bufferedImage.getRGB(left,
-        // bottom-1)));
-      }
-
-      // backtrack bottom if it was tick mark
-      while (bufferedImage.getRGB(left + 1, bottom) != 0xff000000
-          || bufferedImage.getRGB(right - 1, bottom) != 0xff000000) {
-        bottom--;
-        // String2.log("backtrack bottom=" + bottom + " 0x" +
-        // Integer.toHexString(bufferedImage.getRGB(left+1, bottom)));
-      }
-
-      // don't bother to check integrity of bottom edge
-      // String2.log("success " + left + " " + right + " " + bottom + " " + top);
-      return new int[] {left, right, bottom, top};
-
-    } catch (Throwable t) {
-      String2.log("SgtUtil.findGraph failed.\n" + MustBe.throwableToString(t));
-      return null;
-    }
   }
 
   /**

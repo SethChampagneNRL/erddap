@@ -10,6 +10,7 @@ import gov.noaa.pfel.erddap.handlers.TopLevelHandler;
 import gov.noaa.pfel.erddap.util.EDStatic;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import javax.xml.parsers.SAXParser;
@@ -30,6 +31,7 @@ public class TopLevelHandlerTests {
   private static SaxHandler saxHandler;
   private static SaxParsingContext context;
   private static HashSet<String> preservedAngularDegreeUnitsSet;
+  private static String[] preserverDisplayAttributeAr;
 
   @BeforeAll
   static void initAll() throws Throwable {
@@ -39,6 +41,8 @@ public class TopLevelHandlerTests {
     //        because test execution order is not guaranteed. As a temporary fix,
     //        preserve the original angularDegreeUnitsSet and restore it after the tests.
     preservedAngularDegreeUnitsSet = new HashSet<>(EDStatic.angularDegreeUnitsSet);
+    preserverDisplayAttributeAr =
+        Arrays.copyOf(EDStatic.displayAttributeAr, EDStatic.displayAttributeAr.length);
 
     context = new SaxParsingContext();
 
@@ -54,7 +58,7 @@ public class TopLevelHandlerTests {
     context.setMajorLoad(false);
     context.setErddap(new Erddap());
     context.setLastLuceneUpdate(0);
-    context.setDatasetsRegex(EDStatic.datasetsRegex);
+    context.setDatasetsRegex(EDStatic.config.datasetsRegex);
     context.setReallyVerbose(false);
 
     factory = SAXParserFactory.newInstance();
@@ -71,6 +75,7 @@ public class TopLevelHandlerTests {
     // restore altered angularDegreeUnitsSet because other tests depend on it
     // (e.g. EDDTableFromNcFilesTests#testOrderByMean2)
     EDStatic.angularDegreeUnitsSet = preservedAngularDegreeUnitsSet;
+    EDStatic.displayAttributeAr = preserverDisplayAttributeAr;
   }
 
   @BeforeEach
@@ -97,7 +102,7 @@ public class TopLevelHandlerTests {
 
   @Test
   void unusualActivityTest() {
-    assertEquals(EDStatic.unusualActivity, 25);
+    assertEquals(EDStatic.config.unusualActivity, 25);
   }
 
   @Test
@@ -109,5 +114,25 @@ public class TopLevelHandlerTests {
   @Test
   void datasetTest() {
     assertEquals(2, context.getNTryAndDatasets()[1]);
+  }
+
+  @Test
+  void displayAttributeTest() {
+    assertEquals(EDStatic.displayAttributeAr[0], "attribute1");
+    assertEquals(EDStatic.displayAttributeAr[1], "attribute2");
+  }
+
+  @Test
+  void displayInfoTest() {
+    assertEquals(EDStatic.displayInfoAr.get(0)[0], "info1");
+    assertEquals(EDStatic.displayInfoAr.get(0)[1], "info2");
+
+    // Use default if language doesn't have localized text
+    assertEquals(EDStatic.displayInfoAr.get(1)[0], "info1");
+    assertEquals(EDStatic.displayInfoAr.get(1)[1], "info2");
+
+    // Use localized version if available
+    assertEquals(EDStatic.displayInfoAr.get(8)[0], "renseignements1");
+    assertEquals(EDStatic.displayInfoAr.get(8)[1], "renseignements2");
   }
 }

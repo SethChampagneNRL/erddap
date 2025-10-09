@@ -7,6 +7,7 @@ package gov.noaa.pfel.erddap.dataset;
 import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
 
 /**
@@ -53,7 +54,7 @@ public class TableWriterOrderByMax extends TableWriterAll {
     super(tLanguage, tEdd, tNewHistory, tDir, tFileNameNoExt);
     otherTableWriter = tOtherTableWriter;
     String err =
-        EDStatic.simpleBilingual(language, EDStatic.queryErrorAr)
+        EDStatic.simpleBilingual(language, Message.QUERY_ERROR)
             + "No column names were specified for 'orderByMax'.";
     if (tOrderByCsv == null || tOrderByCsv.trim().length() == 0) throw new SimpleException(err);
     orderBy = String2.split(tOrderByCsv, ',');
@@ -123,5 +124,13 @@ public class TableWriterOrderByMax extends TableWriterAll {
     tCumulativeTable.orderByMax(orderBy); // this handles missingValues and _FillValues temporarily
     otherTableWriter.writeAllAndFinish(tCumulativeTable);
     otherTableWriter = null;
+  }
+
+  @Override
+  public void close() throws Exception {
+    super.close();
+    if (otherTableWriter != null) {
+      otherTableWriter.close();
+    }
   }
 }

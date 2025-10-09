@@ -1,9 +1,11 @@
 package gov.noaa.pfel.erddap.handlers;
 
 import com.cohort.array.StringArray;
+import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import gov.noaa.pfel.erddap.dataset.EDD;
 import gov.noaa.pfel.erddap.dataset.EDDTableFromDatabase;
+import gov.noaa.pfel.erddap.variable.EDVAlt;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -21,7 +23,7 @@ public class EDDTableFromDatabaseHandler extends BaseTableHandler {
   private String tTableName = null;
   private String tColumnNameQuotes = "\"";
   private String[] tOrderBy = new String[0];
-  private StringArray tConnectionProperties = new StringArray();
+  private final StringArray tConnectionProperties = new StringArray();
   private boolean tSourceNeedsExpandedFP_EQ = true;
   private String tSourceCanOrderBy = "no";
   private String tSourceCanDoDistinct = "no";
@@ -31,6 +33,11 @@ public class EDDTableFromDatabaseHandler extends BaseTableHandler {
       throws SAXException {
     handleAttributes(localName);
     handleDataVariables(localName);
+    switch (localName) {
+      case "altitudeMetersPerSourceUnit" ->
+          throw new SimpleException(EDVAlt.stopUsingAltitudeMetersPerSourceUnit);
+      case "connectionProperty" -> tConnectionProperties.add(attributes.getValue("name"));
+    }
   }
 
   @Override
@@ -63,7 +70,6 @@ public class EDDTableFromDatabaseHandler extends BaseTableHandler {
 
   @Override
   protected EDD buildDataset() throws Throwable {
-    Object[][] ttDataVariables = convertDataVariablesToArray();
     return new EDDTableFromDatabase(
         datasetID,
         tAccessibleTo,
@@ -76,7 +82,7 @@ public class EDDTableFromDatabaseHandler extends BaseTableHandler {
         tDefaultGraphQuery,
         tAddVariablesWhere,
         tGlobalAttributes,
-        ttDataVariables,
+        tDataVariables,
         tReloadEveryNMinutes,
         tDataSourceName,
         tLocalSourceUrl,

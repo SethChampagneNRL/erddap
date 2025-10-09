@@ -15,8 +15,6 @@ package gov.noaa.pmel.sgt;
 import gov.noaa.pmel.util.GeoDate;
 import gov.noaa.pmel.util.Range2D;
 import gov.noaa.pmel.util.SoTRange;
-import gov.noaa.pmel.util.SoTValue;
-import gov.noaa.pmel.util.TimeRange;
 
 /**
  * Performs a linear transformation on cartesian axes. If the transformtion is for space the
@@ -67,34 +65,6 @@ public class LinearTransform extends AxisTransform implements Cloneable {
 
   /**
    * <code>LinearTransform</code> constructor. This constructor is used to define transforms that
-   * use <code>GeoDate</code> user values.
-   *
-   * @param p1 minimum value, physical coordinates
-   * @param p2 maximum value, physical coordinates
-   * @param t1 minimum time
-   * @param t2 maximum time
-   * @see GeoDate
-   */
-  public LinearTransform(double p1, double p2, GeoDate t1, GeoDate t2) {
-    super(p1, p2, t1, t2);
-  }
-
-  /**
-   * <code>LinearTransform</code> constructor. This constructor is used to define transforms that
-   * use <code>GeoDate</code> user values.
-   *
-   * @param pr physical coordinates range
-   * @param tr time range
-   * @see Range2D
-   * @see TimeRange
-   * @see GeoDate
-   */
-  public LinearTransform(Range2D pr, TimeRange tr) {
-    super(pr, tr);
-  }
-
-  /**
-   * <code>LinearTransform</code> constructor. This constructor is used to define transforms that
    * use <code>SoTRange</code> user values.
    *
    * @since 2.0
@@ -131,7 +101,7 @@ public class LinearTransform extends AxisTransform implements Cloneable {
     } catch (CloneNotSupportedException e) {
       newTransform = new LinearTransform();
     }
-    return (AxisTransform) newTransform;
+    return newTransform;
   }
 
   //
@@ -143,18 +113,7 @@ public class LinearTransform extends AxisTransform implements Cloneable {
    */
   @Override
   public double getTransP(GeoDate t) {
-    return (double) (at_ * t.getTime() + bt_);
-  }
-
-  @Override
-  public double getTransP(SoTValue v) {
-    if (v.isTime()) {
-      long t = v.getLongTime();
-      return (double) at_ * t + bt_;
-    } else {
-      double u = ((SoTValue.Double) v).getValue();
-      return a_ * u + b_;
-    }
+    return at_ * t.getTime() + bt_;
   }
 
   /**
@@ -164,50 +123,7 @@ public class LinearTransform extends AxisTransform implements Cloneable {
    */
   @Override
   public double getTransP(long t) {
-    return (double) at_ * t + bt_;
-  }
-
-  /**
-   * Transform from physical to user coordinates.
-   *
-   * @param p physical value
-   * @return user value
-   */
-  @Override
-  public double getTransU(double p) {
-    return (p - b_) / a_;
-  }
-
-  /**
-   * Transform from physical coordinates to time.
-   *
-   * @param p physical value
-   * @return time value
-   */
-  @Override
-  public GeoDate getTimeTransU(double p) {
-    return new GeoDate((long) ((p - bt_) / at_));
-  }
-
-  /**
-   * Transform from physical coordinates to <code>long</code> representation of time.
-   *
-   * @since 3.0
-   * @param p physical value
-   * @return milliseconds since 1970-01-01
-   */
-  @Override
-  public long getLongTimeTransU(double p) {
-    return (long) ((p - bt_) / at_);
-  }
-
-  @Override
-  public SoTValue getSoTTransU(double p) {
-    if (!space_) {
-      return new SoTValue.Time((long) ((p - bt_) / at_));
-    } else {
-      return new SoTValue.Double((p - b_) / a_);
-    }
+    return at_ * t + bt_;
   }
 
   //

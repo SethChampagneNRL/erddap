@@ -43,15 +43,11 @@ class SgtGraphTests {
     boolean xIsLogAxis = false;
     boolean yIsLogAxis = false;
     // AttributedString2.verbose = true;
-    long time = System.currentTimeMillis();
     String tempDir = SSR.getTempDirectory();
     SgtGraph sgtGraph =
         new SgtGraph("SansSerif"); // "DejaVu Sans" "Bitstream Vera Sans"); //"SansSerif" is safe
     // choice
-    String imageDir =
-        EDStatic.getWebInfParentDirectory()
-            + // with / separator and / at the end
-            "images/";
+    String imageDir = EDStatic.config.imageDir;
 
     int width = 400;
     int height = 600;
@@ -91,7 +87,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_SMALL,
             0, // vectorStandard
             GraphDataLayer.REGRESS_MEAN);
-    ArrayList<GraphDataLayer> graphDataLayers1 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers1 = new ArrayList<>();
     graphDataLayers1.add(graphDataLayer);
 
     // graph 1: plus 100 random points of each marker type
@@ -174,12 +170,12 @@ class SgtGraphTests {
           SgtGraph.DefaultBackgroundColor,
           1); // fontScale
       String fileName = tempDir + "SgtGraphMemoryTest" + rep + ".png";
-      SgtUtil.saveImage(bufferedImage1, fileName);
+      Image2Tests.saveImage(bufferedImage1, fileName);
 
       // view it in browser?
       // Graph of random points seems like its going to fail image diff eery time.
       // if (rep == 0) {
-      //   // Test.displayInBrowser("file://" + fileName);
+      //   // TestUtil.displayInBrowser("file://" + fileName);
       //   Image2Tests.testImagesIdentical(
       //       fileName,
       //       String2.unitTestImagesDir() + "SgtGraphMemoryTest" + rep + ".png",
@@ -251,10 +247,7 @@ class SgtGraphTests {
     SgtGraph sgtGraph =
         new SgtGraph("SansSerif"); // "DejaVu Sans" "Bitstream Vera Sans"); //"SansSerif" is safe
     // choice
-    String imageDir =
-        EDStatic.getWebInfParentDirectory()
-            + // with / separator and / at the end
-            "images/";
+    String imageDir = EDStatic.config.imageDir;
     String baseImageName =
         "SgtGraph_testDiverseGraphs_" + (xIsLogAxis ? "X" : "") + (yIsLogAxis ? "Y" : "");
 
@@ -334,7 +327,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_SMALL,
             0, // vectorStandard
             GraphDataLayer.REGRESS_MEAN);
-    ArrayList<GraphDataLayer> graphDataLayers1 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers1 = new ArrayList<>();
     graphDataLayers1.add(graphDataLayer);
 
     // graph 1: plus 10 random points of each marker type
@@ -408,7 +401,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_MEDIUM,
             0, // vectorStandard
             GraphDataLayer.REGRESS_MEAN);
-    ArrayList<GraphDataLayer> graphDataLayers2 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers2 = new ArrayList<>();
     graphDataLayers2.add(graphDataLayer);
 
     // graph 3: make a graphDataLayer with data for a sticks graph
@@ -438,7 +431,7 @@ class SgtGraphTests {
             0,
             0, // vectorStandard
             GraphDataLayer.REGRESS_MEAN);
-    ArrayList graphDataLayers3 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers3 = new ArrayList<>();
     graphDataLayers3.add(graphDataLayer);
 
     // graph 4: make a graphDataLayer with data for a time series line
@@ -468,7 +461,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_MEDIUM,
             0, // vectorStandard
             GraphDataLayer.REGRESS_NONE);
-    ArrayList graphDataLayers4 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers4 = new ArrayList<>();
     graphDataLayers4.add(graphDataLayer);
 
     // graph 4: plus 10 random points of each marker type
@@ -540,7 +533,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_SMALL,
             0, // vectorStandard
             GraphDataLayer.REGRESS_NONE);
-    ArrayList<GraphDataLayer> graphDataLayers5 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers5 = new ArrayList<>();
     graphDataLayers5.add(graphDataLayer);
 
     // graph 6: make a graphDataLayer with data for a x=data, y=time line
@@ -570,7 +563,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_SMALL,
             0, // vectorStandard
             GraphDataLayer.REGRESS_MEAN);
-    ArrayList graphDataLayers6 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers6 = new ArrayList<>();
     graphDataLayers6.add(graphDataLayer);
 
     // draw the graph with data
@@ -954,27 +947,27 @@ class SgtGraphTests {
     File2.delete(fileName + "6.png");
 
     // save image
-    SgtUtil.saveImage(bufferedImage, fileName + ".png");
+    Image2Tests.saveImage(bufferedImage, fileName + ".png");
     if (testAllAndDisplay) {
-      SgtUtil.saveImage(bufferedImage1, fileName + "1.png");
-      SgtUtil.saveImage(bufferedImage2, fileName + "2.png");
-      SgtUtil.saveImage(bufferedImage3, fileName + "3.png");
-      SgtUtil.saveImage(bufferedImage4, fileName + "4.png");
-      SgtUtil.saveImage(bufferedImage5, fileName + "5.png");
-      SgtUtil.saveImage(bufferedImage6, fileName + "6.png");
+      Image2Tests.saveImage(bufferedImage1, fileName + "1.png");
+      Image2Tests.saveImage(bufferedImage2, fileName + "2.png");
+      Image2Tests.saveImage(bufferedImage3, fileName + "3.png");
+      Image2Tests.saveImage(bufferedImage4, fileName + "4.png");
+      Image2Tests.saveImage(bufferedImage5, fileName + "5.png");
+      Image2Tests.saveImage(bufferedImage6, fileName + "6.png");
     } else {
       String2.log("fileName=" + fileName + ".png");
     }
 
     // view it
-    // Test.displayInBrowser("file://" + fileName + ".png");
+    // TestUtil.displayInBrowser("file://" + fileName + ".png");
     Image2Tests.testImagesIdentical(
         baseImageName + ".png", baseImageName + ".png", baseImageName + "_diff.png");
     Math2.sleep(2000);
 
     if (testAllAndDisplay) {
       for (int ti = 1; ti <= 6; ti++) {
-        // Test.displayInBrowser("file://" + fileName + ti + ".png");
+        // TestUtil.displayInBrowser("file://" + fileName + ti + ".png");
         Image2Tests.testImagesIdentical(
             baseImageName + ti + ".png",
             baseImageName + ti + ".png",
@@ -1027,10 +1020,7 @@ class SgtGraphTests {
     SgtGraph sgtGraph =
         new SgtGraph("SansSerif"); // "DejaVu Sans" "Bitstream Vera Sans"); //"SansSerif" is safe
     // choice
-    String imageDir =
-        EDStatic.getWebInfParentDirectory()
-            + // with / separator and / at the end
-            "images/";
+    String imageDir = EDStatic.config.imageDir;
 
     int width = 400;
     int height = 300;
@@ -1054,7 +1044,7 @@ class SgtGraphTests {
         new CompoundColorMap(
             // String baseDir, String palette, String scale, double minData,
             // double maxData, int nSections, boolean continuous, String resultDir)
-            EDStatic.getWebInfParentDirectory() + "WEB-INF/cptfiles/",
+            EDStatic.config.fullPaletteDirectory,
             "Rainbow",
             "linear",
             0,
@@ -1090,7 +1080,7 @@ class SgtGraphTests {
             GraphDataLayer.MARKER_SIZE_SMALL,
             0, // vectorStandard
             GraphDataLayer.REGRESS_NONE);
-    ArrayList<GraphDataLayer> graphDataLayers1 = new ArrayList();
+    ArrayList<GraphDataLayer> graphDataLayers1 = new ArrayList<>();
     graphDataLayers1.add(graphDataLayer);
 
     // draw the graph with data
@@ -1216,10 +1206,10 @@ class SgtGraphTests {
     // save image
     String fileName = "SgtGraphTestSurface" + (xIsLogAxis ? "X" : "") + (yIsLogAxis ? "Y" : "");
     String obsDir = Image2Tests.urlToAbsolutePath(Image2Tests.OBS_DIR);
-    SgtUtil.saveImage(bufferedImage, obsDir + fileName + ".png");
+    Image2Tests.saveImage(bufferedImage, obsDir + fileName + ".png");
 
     // view it
-    // Test.displayInBrowser("file://" + fileName);
+    // TestUtil.displayInBrowser("file://" + fileName);
     Image2Tests.testImagesIdentical(fileName + ".png", fileName + ".png", fileName + "_diff.png");
 
     Math2.gc("SgtGraph.testSurface (between tests)", 2000);

@@ -5,7 +5,8 @@
  */
 package com.cohort.array;
 
-import com.cohort.util.*;
+import com.cohort.util.Math2;
+import com.cohort.util.String2;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -341,7 +342,7 @@ public class ShortArray extends PrimitiveArray {
   @Override
   public void addObject(final Object value) {
     // double is good intermediate because it has the idea of NaN
-    addDouble(value != null && value instanceof Number nu ? nu.doubleValue() : Double.NaN);
+    addDouble(value instanceof Number nu ? nu.doubleValue() : Double.NaN);
   }
 
   /**
@@ -1113,11 +1114,10 @@ public class ShortArray extends PrimitiveArray {
    */
   @Override
   public String testEquals(final Object o) {
-    if (!(o instanceof ShortArray))
+    if (!(o instanceof ShortArray other))
       return "The two objects aren't equal: this object is a ShortArray; the other is a "
           + (o == null ? "null" : o.getClass().getName())
           + ".";
-    final ShortArray other = (ShortArray) o;
     if (other.size() != size)
       return "The two ShortArrays aren't equal: one has "
           + size
@@ -1404,22 +1404,22 @@ public class ShortArray extends PrimitiveArray {
     }
 
     // make a hashMap with all the unique values (associated values are initially all dummy)
-    final Integer dummy = Integer.valueOf(-1);
-    final HashMap hashMap = new HashMap(Math2.roundToInt(1.4 * size));
+    final Integer dummy = -1;
+    final HashMap<Short, Integer> hashMap = new HashMap<>(Math2.roundToInt(1.4 * size));
     short lastValue = array[0]; // since lastValue often equals currentValue, cache it
-    hashMap.put(Short.valueOf(lastValue), dummy);
+    hashMap.put(lastValue, dummy);
     boolean alreadySorted = true;
     for (int i = 1; i < size; i++) {
       short currentValue = array[i];
       if (currentValue != lastValue) {
         if (currentValue < lastValue) alreadySorted = false;
         lastValue = currentValue;
-        hashMap.put(Short.valueOf(lastValue), dummy);
+        hashMap.put(lastValue, dummy);
       }
     }
 
     // quickly deal with: all unique and already sorted
-    final Set keySet = hashMap.keySet();
+    final Set<Short> keySet = hashMap.keySet();
     final int nUnique = keySet.size();
     if (nUnique == size && alreadySorted) {
       indices.ensureCapacity(size);
@@ -1428,8 +1428,8 @@ public class ShortArray extends PrimitiveArray {
     }
 
     // store all the elements in an array
-    final Object unique[] = new Object[nUnique];
-    final Iterator iterator = keySet.iterator();
+    final short[] unique = new short[nUnique];
+    final Iterator<Short> iterator = keySet.iterator();
     int count = 0;
     while (iterator.hasNext()) unique[count++] = iterator.next();
     if (nUnique != count)
@@ -1440,24 +1440,21 @@ public class ShortArray extends PrimitiveArray {
     Arrays.sort(unique);
 
     // put the unique values back in the hashMap with the ranks as the associated values
-    // and make tUnique
-    final short tUnique[] = new short[nUnique];
     for (int i = 0; i < count; i++) {
-      hashMap.put(unique[i], Integer.valueOf(i));
-      tUnique[i] = ((Short) unique[i]).shortValue();
+      hashMap.put(unique[i], i);
     }
 
     // convert original values to ranks
     final int ranks[] = new int[size];
     lastValue = array[0];
-    ranks[0] = ((Integer) hashMap.get(Short.valueOf(lastValue))).intValue();
+    ranks[0] = (Integer) hashMap.get(lastValue);
     int lastRank = ranks[0];
     for (int i = 1; i < size; i++) {
       if (array[i] == lastValue) {
         ranks[i] = lastRank;
       } else {
         lastValue = array[i];
-        ranks[i] = ((Integer) hashMap.get(Short.valueOf(lastValue))).intValue();
+        ranks[i] = (Integer) hashMap.get(lastValue);
         lastRank = ranks[i];
       }
     }
@@ -1465,7 +1462,7 @@ public class ShortArray extends PrimitiveArray {
     // store the results in ranked
     indices.append(new IntArray(ranks));
 
-    return new ShortArray(tUnique);
+    return new ShortArray(unique);
   }
 
   /**

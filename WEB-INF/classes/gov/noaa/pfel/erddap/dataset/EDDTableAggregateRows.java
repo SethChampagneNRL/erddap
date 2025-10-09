@@ -13,12 +13,18 @@ import com.cohort.util.MustBe;
 import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import com.cohort.util.Test;
+import gov.noaa.pfel.coastwatch.pointdata.Table;
+import gov.noaa.pfel.coastwatch.util.FileVisitorDNLS;
 import gov.noaa.pfel.coastwatch.util.SimpleXMLReader;
 import gov.noaa.pfel.erddap.Erddap;
+import gov.noaa.pfel.erddap.dataset.metadata.LocalizedAttributes;
 import gov.noaa.pfel.erddap.handlers.EDDTableAggregateRowsHandler;
 import gov.noaa.pfel.erddap.handlers.SaxHandlerClass;
+import gov.noaa.pfel.erddap.util.EDMessages;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
 import gov.noaa.pfel.erddap.variable.*;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 
 /**
@@ -58,8 +64,8 @@ public class EDDTableAggregateRows extends EDDTable {
     // data to be obtained (or not)
     if (verbose) String2.log("\n*** constructing EDDTableAggregateRows(xmlReader)...");
     String tDatasetID = xmlReader.attributeValue("datasetID");
-    ArrayList<EDDTable> tChildren = new ArrayList();
-    Attributes tAddGlobalAttributes = null;
+    ArrayList<EDDTable> tChildren = new ArrayList<>();
+    LocalizedAttributes tAddGlobalAttributes = null;
     String tAccessibleTo = null;
     String tGraphsAccessibleTo = null;
     StringArray tOnChange = new StringArray();
@@ -85,61 +91,57 @@ public class EDDTableAggregateRows extends EDDTable {
       String localTags = tags.substring(startOfTagsLength);
 
       // try to make the tag names as consistent, descriptive and readable as possible
-      if (localTags.equals("<dataset>")) {
-        if ("false".equals(xmlReader.attributeValue("active"))) {
-          // skip it - read to </dataset>
-          if (verbose)
-            String2.log(
-                "  skipping datasetID="
-                    + xmlReader.attributeValue("datasetID")
-                    + " because active=\"false\".");
-          while (xmlReader.stackSize() != startOfTagsN + 1
-              || !xmlReader.allTags().substring(startOfTagsLength).equals("</dataset>")) {
-            xmlReader.nextTag();
-            // String2.log("  skippping tags: " + xmlReader.allTags());
+      switch (localTags) {
+        case "<dataset>" -> {
+          if ("false".equals(xmlReader.attributeValue("active"))) {
+            // skip it - read to </dataset>
+            if (verbose)
+              String2.log(
+                  "  skipping datasetID="
+                      + xmlReader.attributeValue("datasetID")
+                      + " because active=\"false\".");
+            while (xmlReader.stackSize() != startOfTagsN + 1
+                || !xmlReader.allTags().substring(startOfTagsLength).equals("</dataset>")) {
+              xmlReader.nextTag();
+              // String2.log("  skippping tags: " + xmlReader.allTags());
+            }
+
+          } else {
+            String tType = xmlReader.attributeValue("type");
+            if (tType == null || !tType.startsWith("EDDTable"))
+              throw new SimpleException(
+                  "type=\""
+                      + tType
+                      + "\" is not allowed for the dataset within the EDDTableAggregateRows. "
+                      + "The type MUST start with \"EDDTable\".");
+            tChildren.add((EDDTable) EDD.fromXml(tErddap, tType, xmlReader));
           }
-
-        } else {
-          String tType = xmlReader.attributeValue("type");
-          if (tType == null || !tType.startsWith("EDDTable"))
-            throw new SimpleException(
-                "type=\""
-                    + tType
-                    + "\" is not allowed for the dataset within the EDDTableAggregateRows. "
-                    + "The type MUST start with \"EDDTable\".");
-          tChildren.add((EDDTable) EDD.fromXml(tErddap, tType, xmlReader));
         }
-
-      } else if (localTags.equals("<accessibleTo>")) {
-      }
-      // accessibleTo overwrites any child accessibleTo
-      else if (localTags.equals("</accessibleTo>")) tAccessibleTo = content;
-      else if (localTags.equals("<graphsAccessibleTo>")) {
-      } else if (localTags.equals("</graphsAccessibleTo>")) tGraphsAccessibleTo = content;
-      else if (localTags.equals("<reloadEveryNMinutes>")) {
-      } else if (localTags.equals("</reloadEveryNMinutes>"))
-        tReloadEveryNMinutes = String2.parseInt(content);
-      else if (localTags.equals("<updateEveryNMillis>")) {
-      } else if (localTags.equals("</updateEveryNMillis>"))
-        tUpdateEveryNMillis = String2.parseInt(content);
-      else if (localTags.equals("<onChange>")) {
-      } else if (localTags.equals("</onChange>")) tOnChange.add(content);
-      else if (localTags.equals("<fgdcFile>")) {
-      } else if (localTags.equals("</fgdcFile>")) tFgdcFile = content;
-      else if (localTags.equals("<iso19115File>")) {
-      } else if (localTags.equals("</iso19115File>")) tIso19115File = content;
-      else if (localTags.equals("<sosOfferingPrefix>")) {
-      } else if (localTags.equals("</sosOfferingPrefix>")) tSosOfferingPrefix = content;
-      else if (localTags.equals("<defaultDataQuery>")) {
-      } else if (localTags.equals("</defaultDataQuery>")) tDefaultDataQuery = content;
-      else if (localTags.equals("<defaultGraphQuery>")) {
-      } else if (localTags.equals("</defaultGraphQuery>")) tDefaultGraphQuery = content;
-      else if (localTags.equals("<addVariablesWhere>")) {
-      } else if (localTags.equals("</addVariablesWhere>")) tAddVariablesWhere = content;
-      else if (localTags.equals("<addAttributes>")) {
-        tAddGlobalAttributes = getAttributesFromXml(xmlReader);
-      } else {
-        xmlReader.unexpectedTagException();
+        case "<accessibleTo>",
+            "<addVariablesWhere>",
+            "<defaultGraphQuery>",
+            "<defaultDataQuery>",
+            "<sosOfferingPrefix>",
+            "<iso19115File>",
+            "<fgdcFile>",
+            "<onChange>",
+            "<updateEveryNMillis>",
+            "<reloadEveryNMinutes>",
+            "<graphsAccessibleTo>" -> {}
+          // accessibleTo overwrites any child accessibleTo
+        case "</accessibleTo>" -> tAccessibleTo = content;
+        case "</graphsAccessibleTo>" -> tGraphsAccessibleTo = content;
+        case "</reloadEveryNMinutes>" -> tReloadEveryNMinutes = String2.parseInt(content);
+        case "</updateEveryNMillis>" -> tUpdateEveryNMillis = String2.parseInt(content);
+        case "</onChange>" -> tOnChange.add(content);
+        case "</fgdcFile>" -> tFgdcFile = content;
+        case "</iso19115File>" -> tIso19115File = content;
+        case "</sosOfferingPrefix>" -> tSosOfferingPrefix = content;
+        case "</defaultDataQuery>" -> tDefaultDataQuery = content;
+        case "</defaultGraphQuery>" -> tDefaultGraphQuery = content;
+        case "</addVariablesWhere>" -> tAddVariablesWhere = content;
+        case "<addAttributes>" -> tAddGlobalAttributes = getAttributesFromXml(xmlReader);
+        default -> xmlReader.unexpectedTagException();
       }
     }
 
@@ -182,13 +184,14 @@ public class EDDTableAggregateRows extends EDDTable {
       String tDefaultDataQuery,
       String tDefaultGraphQuery,
       String tAddVariablesWhere,
-      Attributes tAddGlobalAttributes,
+      LocalizedAttributes tAddGlobalAttributes,
       int tReloadEveryNMinutes,
       int tUpdateEveryNMillis,
       EDDTable oChildren[])
       throws Throwable {
 
     if (verbose) String2.log("\n*** constructing EDDTableAggregateRows " + tDatasetID);
+    int language = EDMessages.DEFAULT_LANGUAGE;
     long constructionStartMillis = System.currentTimeMillis();
     String errorInMethod = "Error in EDDTableAggregateRows(" + tDatasetID + ") constructor:\n";
 
@@ -277,14 +280,17 @@ public class EDDTableAggregateRows extends EDDTable {
     EDDTable child0 = tChildren[0];
 
     // global attributes
-    sourceGlobalAttributes = child0.combinedGlobalAttributes;
-    addGlobalAttributes = tAddGlobalAttributes == null ? new Attributes() : tAddGlobalAttributes;
+    sourceGlobalAttributes = child0.combinedGlobalAttributes.toAttributes(language);
+    addGlobalAttributes =
+        tAddGlobalAttributes == null ? new LocalizedAttributes() : tAddGlobalAttributes;
     combinedGlobalAttributes =
-        new Attributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
-    String tLicense = combinedGlobalAttributes.getString("license");
+        new LocalizedAttributes(addGlobalAttributes, sourceGlobalAttributes); // order is important
+    String tLicense = combinedGlobalAttributes.getString(language, "license");
     if (tLicense != null)
       combinedGlobalAttributes.set(
-          "license", String2.replaceAll(tLicense, "[standard]", EDStatic.standardLicense));
+          language,
+          "license",
+          String2.replaceAll(tLicense, "[standard]", EDStatic.messages.standardLicense));
     combinedGlobalAttributes.removeValue("\"null\"");
 
     // specify what sourceCanConstrain
@@ -302,8 +308,8 @@ public class EDDTableAggregateRows extends EDDTable {
       // variables in this class just see the destination name/type/... of the child0 variable
       EDV childVar = child0.dataVariables[dv];
       String tSourceName = childVar.destinationName();
-      Attributes tSourceAtts = childVar.combinedAttributes();
-      Attributes tAddAtts = new Attributes();
+      Attributes tSourceAtts = childVar.combinedAttributes().toAttributes(language);
+      LocalizedAttributes tAddAtts = new LocalizedAttributes();
       String tDataType = childVar.destinationDataType();
       String tUnits = childVar.units();
       double tMV = childVar.destinationMissingValue();
@@ -402,7 +408,7 @@ public class EDDTableAggregateRows extends EDDTable {
                 tAddAtts,
                 tDataType); // this constructor gets source / sets destination actual_range
         timeIndex = dv;
-      } else if (EDVTimeStamp.hasTimeUnits(tSourceAtts, tAddAtts)) {
+      } else if (EDVTimeStamp.hasTimeUnits(language, tSourceAtts, tAddAtts)) {
         newVar =
             new EDVTimeStamp(
                 datasetID,
@@ -414,7 +420,7 @@ public class EDDTableAggregateRows extends EDDTable {
       } else
         newVar = new EDV(datasetID, tSourceName, "", tSourceAtts, tAddAtts, tDataType, tMin, tMax);
 
-      newVar.setActualRangeFromDestinationMinMax();
+      newVar.setActualRangeFromDestinationMinMax(language);
       dataVariables[dv] = newVar;
     }
 
@@ -433,7 +439,7 @@ public class EDDTableAggregateRows extends EDDTable {
     long cTime = System.currentTimeMillis() - constructionStartMillis;
     if (verbose)
       String2.log(
-          (debugMode ? "\n" + toString() : "")
+          (debugMode ? "\n" + this : "")
               + "\n*** EDDTableAggregateRows "
               + datasetID
               + " constructor finished. TIME="
@@ -505,7 +511,7 @@ public class EDDTableAggregateRows extends EDDTable {
     }
     for (int dvi = 0; dvi < ndv; dvi++) {
       dataVariables[dvi].setDestinationMinMax(tMin[dvi], tMax[dvi]);
-      dataVariables[dvi].setActualRangeFromDestinationMinMax();
+      dataVariables[dvi].setActualRangeFromDestinationMinMax(language);
     }
 
     return anyChange;
@@ -539,7 +545,7 @@ public class EDDTableAggregateRows extends EDDTable {
       if (tChild == null) {
         EDD.requestReloadASAP(localChildrenID[c]);
         throw new WaitThenTryAgainException(
-            EDStatic.simpleBilingual(language, EDStatic.waitThenTryAgainAr)
+            EDStatic.simpleBilingual(language, Message.WAIT_THEN_TRY_AGAIN)
                 + "\n(underlying local child["
                 + c
                 + "] datasetID="
@@ -556,7 +562,7 @@ public class EDDTableAggregateRows extends EDDTable {
    *
    * @param language the index of the selected language
    * @param loggedInAs the user's login name if logged in (or null if not logged in).
-   * @param requestUrl the part of the user's request, after EDStatic.baseUrl, before '?'.
+   * @param requestUrl the part of the user's request, after EDStatic.config.baseUrl, before '?'.
    * @param userDapQuery the part of the user's request after the '?', still percentEncoded, may be
    *     null.
    * @param tableWriter
@@ -603,5 +609,20 @@ public class EDDTableAggregateRows extends EDDTable {
     // finish
     tableWriter.ignoreFinish = false;
     tableWriter.finish();
+  }
+
+  @Override
+  public Table getFilesUrlList(HttpServletRequest request, String loggedInAs, int language)
+      throws Throwable {
+    Table table = FileVisitorDNLS.makeEmptyTable();
+    for (int child = 0; child < children.length; child++) {
+      if (children[child].accessibleViaFiles) {
+        Table childTable = children[child].getFilesUrlList(request, loggedInAs, language);
+        if (childTable != null) {
+          table.append(childTable);
+        }
+      }
+    }
+    return table;
   }
 }

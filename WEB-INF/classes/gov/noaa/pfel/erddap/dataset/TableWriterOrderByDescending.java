@@ -7,6 +7,7 @@ package gov.noaa.pfel.erddap.dataset;
 import com.cohort.util.SimpleException;
 import com.cohort.util.String2;
 import gov.noaa.pfel.coastwatch.pointdata.Table;
+import gov.noaa.pfel.erddap.util.EDMessages.Message;
 import gov.noaa.pfel.erddap.util.EDStatic;
 
 /**
@@ -55,17 +56,17 @@ public class TableWriterOrderByDescending extends TableWriterAll {
     super(tLanguage, tEdd, tNewHistory, tDir, tFileNameNoExt);
     otherTableWriter = tOtherTableWriter;
     String err =
-        EDStatic.simpleBilingual(language, EDStatic.queryErrorAr)
+        EDStatic.simpleBilingual(language, Message.QUERY_ERROR)
             + "No column names were specified for 'orderByDescending'.";
     if (tOrderByCsv == null || tOrderByCsv.trim().length() == 0) throw new SimpleException(err);
     orderBy = String2.split(tOrderByCsv, ',');
     if (orderBy.length == 0) throw new SimpleException(err);
-    for (int i = 0; i < orderBy.length; i++)
-      if (orderBy[i].indexOf('/') >= 0)
+    for (String s : orderBy)
+      if (s.indexOf('/') >= 0)
         throw new SimpleException(
-            EDStatic.simpleBilingual(language, EDStatic.queryErrorAr)
+            EDStatic.simpleBilingual(language, Message.QUERY_ERROR)
                 + "'orderByDescending' doesn't support '/' ("
-                + orderBy[i]
+                + s
                 + ").");
   }
 
@@ -115,12 +116,20 @@ public class TableWriterOrderByDescending extends TableWriterAll {
       keys[ob] = table.findColumnNumber(orderBy[ob]);
       if (keys[ob] < 0)
         throw new SimpleException(
-            EDStatic.simpleBilingual(language, EDStatic.queryErrorAr)
+            EDStatic.simpleBilingual(language, Message.QUERY_ERROR)
                 + "'orderByDescending' column="
                 + orderBy[ob]
                 + " isn't in the results table.");
     }
 
     table.sort(keys, ascending);
+  }
+
+  @Override
+  public void close() throws Exception {
+    super.close();
+    if (otherTableWriter != null) {
+      otherTableWriter.close();
+    }
   }
 }

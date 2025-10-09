@@ -13,8 +13,14 @@
 package gov.noaa.pmel.sgt;
 
 import gov.noaa.pmel.util.Point2D;
-import gov.noaa.pmel.util.Rectangle2D;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.image.ColorModel;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
@@ -34,10 +40,9 @@ public class LabelDrawer1 implements LabelDrawer, Cloneable {
   private int orient_;
   private int halign_;
   private int valign_;
-  private Point dorigin_;
+  private final Point dorigin_;
   private Rectangle dbounds_;
   private Point2D.Double porigin_;
-  private Rectangle2D.Double pbounds_;
   private Polygon dpolygon_;
   private double angle_;
   private double sinthta_;
@@ -56,33 +61,14 @@ public class LabelDrawer1 implements LabelDrawer, Cloneable {
     //
     dbounds_ = new Rectangle();
     dorigin_ = new Point(0, 0);
-    pbounds_ = new Rectangle2D.Double();
-  }
-
-  public LabelDrawer copy() {
-    LabelDrawer1 newLabel = null;
-    //      try {
-    //        newLabel = (LabelDrawer1)clone();
-    //      } catch (CloneNotSupportedException e) {
-    //        newLabel = new LabelDrawer1(ident_, label_, height_,
-    //  			     porigin_, valign_, halign_);
-    //        newLabel.setColor(clr_);
-    //        newLabel.setFont(font_);
-    //        if(orient_ == ANGLE) {
-    //  	newLabel.setAngle(angle_);
-    //        } else {
-    //  	newLabel.setOrientation(orient_);
-    //        }
-    //      }
-    return newLabel;
   }
 
   @Override
   public void draw(Graphics g) throws LayerNotFoundException {
     FontMetrics fmet;
     int xs, ys;
-    if ((label_.length() <= 0) || !visible_ || g == null) return;
-    if (layer_ == (Layer) null) throw new LayerNotFoundException();
+    if ((label_.length() == 0) || !visible_ || g == null) return;
+    if (layer_ == null) throw new LayerNotFoundException();
     //
     // set label heigth in physical units
     //
@@ -249,11 +235,6 @@ public class LabelDrawer1 implements LabelDrawer, Cloneable {
       g.setPaintMode();
       g.drawImage(vbuf, dbounds_.x, dbounds_.y, layer_.getPane().getComponent());
     }
-  }
-
-  @Override
-  public void setText(String lbl) {
-    label_ = lbl;
   }
 
   @Override
@@ -448,12 +429,6 @@ public class LabelDrawer1 implements LabelDrawer, Cloneable {
   }
 
   @Override
-  public Rectangle2D.Double getBoundsP() {
-    computeBoundsD(layer_.getPane().getComponent().getGraphics());
-    return pbounds_;
-  }
-
-  @Override
   public void setAngle(double angle) {
     angle_ = angle;
     double thta = angle_ * Math.PI / 180.0;
@@ -563,13 +538,6 @@ public class LabelDrawer1 implements LabelDrawer, Cloneable {
     }
     dpolygon_ = new Polygon(xn, yn, 4);
     dbounds_ = dpolygon_.getBounds();
-    //
-    // compute pbounds
-    //
-    pbounds_.x = layer_.getXDtoP(dbounds_.x);
-    pbounds_.y = layer_.getYDtoP(dbounds_.y);
-    pbounds_.width = layer_.getXDtoP(dbounds_.x + dbounds_.width) - pbounds_.x;
-    pbounds_.height = pbounds_.y - layer_.getYDtoP(dbounds_.y + dbounds_.height);
   }
 
   //
@@ -581,7 +549,7 @@ public class LabelDrawer1 implements LabelDrawer, Cloneable {
     int pt_0, pt_1, hgt;
     int count = 1;
     double hgt_0, hgt_1, del_0, del_1;
-    double a, b;
+
     //
     // first guess
     //

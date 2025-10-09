@@ -11,7 +11,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 public class EDDGridFromEDDTableHandler extends BaseGridHandler {
-  private SaxParsingContext context;
+  private final SaxParsingContext context;
 
   public EDDGridFromEDDTableHandler(
       SaxHandler saxHandler, String datasetID, State completeState, SaxParsingContext context) {
@@ -19,7 +19,7 @@ public class EDDGridFromEDDTableHandler extends BaseGridHandler {
     this.context = context;
   }
 
-  private boolean tAccessibleViaFiles = EDStatic.defaultAccessibleViaFiles;
+  private boolean tAccessibleViaFiles = EDStatic.config.defaultAccessibleViaFiles;
   private int tUpdateEveryNMillis = 0;
   private EDDTable tEDDTable = null;
   private int tGapThreshold = 1000;
@@ -83,8 +83,6 @@ public class EDDGridFromEDDTableHandler extends BaseGridHandler {
 
   @Override
   protected EDD buildDataset() throws Throwable {
-    Object[][] ttAxisVariables = convertAxisVariablesToArray();
-    Object[][] ttDataVariables = convertDataVariablesToArray();
     return new EDDGridFromEDDTable(
         datasetID,
         tAccessibleTo,
@@ -97,8 +95,8 @@ public class EDDGridFromEDDTableHandler extends BaseGridHandler {
         tDefaultDataQuery,
         tDefaultGraphQuery,
         tGlobalAttributes,
-        ttAxisVariables,
-        ttDataVariables,
+        tAxisVariables,
+        tDataVariables,
         tReloadEveryNMinutes,
         tUpdateEveryNMillis,
         tGapThreshold,

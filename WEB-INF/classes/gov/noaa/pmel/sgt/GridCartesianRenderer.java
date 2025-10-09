@@ -26,7 +26,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
-import java.util.Enumeration;
+import java.util.Iterator;
 
 /**
  * Produces a cartesian plot from a <code>SGTGrid</code> object.
@@ -87,10 +87,8 @@ public class GridCartesianRenderer extends CartesianRenderer {
 
   //
   private void drawRaster(Graphics g) {
-    int nT, nX, nY, nZ;
     int[] xp, yp;
     int i, j;
-    Color color;
     int xSize, ySize, count;
     double[] xValues, yValues, gValues;
     double val;
@@ -262,17 +260,6 @@ public class GridCartesianRenderer extends CartesianRenderer {
     return attr_;
   }
 
-  /**
-   * Set the <code>GridAttribute</code> for the renderer.
-   *
-   * @since 2.0
-   */
-  public void setAttribute(GridAttribute attr) {
-    if (attr_ != null) attr_.removePropertyChangeListener(this);
-    attr_ = attr;
-    attr_.addPropertyChangeListener(this);
-  }
-
   private void drawRect(Graphics g, int x1, int y1, int x2, int y2) {
     int x, y, width, height;
     if (x1 < x2) {
@@ -434,7 +421,7 @@ public class GridCartesianRenderer extends CartesianRenderer {
           val = clevels.getLevel(i);
           attr = clevels.getDefaultContourLineAttribute(i);
           if (attr.isAutoLabel()) {
-            if (attr.getLabelFormat().length() <= 0) {
+            if (attr.getLabelFormat().length() == 0) {
               format =
                   new Format(
                       Format.computeFormat(range.start, range.end, attr.getSignificantDigits()));
@@ -450,10 +437,10 @@ public class GridCartesianRenderer extends CartesianRenderer {
       }
       con_.generateContourLines();
       con_.generateContourLabels(g);
-      Enumeration elem = con_.elements();
+      Iterator<ContourLine> elem = con_.elements();
       ContourLine cl;
-      while (elem.hasMoreElements()) {
-        cl = (ContourLine) elem.nextElement();
+      while (elem.hasNext()) {
+        cl = elem.next();
         if (Debug.CONTOUR) {
           System.out.println(
               " level = "
@@ -663,10 +650,10 @@ public class GridCartesianRenderer extends CartesianRenderer {
     double zmin = Double.POSITIVE_INFINITY;
     double zmax = Double.NEGATIVE_INFINITY;
     double[] array = grid_.getZArray();
-    for (int i = 0; i < array.length; i++) {
-      if (!Double.isNaN(array[i])) {
-        zmin = Math.min(zmin, array[i]);
-        zmax = Math.max(zmax, array[i]);
+    for (double v : array) {
+      if (!Double.isNaN(v)) {
+        zmin = Math.min(zmin, v);
+        zmax = Math.max(zmax, v);
       }
     }
     range = Graph.computeRange(zmin, zmax, levels);

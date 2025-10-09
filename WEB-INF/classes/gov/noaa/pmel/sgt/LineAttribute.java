@@ -12,7 +12,7 @@
 
 package gov.noaa.pmel.sgt;
 
-import java.awt.*;
+import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Objects;
@@ -31,7 +31,6 @@ public class LineAttribute implements Attribute, Cloneable {
   protected transient PropertyChangeSupport changes_ = new PropertyChangeSupport(this);
 
   private boolean batch_ = false;
-  private boolean local_ = true;
   private boolean modified_ = false;
   private String id_ = null;
   private Color color_ = Color.black;
@@ -44,8 +43,6 @@ public class LineAttribute implements Attribute, Cloneable {
   private int cap_style_ = CAP_SQUARE;
   private int miter_style_ = JOIN_MITER;
   private float miter_limit_ = 10.0f;
-
-  private static float HEAVY_WIDTH = 2.0f;
 
   /** Solid line style. */
   public static final int SOLID = 0;
@@ -99,6 +96,7 @@ public class LineAttribute implements Attribute, Cloneable {
   /** Construct <code>LineAttribute</code> with <code>Color.black</code>. */
   public LineAttribute(int style) {
     style_ = style;
+    float HEAVY_WIDTH = 2.0f;
     if (style_ == HEAVY) width_ = HEAVY_WIDTH;
   }
 
@@ -146,10 +144,10 @@ public class LineAttribute implements Attribute, Cloneable {
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof LineAttribute)) return false;
-    LineAttribute attr = (LineAttribute) obj;
-    if ((id_ != attr.getId()) || !color_.equals(attr.getColor()) || (style_ != attr.getStyle()))
-      return false;
+    if (!(obj instanceof LineAttribute attr)) return false;
+    if (!Objects.equals(id_, attr.getId())
+        || !color_.equals(attr.getColor())
+        || (style_ != attr.getStyle())) return false;
     if (style_ == MARK || style_ == MARK_LINE) {
       if ((mark_ != attr.getMark()) || (markHeightP_ != attr.getMarkHeightP())) return false;
     }
@@ -166,10 +164,10 @@ public class LineAttribute implements Attribute, Cloneable {
           if (dashes_[i] != dar[i]) return false;
         }
       }
-      if ((dashPhase_ != attr.getDashPhase())
-          || (cap_style_ != attr.getCapStyle())
-          || (miter_style_ != attr.getMiterStyle())
-          || (miter_limit_ != attr.getMiterLimit())) return false;
+      return (dashPhase_ == attr.getDashPhase())
+          && (cap_style_ == attr.getCapStyle())
+          && (miter_style_ == attr.getMiterStyle())
+          && (miter_limit_ == attr.getMiterLimit());
     }
     return true;
   }
@@ -177,20 +175,6 @@ public class LineAttribute implements Attribute, Cloneable {
   @Override
   public int hashCode() {
     return Objects.hash(id_, color_, style_);
-  }
-
-  /**
-   * Set mark height. <br>
-   * <strong>Property Change:</strong> <code>markHeightP</code>.
-   *
-   * @param markh mark height
-   */
-  public void setMarkHeightP(double markh) {
-    if (markHeightP_ != markh) {
-      Double tempOld = Double.valueOf(markHeightP_);
-      markHeightP_ = markh;
-      firePropertyChange("markHeightP", tempOld, Double.valueOf(markHeightP_));
-    }
   }
 
   /**
@@ -210,9 +194,9 @@ public class LineAttribute implements Attribute, Cloneable {
    */
   public void setStyle(int st) {
     if (style_ != st) {
-      Integer tempOld = Integer.valueOf(style_);
+      Integer tempOld = style_;
       style_ = st;
-      firePropertyChange("style", tempOld, Integer.valueOf(style_));
+      firePropertyChange("style", tempOld, style_);
     }
   }
 
@@ -238,9 +222,9 @@ public class LineAttribute implements Attribute, Cloneable {
    */
   public void setWidth(float t) {
     if (width_ != t) {
-      Float tempOld = Float.valueOf(width_);
+      Float tempOld = width_;
       width_ = t;
-      firePropertyChange("width", tempOld, Float.valueOf(width_));
+      firePropertyChange("width", tempOld, width_);
     }
   }
 
@@ -285,9 +269,9 @@ public class LineAttribute implements Attribute, Cloneable {
    */
   public void setDashPhase(float phase) {
     if (dashPhase_ != phase) {
-      Float tempOld = Float.valueOf(dashPhase_);
+      Float tempOld = dashPhase_;
       dashPhase_ = phase;
-      firePropertyChange("dashPhase", tempOld, Float.valueOf(dashPhase_));
+      firePropertyChange("dashPhase", tempOld, dashPhase_);
     }
   }
 
@@ -328,22 +312,6 @@ public class LineAttribute implements Attribute, Cloneable {
   }
 
   /**
-   * Set plot mark <br>
-   * <strong>Property Change:</strong> <code>mark</code>.
-   *
-   * @param mark the plot mark
-   */
-  public void setMark(int mark) {
-    if (mark_ != mark) {
-      Integer tempOld = Integer.valueOf(mark_);
-      if (mark <= 0) mark = 1;
-      if (mark > 51) mark = 51;
-      mark_ = mark;
-      firePropertyChange("mark", tempOld, Integer.valueOf(mark_));
-    }
-  }
-
-  /**
    * Get plot mark
    *
    * @return plot mark
@@ -352,52 +320,14 @@ public class LineAttribute implements Attribute, Cloneable {
     return mark_;
   }
 
-  /**
-   * Set the current line cap style. Cap styles include <code>CAP_BUTT</code>, <code>CAP_ROUND
-   * </code>, and <code>CAP_SQUARE</code>. <br>
-   * <strong>Property Change:</strong> <code>capStyle</code>.
-   */
-  public void setCapStyle(int style) {
-    if (cap_style_ != style) {
-      Integer tempOld = Integer.valueOf(cap_style_);
-      cap_style_ = style;
-      firePropertyChange("capStyle", tempOld, Integer.valueOf(cap_style_));
-    }
-  }
-
   /** Get the current line cap style. */
   public int getCapStyle() {
     return cap_style_;
   }
 
-  /**
-   * Set the current miter style. Styles include <code>JOIN_MITER</code>, <code>JOIN_ROUND</code>,
-   * and <code>JOIN_BEVEL</code>. <br>
-   * <strong>Property Change:</strong> <code>miterStyle</code>.
-   */
-  public void setMiterStyle(int style) {
-    if (miter_style_ != style) {
-      Integer tempOld = Integer.valueOf(miter_style_);
-      miter_style_ = style;
-      firePropertyChange("miterStyle", tempOld, Integer.valueOf(miter_style_));
-    }
-  }
-
   /** Get the current miter sytle. */
   public int getMiterStyle() {
     return miter_style_;
-  }
-
-  /**
-   * Set the miter limit. <br>
-   * <strong>Property Change:</strong> <code>miterLimit</code>.
-   */
-  public void setMiterLimit(float limit) {
-    if (miter_limit_ != limit) {
-      Float tempOld = Float.valueOf(miter_limit_);
-      miter_limit_ = limit;
-      firePropertyChange("miterLimit", tempOld, Float.valueOf(miter_limit_));
-    }
   }
 
   /** Get the current miter limit. */
@@ -449,7 +379,7 @@ public class LineAttribute implements Attribute, Cloneable {
       modified_ = true;
       return;
     }
-    AttributeChangeEvent ace = new AttributeChangeEvent(this, name, oldValue, newValue, local_);
+    AttributeChangeEvent ace = new AttributeChangeEvent(this, name, oldValue, newValue);
     changes_.firePropertyChange(ace);
     modified_ = false;
   }
@@ -467,9 +397,8 @@ public class LineAttribute implements Attribute, Cloneable {
    */
   @Override
   public void setBatch(boolean batch, boolean local) {
-    local_ = local;
     batch_ = batch;
-    if (!batch && modified_) firePropertyChange("batch", Boolean.TRUE, Boolean.FALSE);
+    if (!batch && modified_) firePropertyChange("batch", true, false);
   }
 
   /**

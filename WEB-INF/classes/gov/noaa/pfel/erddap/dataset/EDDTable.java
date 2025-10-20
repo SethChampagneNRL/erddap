@@ -241,6 +241,10 @@ public abstract class EDDTable extends EDD {
 
   protected Table minMaxTable;
 
+  public Table getMinMaxTable() {
+    return minMaxTable;
+  }
+
   /**
    * When inactive, these will be null. addVariablesWhereAttValues parallels
    * addVariablesWhereAttNames.
